@@ -8,6 +8,12 @@ Sistema de suporte de TI: abertura de chamados e inventário de ativos, multi-te
 
 A fonte da verdade sobre arquitetura e stack é [`docs/adr/001-stack.md`](docs/adr/001-stack.md). Este arquivo resume o ADR e acrescenta convenções de trabalho; em caso de dúvida, o ADR vence.
 
+Leia também, antes de qualquer tarefa:
+
+- [`rules/restrictions.md`](rules/restrictions.md): o que você não pode fazer.
+- [`rules/checks.md`](rules/checks.md): o que precisa passar antes de dizer "pronto".
+- [`docs/specs/README.md`](docs/specs/README.md): formato das specs e dos critérios de aceitação (CA-xx).
+
 ## 2. Regras que não se negocia
 
 Extraídas do ADR. Uma linha cada; a justificativa está lá.
@@ -37,10 +43,18 @@ Next.js (App Router) + TypeScript `strict` + tRPC + Prisma + PostgreSQL no Supab
 | `pnpm test` | Vitest inteiro: unit, componentes e integração (exige Docker rodando) |
 | `pnpm test:e2e` | Playwright nos fluxos críticos |
 | `pnpm build` | `next build`; pega erro de fronteira servidor/cliente e de env |
-| `pnpm prisma migrate dev` | cria e aplica migration em dev (usa `DIRECT_URL`) |
+| `pnpm prisma migrate dev` | cria e aplica migration no banco de dev (usa `DIRECT_URL`) |
 | `pnpm prisma db seed` | roda `prisma/seed.ts`, idempotente, cria o tenant `suporte_ti` |
 
 Os scripts nascem com o scaffold do app. Quem alterar `package.json` atualiza esta tabela no mesmo PR.
+
+Bancos, três e só três:
+
+| Banco | Onde | Quem mexe |
+|---|---|---|
+| Produção | projeto Supabase `emprestai` | só o GitHub Actions, via `prisma migrate deploy`. O agente nunca. |
+| Desenvolvimento | projeto Supabase de dev, separado, apontado pelo `.env.local` | o agente, via `prisma migrate dev`, `db seed` e a aplicação. Sem SQL à mão, sem dado real. |
+| Testes | Postgres efêmero do Testcontainers | o globalSetup do Vitest. Nunca teste contra banco remoto. |
 
 Notas operacionais que o ADR não cobre porque a biblioteca mudou:
 
@@ -93,21 +107,22 @@ docs/adr/                        decisões de arquitetura
 
 ## 7. Definição de pronto
 
-Uma tarefa só está pronta quando tudo isto passou, na máquina, antes do push:
+Uma tarefa é um item do plano aprovado e vira um commit. Ela só está pronta quando o procedimento de [`rules/checks.md`](rules/checks.md) passou inteiro na máquina, antes do push. Em resumo:
 
-1. `pnpm lint`
-2. `pnpm typecheck`
-3. `pnpm test` (suite inteira, com Docker para o Testcontainers)
-4. Teste de isolamento entre tenants para **cada** procedure criado ou alterado: tenant A não enxerga nem altera dado de tenant B.
+1. `pnpm lint` e `pnpm typecheck`
+2. `pnpm test` (suite inteira, com Docker para o Testcontainers)
+3. Teste de isolamento entre tenants para **cada** procedure criado ou alterado: tenant A não enxerga nem altera dado de tenant B.
+4. `pnpm test:e2e` só se a tarefa tocou login, abertura de chamado ou cadastro de ativo
 5. `pnpm build`
+6. `git status --short` sem arquivo fora do escopo, e o CA-xx que a tarefa atende
 
-O agente reporta o resultado real de cada item. Se algo falhou ou foi pulado, diz isso explicitamente em vez de declarar a tarefa pronta.
+O agente reporta o resultado real de cada item, colando a última linha da saída. Se algo falhou ou foi pulado, diz isso explicitamente em vez de declarar a tarefa pronta.
 
 ## 8. Não toque sem perguntar
 
 - Migrations já aplicadas em `prisma/migrations/`. Mudança de schema é sempre migration nova.
 - Arquivos `.env*`. O agente não lê nem escreve `.env.local`; só mantém `.env.example` em dia quando cria variável nova.
-- ADRs existentes em `docs/adr/`. Decisão nova vira `docs/adr/00N-<assunto>.md` marcando qual ADR supersede.
+- ADRs existentes em `docs/adr/`. Decisão nova: o agente rascunha `docs/adr/00N-<assunto>.md` com a decisão e as alternativas, marca qual ADR supersede, e para. O time aprova.
 - Policies de RLS, triggers, funções SQL e a tabela de auditoria. Toda mudança nelas passa por revisão humana explícita.
 - Qualquer configuração em Vercel, Supabase ou GitHub Actions de produção.
 - Atualização de dependência com mudança de versão major.
@@ -124,7 +139,8 @@ O agente reporta o resultado real de cada item. Se algo falhou ou foi pulado, di
 | Item | Valor |
 |---|---|
 | GitHub | `Sofia-Bonini-wisdom62/emprestai`, privado |
-| Supabase | projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. Painel: https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
+| Supabase (produção) | projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. Painel: https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
+| Supabase (dev) | projeto separado, a criar; ref registrada aqui quando existir. Até lá, `pnpm dev` não tem banco |
 | Vercel | projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. Produção: https://emprestai-beta.vercel.app |
 | CI | GitHub Actions. Deploy de produção só via Deploy Hook depois do `prisma migrate deploy` (`vercel.json` desliga o deploy por push na `main`) |
 | Variáveis | lista completa e onde cada uma vive em [`.env.example`](.env.example) |
