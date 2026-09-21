@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build
+dist/
+build/
+*.tsbuildinfo
+
+# testes
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# env — nunca commitar valores reais
+.env
+.env.*
+!.env.example
+!.env.test
+.env.sentry-build-plugin
+
+# prisma
+prisma/*.db
+prisma/*.db-journal
+
+# vercel
+.vercel/
+
+# sentry
+.sentryclirc
+
+# ide / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
