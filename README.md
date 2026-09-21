@@ -6,13 +6,14 @@ Sistema de suporte de TI (chamados e inventário de ativos). Projeto de discipli
 
 - [ADR-001 — Stack da aplicação](docs/adr/001-stack.md)
 - [Insumo do ADR (documento de trabalho)](stacks_H.md)
+- [AGENTS.md — como trabalhar neste repositório](AGENTS.md)
 
 ## Infraestrutura
 
 | Item | Onde |
 |---|---|
 | Banco e Auth | Supabase, projeto `emprestai`, região `sa-east-1` |
-| Hospedagem | Vercel, plano Hobby |
+| Hospedagem | Vercel, plano Hobby, produção em https://emprestai-beta.vercel.app |
 | CI | GitHub Actions |
 
 Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. Nada com valor real vai para o repositório.
