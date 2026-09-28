@@ -9,7 +9,7 @@ alwaysApply: true
 
 ## Quando
 Sempre que você for dizer "pronto", "implementado" ou "funcionando".
-Uma tarefa = um item do plano aprovado = um commit.
+A unidade de tarefa é a de `rules/restrictions.md`, seção Ritmo.
 
 ## Procedimento
 1. Rode `pnpm lint` e `pnpm typecheck`. Cole a última linha de cada
@@ -37,10 +37,9 @@ Pronto = todos os passos que se aplicam terminaram sem falha E o
 `git status` não trouxe surpresa. As duas coisas, não uma.
 
 ## Não faça
-- Não relate sucesso parcial. Teste vermelho é tarefa não terminada,
-  mesmo que o código "esteja certo".
 - Não tente consertar a mesma falha duas vezes seguidas sem me mostrar
   a saída do erro.
-- Não rode teste contra banco remoto, nem o de dev.
 - Não pule um passo porque "não mudou nada nessa área". Rode e cole.
-- Não declare pronto com `test.skip`, `it.only` ou lint desligado.
+
+Tudo em `rules/restrictions.md` vale neste momento, sem exceção. Ele é
+a lista das proibições; esta é a do procedimento.

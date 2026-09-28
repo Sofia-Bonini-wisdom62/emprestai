@@ -1,6 +1,6 @@
 # Specs
 
-Uma spec por funcionalidade, em `docs/specs/<feature>.md`, rascunhada a partir de `docs/prd.md`. O agente pode rascunhar; o time aprova antes de qualquer código. Nenhum código de funcionalidade existe sem a spec correspondente (`rules/restrictions.md`, seção Escopo).
+Uma spec por funcionalidade, em `docs/specs/<feature>.md`, derivada de `docs/prd.md`. Quem rascunha, quem aprova e o que isso libera estão em `rules/restrictions.md`, seção Escopo. Este arquivo define só o formato.
 
 ## Formato
 

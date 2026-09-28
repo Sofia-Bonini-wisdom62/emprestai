@@ -27,7 +27,8 @@ alwaysApply: true
   `docs/specs/`. Pode rascunhar a spec a partir do PRD, no formato de
   `docs/specs/README.md`, mas PARE e espere aprovação antes de codar.
 - Não edite `.github/workflows/` nem `vercel.json` sem aprovação
-  explícita, mesmo que estejam dentro do escopo da tarefa.
+  explícita, mesmo que estejam dentro do escopo da tarefa. São
+  arquivos do repositório: com um "pode mudar o workflow", pode.
 
 ## Ritmo
 
@@ -38,7 +39,7 @@ alwaysApply: true
   e pare. A próxima tarefa só começa depois disso.
 - Não relate sucesso parcial. Se um check falhou, a tarefa não terminou.
 
-## Bancos
+## Bancos e schema
 
 - Produção (projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb`):
   NUNCA. Nem SQL, nem schema, nem dado, nem pelo painel, nem pelo
@@ -49,13 +50,20 @@ alwaysApply: true
   Nada de SQL à mão no painel. Nada de dado real.
 - Testes: só Testcontainers. Nunca rode teste contra banco remoto,
   nem o de dev.
+- Não edite migration já aplicada em `prisma/migrations/`. Mudança de
+  schema é sempre migration nova.
+- Não altere policy de RLS, trigger, função SQL nem a tabela de
+  auditoria sem revisão humana explícita, mesmo em migration nova.
+- Não mocke o Prisma em teste: isso testa o mock, não o banco.
 
 ## Dados e segredos
 
 - Não use dado real em seed, fixture, teste ou exemplo: nada de nome
   de pessoa, ativo, IP, setor ou e-mail real da empresa.
-- Não leia `.env.local`. Não cole valor de variável de ambiente,
-  token, chave ou connection string em resposta, commit, log ou PR.
+- Não leia nem escreva `.env.local`. Variável nova entra no
+  `.env.example` com placeholder, e você avisa qual valor falta.
+- Não cole valor de variável de ambiente, token, chave ou connection
+  string em resposta, commit, log ou PR.
 - Não commite `.env*` (exceto `.env.example`) nem arquivo com segredo.
 
 ## Ferramentas
@@ -69,8 +77,13 @@ alwaysApply: true
 
 - Não faça push na `main`. Trabalhe em branch e abra PR. Nunca faça
   merge.
-- Não rode deploy nem altere configuração da Vercel.
 - Não faça `git push --force` nem reescreva histórico já publicado.
+- Painel e API da Vercel, do Supabase e do GitHub: nunca por sua
+  iniciativa. Deploy, variável de ambiente, configuração de projeto,
+  secret de Actions e branch de produção só se a pessoa pedir aquela
+  mudança, nesta conversa. "Pode implementar" não é esse pedido.
+  Isto não contradiz a regra de Escopo sobre `.github/workflows/` e
+  `vercel.json`: aqueles são arquivos versionados, isto é o painel.
 
 ## Precedência
 

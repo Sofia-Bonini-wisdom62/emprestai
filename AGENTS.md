@@ -10,8 +10,8 @@ A fonte da verdade sobre arquitetura e stack é [`docs/adr/001-stack.md`](docs/a
 
 Leia também, antes de qualquer tarefa:
 
-- [`rules/restrictions.md`](rules/restrictions.md): o que você não pode fazer.
-- [`rules/checks.md`](rules/checks.md): o que precisa passar antes de dizer "pronto".
+- [`rules/restrictions.md`](rules/restrictions.md): o que você não pode fazer. É a **única** fonte das proibições; este arquivo não as repete, para não haver duas versões da mesma regra.
+- [`rules/checks.md`](rules/checks.md): o procedimento que precisa passar antes de dizer "pronto". É a **única** fonte desse procedimento.
 - [`docs/specs/README.md`](docs/specs/README.md): formato das specs e dos critérios de aceitação (CA-xx).
 
 ## 2. Regras que não se negocia
@@ -50,11 +50,13 @@ Os scripts nascem com o scaffold do app. Quem alterar `package.json` atualiza es
 
 Bancos, três e só três:
 
-| Banco | Onde | Quem mexe |
+| Banco | Onde | Quem escreve nele |
 |---|---|---|
-| Produção | projeto Supabase `emprestai` | só o GitHub Actions, via `prisma migrate deploy`. O agente nunca. |
-| Desenvolvimento | projeto Supabase de dev, separado, apontado pelo `.env.local` | o agente, via `prisma migrate dev`, `db seed` e a aplicação. Sem SQL à mão, sem dado real. |
-| Testes | Postgres efêmero do Testcontainers | o globalSetup do Vitest. Nunca teste contra banco remoto. |
+| Produção | projeto Supabase `emprestai` | GitHub Actions, via `prisma migrate deploy` |
+| Desenvolvimento | projeto Supabase de dev, separado, apontado pelo `.env.local` | `prisma migrate dev`, `prisma db seed` e a aplicação |
+| Testes | Postgres efêmero do Testcontainers | o globalSetup do Vitest |
+
+O que o agente pode e não pode fazer em cada um está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
 
 Notas operacionais que o ADR não cobre porque a biblioteca mudou:
 
@@ -102,39 +104,20 @@ docs/adr/                        decisões de arquitetura
 - Branch por tarefa a partir de `main`: `feat/`, `fix/`, `chore/`, `docs/` + slug curto em inglês (ex.: `feat/ticket-create`).
 - Commits em português, no imperativo, sem prefixo obrigatório e sem automação de formato. Um commit por passo lógico, não um commit por arquivo.
 - O agente pode commitar e fazer push na branch da tarefa e abrir o PR com `gh pr create`. O PR diz o que muda e como testar.
-- O agente **nunca**: faz merge na `main`, faz push na `main`, usa `git push --force`, faz rebase de branch já publicada, altera histórico que já subiu.
-- Nunca commita `.env*` (exceto `.env.example`), `node_modules`, `.next` ou qualquer arquivo com segredo.
+
+O que é proibido em volta disso está em [`rules/restrictions.md`](rules/restrictions.md), seções Produção e Dados e segredos.
 
 ## 7. Definição de pronto
 
-Uma tarefa é um item do plano aprovado e vira um commit. Ela só está pronta quando o procedimento de [`rules/checks.md`](rules/checks.md) passou inteiro na máquina, antes do push. Em resumo:
+Uma tarefa é a unidade definida em [`rules/restrictions.md`](rules/restrictions.md), seção Ritmo. Ela só está pronta quando o procedimento de [`rules/checks.md`](rules/checks.md) passou inteiro na máquina, antes do push. Siga aquele arquivo passo a passo e cole as saídas: o resumo que existia aqui saía de sincronia com ele.
 
-1. `pnpm lint` e `pnpm typecheck`
-2. `pnpm test` (suite inteira, com Docker para o Testcontainers)
-3. Teste de isolamento entre tenants para **cada** procedure criado ou alterado: tenant A não enxerga nem altera dado de tenant B.
-4. `pnpm test:e2e` só se a tarefa tocou login, abertura de chamado ou cadastro de ativo
-5. `pnpm build`
-6. `git status --short` sem arquivo fora do escopo, e o CA-xx que a tarefa atende
-
-O agente reporta o resultado real de cada item, colando a última linha da saída. Se algo falhou ou foi pulado, diz isso explicitamente em vez de declarar a tarefa pronta.
-
-## 8. Não toque sem perguntar
-
-- Migrations já aplicadas em `prisma/migrations/`. Mudança de schema é sempre migration nova.
-- Arquivos `.env*`. O agente não lê nem escreve `.env.local`; só mantém `.env.example` em dia quando cria variável nova.
-- ADRs existentes em `docs/adr/`. Decisão nova: o agente rascunha `docs/adr/00N-<assunto>.md` com a decisão e as alternativas, marca qual ADR supersede, e para. O time aprova.
-- Policies de RLS, triggers, funções SQL e a tabela de auditoria. Toda mudança nelas passa por revisão humana explícita.
-- Qualquer configuração em Vercel, Supabase ou GitHub Actions de produção.
-- Atualização de dependência com mudança de versão major.
-
-## 9. Testes: como escrever
+## 8. Testes: como escrever
 
 - Procedure tRPC: `createCaller` com contexto montado à mão (sessão, tenant, role), sem subir HTTP.
 - Integração: contra Postgres real via Testcontainers, usando a imagem `supabase/postgres` para o schema `auth` e os roles que as policies referenciam. As migrations reais são aplicadas com `prisma migrate deploy` no container.
 - Componentes: Testing Library. E2E: Playwright só para login, abertura de chamado e cadastro de ativo.
-- Mock do Prisma é proibido: testa o mock, não o banco.
 
-## 10. Infraestrutura (referência, sem segredos)
+## 9. Infraestrutura (referência, sem segredos)
 
 | Item | Valor |
 |---|---|
