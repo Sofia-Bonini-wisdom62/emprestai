@@ -1,129 +1,136 @@
 # AGENTS.md — emprestai
 
-Instruções para qualquer agente de código que trabalhe neste repositório. Leia inteiro antes de mexer em qualquer coisa.
+Síntese operacional para qualquer agente que trabalhe neste repositório. Leia inteiro antes de mexer em qualquer coisa.
 
-## 1. O que é o projeto
+## 1. O produto
 
-Sistema de suporte de TI: abertura de chamados e inventário de ativos, multi-tenant (cada área da empresa é um tenant). Projeto de disciplina da turma B, sem uso comercial.
+O emprestai substitui a planilha de controle de equipamentos internos (notebooks, monitores, cabos, câmeras).
+Colaboradores pedem e devolvem itens; Operações cadastra equipamentos e acompanha os empréstimos em aberto. Projeto de disciplina da turma B, sem uso comercial.
 
-A fonte da verdade sobre arquitetura e stack é [`docs/adr/001-stack.md`](docs/adr/001-stack.md). Este arquivo resume o ADR e acrescenta convenções de trabalho; em caso de dúvida, o ADR vence.
-
-Leia também, antes de qualquer tarefa:
-
-- [`rules/restrictions.md`](rules/restrictions.md): o que você não pode fazer. É a **única** fonte das proibições; este arquivo não as repete, para não haver duas versões da mesma regra.
-- [`rules/checks.md`](rules/checks.md): o procedimento que precisa passar antes de dizer "pronto". É a **única** fonte desse procedimento.
-- [`docs/specs/README.md`](docs/specs/README.md): formato das specs e dos critérios de aceitação (CA-xx).
-
-## 2. Regras que não se negocia
-
-Extraídas do ADR. Uma linha cada; a justificativa está lá.
-
-- `tenant_id` vem da sessão, resolvido no `createContext` do tRPC. Nunca do input de um procedure.
-- Toda tabela de domínio tem `tenant_id`. Todo procedure de domínio passa por `tenantProcedure`, que injeta o tenant no service.
-- Todo procedure tRPC tem `.input()` com Zod. Sem Server Actions. Client Components buscam dado só via tRPC; Server Components não tocam o Prisma.
-- Um router por domínio em `src/server/api/routers/<dominio>.ts`. O procedure cuida de entrada, contexto e permissão; a regra de negócio fica no service.
-- Nada secreto com prefixo `NEXT_PUBLIC_`. `SUPABASE_SECRET_KEY` só existe em módulo que começa com `import 'server-only'`.
-- RLS ligado em toda tabela, deny by default. Policies, triggers e funções entram como SQL dentro da migration do Prisma. Prisma Migrate é o único dono do schema; o Supabase CLI não gerencia migration.
-- Migration roda no CI antes do deploy, nunca no boot da aplicação.
-- superjson como transformer, paginação por cursor, erros como `TRPCError` com código.
-- Toda operação cabe em 60 segundos. Importação e relatório grande são feitos em lotes.
-- Cookie de sessão é `httpOnly`. Login, logout, convite e redefinição de senha rodam no servidor (procedure ou Route Handler), nunca via `createBrowserClient`.
-- Log estruturado em JSON com `request_id` e `tenant_id`. Rate limit por IP e por usuário com contador no Postgres. Tabela de auditoria append-only.
-
-## 3. Stack e comandos
-
-Next.js (App Router) + TypeScript `strict` + tRPC + Prisma + PostgreSQL no Supabase + Supabase Auth via `@supabase/ssr` + Tailwind + shadcn/ui + TanStack Query + React Hook Form + Vitest + Testcontainers + Playwright + Sentry. Gerenciador de pacotes: **pnpm**.
-
-| Comando | O que faz |
+| Persona | O que faz na v1 |
 |---|---|
-| `pnpm install` | instala dependências (lockfile estrito) |
-| `pnpm dev` | sobe o app em `http://localhost:3000` |
-| `pnpm lint` | ESLint + Prettier |
-| `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm test` | Vitest inteiro: unit, componentes e integração (exige Docker rodando) |
-| `pnpm test:e2e` | Playwright nos fluxos críticos |
-| `pnpm build` | `next build`; pega erro de fronteira servidor/cliente e de env |
-| `pnpm prisma migrate dev` | cria e aplica migration no banco de dev (usa `DIRECT_URL`) |
-| `pnpm prisma db seed` | roda `prisma/seed.ts`, idempotente, cria o tenant `suporte_ti` |
+| Colaborador | Login, catálogo, solicitar empréstimo, devolver item, ver os próprios empréstimos |
+| Operações | Cadastrar equipamentos, ver quem está com o quê, registrar devolução no balcão |
 
-Os scripts nascem com o scaffold do app. Quem alterar `package.json` atualiza esta tabela no mesmo PR.
+Critério de sucesso ([`docs/PRD.md`](docs/PRD.md)): Operações consegue abandonar a planilha depois de duas semanas de uso.
 
-Bancos, três e só três:
+## 2. Onde olhar
+
+| Documento | Papel |
+|---|---|
+| [`docs/PRD.md`](docs/PRD.md) | Negócio: problema, personas, escopo da v1. Não é spec, não descreve tela nem comportamento de campo |
+| [`docs/perguntas-prd.md`](docs/perguntas-prd.md) | Ambiguidades do PRD ainda não decididas pelo time. Nenhuma delas é sua para decidir |
+| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack |
+| [`docs/specs/`](docs/specs/) | Spec, plano e tarefas de cada funcionalidade. Formato e critérios (CA-xx) em [`docs/specs/README.md`](docs/specs/README.md) |
+| [`rules/restrictions.md`](rules/restrictions.md) | Única fonte das proibições. Este arquivo não as repete |
+| [`rules/checks.md`](rules/checks.md) | Única fonte do procedimento de fim de tarefa |
+| [`rules/operacao.md`](rules/operacao.md) | Matriz de autorização: o que é livre, o que avisa, o que pede, o que é proibido. Vale sempre |
+| [`.env.example`](.env.example) | Nomes exatos das variáveis e onde cada uma vive |
+
+Demais rules de `rules/`, por gatilho:
+
+| Rule | Dispara quando |
+|---|---|
+| `migration.md` | Você vai mudar `prisma/schema.prisma` ou criar migration |
+| `secrets.md` | Variável de ambiente, chave ou fronteira servidor/cliente |
+| `tests.md` | Você vai escrever ou alterar teste |
+| `spec-flow.md` | Começo de funcionalidade: do PRD à spec, ao plano e às tarefas |
+| `handoff.md` | Fim de sessão, passar o bastão para a próxima |
+
+## 3. Precedência
+
+Em conflito, nesta ordem:
+
+1. Isolamento de tenant e segurança — sempre prevalece.
+2. `docs/adr/` para decisão técnica.
+3. `docs/PRD.md` para regra de negócio.
+4. A spec da funcionalidade em `docs/specs/` para comportamento.
+5. Este arquivo, como síntese operacional, por último.
+
+Se não estiver escrito em lugar nenhum, pergunte, não decida.
+
+## 4. Regras de negócio e escopo da v1
+
+Estão em [`docs/PRD.md`](docs/PRD.md), nas seções "Regras que Operações já decidiu", "O que precisa existir na primeira versão" e "O que NÃO entra nesta versão". Leia de lá, não daqui: este arquivo não as copia, para não haver duas versões.
+
+As quatro regras do PRD têm lacunas (o que conta para o limite de três itens, de quando contam os 14 dias, quem registra a devolução, quem põe um item em manutenção). Elas estão em [`docs/perguntas-prd.md`](docs/perguntas-prd.md), e nenhuma é sua para decidir.
+
+## 5. Stack
+
+Monolito Next.js (App Router) + TypeScript `strict` + tRPC + Prisma + PostgreSQL no Supabase + Supabase Auth via `@supabase/ssr` + Tailwind + shadcn/ui. Gerenciador de pacotes: **pnpm**.
+
+As decisões e o porquê de cada uma estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md). Por assunto:
+
+| Assunto | Seção do ADR-001 |
+|---|---|
+| Monolito, repositório, deploy | 2.1 |
+| Telas, estado, formulários, estilo | 2.2 |
+| tRPC, routers, camadas, validação | 2.3 e 2.4 |
+| Banco, Prisma, conexões, seed | 2.5 |
+| Multi-tenancy (decisão deliberada, pendente da pergunta 6 de `docs/perguntas-prd.md`) | 1 e 2.6 |
+| Auth, sessão, autorização, RLS | 2.7 |
+| Testes | 2.8 |
+| Hospedagem, CI, log, limites | 2.9 |
+| Segurança e segredos | 2.10 |
+
+## 6. Bancos, três e só três
 
 | Banco | Onde | Quem escreve nele |
 |---|---|---|
-| Produção | projeto Supabase `emprestai` | GitHub Actions, via `prisma migrate deploy` |
-| Desenvolvimento | projeto Supabase de dev, separado, apontado pelo `.env.local` | `prisma migrate dev`, `prisma db seed` e a aplicação |
-| Testes | Postgres efêmero do Testcontainers | o globalSetup do Vitest |
+| Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | GitHub Actions, via `prisma migrate deploy` |
+| Desenvolvimento | **ainda não existe.** Quando for criado: segundo projeto Supabase, remoto e separado, apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md` e a aplicação; nenhum rodou até hoje |
+| Testes | Postgres efêmero do Testcontainers, imagem `supabase/postgres` (traz o schema `auth` que as policies referenciam) | o globalSetup do Vitest, quando existir |
 
-O que o agente pode e não pode fazer em cada um está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
+Não existe banco local do Supabase CLI neste projeto. O que pode e o que não pode em cada banco, inclusive enquanto o de dev não existir, está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
 
-Notas operacionais que o ADR não cobre porque a biblioteca mudou:
-
-- Prisma 7 removeu `directUrl` do `schema.prisma`. A URL de migration fica em `prisma.config.ts` como `datasource.url = process.env.DIRECT_URL` (sem o helper `env()`, que quebra `prisma generate` no build da Vercel). O runtime usa `@prisma/adapter-pg` com `DATABASE_URL`.
-- O limite de uma conexão por function que o ADR exige é `new PrismaPg({ connectionString, max: 1 })`. O parâmetro `connection_limit` na URL não é lido pelo adapter.
-- O Supabase chama hoje de *publishable key* e *secret key* o que o ADR chama de anon e `service_role`. Use só os nomes novos: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SECRET_KEY`.
-- No Next 16 o arquivo `middleware.ts` chama-se `proxy.ts`. É ele que renova a sessão do Supabase em toda rota.
-
-## 4. Estrutura de pastas
-
-```
-src/app/                         rotas e telas (App Router)
-src/app/api/trpc/[trpc]/route.ts endpoint único do tRPC
-src/server/api/root.ts           AppRouter
-src/server/api/trpc.ts           createContext e os middlewares protected/tenant/admin
-src/server/api/routers/          um arquivo por domínio
-src/server/services/             regra de negócio, testável sem tRPC
-src/server/db.ts                 singleton do Prisma
-src/env/server.ts                schema Zod das variáveis de servidor (server-only)
-src/env/client.ts                schema Zod das NEXT_PUBLIC_*
-src/env/runtime.ts               valores derivados das VERCEL_* (ambiente, release, URL base)
-prisma/schema.prisma             modelo
-prisma/migrations/               migrations, incluindo o SQL de RLS
-prisma/seed.ts                   seed idempotente
-tests/                           helpers de teste, globalSetup do Testcontainers
-docs/adr/                        decisões de arquitetura
-```
-
-## 5. Idioma
+## 7. Idioma
 
 - Prosa em português do Brasil: este arquivo, comentários, mensagens de commit, descrições de PR, mensagens de erro exibidas ao usuário.
 - Código em inglês: identificadores, nomes de arquivo, tabelas, colunas, chaves de enum, rotas de API.
-- Termos de domínio têm tradução fixa para não surgirem dois nomes para a mesma coisa:
+- Termos de domínio têm tradução fixa, para não surgirem dois nomes para a mesma coisa:
 
 | Domínio | Código |
 |---|---|
-| chamado | `ticket` |
-| ativo | `asset` |
+| equipamento | `equipment` |
+| empréstimo | `loan` |
+| devolução | `return` |
+| colaborador | `member` |
+| Operações | `operations` |
 | área (tenant) | `tenant` |
-| membro / vínculo | `membership` |
+| vínculo pessoa–tenant | `membership` |
 | administrador | `admin` |
 
-## 6. Fluxo de trabalho com git
+"Chamado" e `ticket` não existem mais neste produto: não é um sistema de suporte.
 
-- Branch por tarefa a partir de `main`: `feat/`, `fix/`, `chore/`, `docs/` + slug curto em inglês (ex.: `feat/ticket-create`).
-- Commits em português, no imperativo, sem prefixo obrigatório e sem automação de formato. Um commit por passo lógico, não um commit por arquivo.
-- O agente pode commitar e fazer push na branch da tarefa e abrir o PR com `gh pr create`. O PR diz o que muda e como testar.
+## 8. Estado atual do projeto
 
-O que é proibido em volta disso está em [`rules/restrictions.md`](rules/restrictions.md), seções Produção e Dados e segredos.
+**Não existe** código de aplicação, `package.json`, script de `pnpm`, pasta de código (`src/`, `app/`), `prisma/`, migration nem teste. Nenhum comando (`pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `pnpm build`, `pnpm prisma migrate dev`, `pnpm prisma db seed`) jamais foi executado neste repositório. Quando falar de qualquer um deles, diga "quando o scaffold existir".
 
-## 7. Definição de pronto
+Existe hoje, e só: os documentos de `docs/` (PRD, ADR-001, `perguntas-prd.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
 
-Uma tarefa é a unidade definida em [`rules/restrictions.md`](rules/restrictions.md), seção Ritmo. Ela só está pronta quando o procedimento de [`rules/checks.md`](rules/checks.md) passou inteiro na máquina, antes do push. Siga aquele arquivo passo a passo e cole as saídas: o resumo que existia aqui saía de sincronia com ele.
+Pendente: o andar zero (scaffold do app, `package.json`, `prisma/`, primeira migration, seed e os primeiros testes); o segundo projeto Supabase de dev; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy.
 
-## 8. Testes: como escrever
+Esta seção é provisória. Quando o andar zero rodar, ela dá lugar a **Comandos** (a tabela com o que cada script faz, só depois de rodar), **Mapa de diretórios**, **Convenções não obvias** e **Como testar**.
 
-- Procedure tRPC: `createCaller` com contexto montado à mão (sessão, tenant, role), sem subir HTTP.
-- Integração: contra Postgres real via Testcontainers, usando a imagem `supabase/postgres` para o schema `auth` e os roles que as policies referenciam. As migrations reais são aplicadas com `prisma migrate deploy` no container.
-- Componentes: Testing Library. E2E: Playwright só para login, abertura de chamado e cadastro de ativo.
+## 9. Fluxo de trabalho com git
 
-## 9. Infraestrutura (referência, sem segredos)
+- Branch por tarefa a partir de `main`: `feat/`, `fix/`, `chore/`, `docs/` + slug curto em inglês (ex.: `feat/loan-create`).
+- Commits em português, no imperativo, sem prefixo obrigatório e sem automação de formato. Um commit por passo lógico, não um por arquivo.
+- O PR diz o que muda e como testar, e é aberto com `gh pr create`.
+
+Quem autoriza commit, push e PR está em [`rules/operacao.md`](rules/operacao.md). O que é proibido está em [`rules/restrictions.md`](rules/restrictions.md), seção Produção.
+
+## 10. Definição de pronto
+
+Siga [`rules/checks.md`](rules/checks.md) antes do push. Ele diz o que fazer com os passos que ainda não dá para rodar. Este arquivo não resume aquele procedimento, de propósito.
+
+## 11. Infraestrutura (referência, sem segredos)
 
 | Item | Valor |
 |---|---|
 | GitHub | `Sofia-Bonini-wisdom62/emprestai`, privado |
-| Supabase (produção) | projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. Painel: https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
-| Supabase (dev) | projeto separado, a criar; ref registrada aqui quando existir. Até lá, `pnpm dev` não tem banco |
-| Vercel | projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. Produção: https://emprestai-beta.vercel.app |
-| CI | GitHub Actions. Deploy de produção só via Deploy Hook depois do `prisma migrate deploy` (`vercel.json` desliga o deploy por push na `main`) |
+| Supabase (produção) | projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. **Pausado por inatividade**: a reativação é manual, no painel, por uma pessoa — https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
+| Supabase (dev) | segundo projeto, ainda não existe. Enquanto não existir, não há banco de desenvolvimento; a ref entra aqui quando for criado |
+| Vercel | projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. URL de produção reservada: https://emprestai-beta.vercel.app, que responde 404 enquanto não houver aplicação |
+| CI | GitHub Actions. `vercel.json` desliga o deploy por push na `main`; o deploy de produção sai de Deploy Hook depois do `prisma migrate deploy`. O workflow ainda não existe |
 | Variáveis | lista completa e onde cada uma vive em [`.env.example`](.env.example) |

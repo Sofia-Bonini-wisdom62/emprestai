@@ -2,32 +2,36 @@
 
 Sistema web interno para controlar empréstimo de equipamentos. Projeto de disciplina, turma B.
 
-> O ADR-001 ainda descreve outro domínio (suporte de TI, chamados, multi-tenancy). Ver a seção
-> "Pendência" no fim deste arquivo.
+## Estado atual
+
+Não existe código de aplicação, `package.json`, `src/`, `prisma/`, migration nem teste. Hoje o repositório é só documento e regra: PRD, ADR, perguntas em aberto, formato de spec e `rules/`. O inventário completo e o que falta estão em [AGENTS.md, seção Estado atual](AGENTS.md).
 
 ## Documentos
 
 - [PRD — Empréstimo de Equipamentos Internos](docs/PRD.md) — o que o negócio precisa. Não é spec.
+- [Perguntas que o PRD não responde](docs/perguntas-prd.md) — enquanto houver pergunta aberta, a spec correspondente não é aprovada.
+- [Formato de spec](docs/specs/README.md) — uma pasta por funcionalidade, com spec, plano e tarefas.
 
 ## Decisões
 
-- [ADR-001 — Stack da aplicação](docs/adr/001-stack.md)
-- [Insumo do ADR (documento de trabalho)](stacks_H.md)
-- [AGENTS.md — como trabalhar neste repositório](AGENTS.md)
+- [ADR-001 — Stack da aplicação](docs/adr/001-stack.md) — aceito e revisado em 2026-10-02 para refletir o PRD.
+- [Insumo do ADR](stacks_H.md) — documento de trabalho, congelado antes de o PRD entrar. Não copie nada dele.
+
+## Para agentes
+
+- [AGENTS.md](AGENTS.md) — como trabalhar neste repositório.
+- [rules/](rules/) — o que não fazer, o que conta como pronto e os procedimentos por gatilho.
 
 ## Infraestrutura
 
 | Item | Onde |
 |---|---|
-| Banco e Auth | Supabase, projeto `emprestai`, região `sa-east-1` |
-| Hospedagem | Vercel, plano Hobby, produção em https://emprestai-beta.vercel.app |
-| CI | GitHub Actions |
+| Banco e Auth | Supabase, projeto `emprestai`, região `sa-east-1`. Pausado por inatividade no plano gratuito |
+| Hospedagem | Vercel, plano Hobby. URL reservada https://emprestai-beta.vercel.app, que responde 404 enquanto não houver aplicação |
+| CI | GitHub Actions. O workflow ainda não existe |
 
 Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. Nada com valor real vai para o repositório.
 
 ## Pendência
 
-O ADR-001 foi escrito antes de o PRD entrar no repositório e descreve, no Contexto, um sistema de
-suporte de TI com multi-tenancy. O PRD descreve empréstimo de equipamentos, com dois papéis numa
-empresa só e nenhuma exigência de multi-tenancy. As decisões de stack do ADR seguem válidas; o
-Contexto e a seção de multi-tenancy precisam da decisão do time antes da primeira spec.
+A multi-tenancy do ADR-001 é decisão deliberada do time, não exigência do PRD. Ela depende da pergunta 6 de [`docs/perguntas-prd.md`](docs/perguntas-prd.md): se Operações for papel global, a multi-tenancy sai inteira e a saída vira um ADR novo.
