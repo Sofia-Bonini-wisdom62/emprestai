@@ -108,7 +108,7 @@ Não existe banco local do Supabase CLI neste projeto. O que pode e o que não p
 
 Existe hoje, e só: os documentos de `docs/` (PRD, ADR-001, `perguntas-prd.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
 
-Pendente: o andar zero (scaffold do app, `package.json`, `prisma/`, primeira migration, seed e os primeiros testes); o segundo projeto Supabase de dev; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy.
+Pendente: o andar zero (scaffold do app, `package.json`, `prisma/`, primeira migration, seed e os primeiros testes); o segundo projeto Supabase de dev; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy. No PR do andar zero, tirar o `ignoreCommand` do `vercel.json`: com o `package.json` existindo ele vira configuração morta.
 
 Esta seção é provisória. Quando o andar zero rodar, ela dá lugar a **Comandos** (a tabela com o que cada script faz, só depois de rodar), **Mapa de diretórios**, **Convenções não obvias** e **Como testar**.
 
@@ -132,5 +132,5 @@ Siga [`rules/checks.md`](rules/checks.md) antes do push. Ele diz o que fazer com
 | Supabase (produção) | projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. **Pausado por inatividade**: a reativação é manual, no painel, por uma pessoa — https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
 | Supabase (dev) | segundo projeto, ainda não existe. Enquanto não existir, não há banco de desenvolvimento; a ref entra aqui quando for criado |
 | Vercel | projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. URL de produção reservada: https://emprestai-beta.vercel.app, que responde 404 enquanto não houver aplicação |
-| CI | GitHub Actions. `vercel.json` desliga o deploy por push na `main`; o deploy de produção sai de Deploy Hook depois do `prisma migrate deploy`. O workflow ainda não existe |
+| CI | GitHub Actions. `vercel.json` desliga o deploy por push na `main`; o deploy de produção sai de Deploy Hook depois do `prisma migrate deploy`. O workflow ainda não existe. Enquanto não houver `package.json`, o `ignoreCommand` do `vercel.json` faz a Vercel pular o build dos previews em vez de falhar |
 | Variáveis | lista completa e onde cada uma vive em [`.env.example`](.env.example) |
