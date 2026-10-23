@@ -12,7 +12,7 @@
 
 ## 1. Contexto
 
-O ADR-001 citava um design vindo do Figma, o que não vale para este projeto: não há Figma. O design passa a ser especificado em [`docs/layout.md`](../layout.md), cujos requisitos derivam do `layout.md` da turma (autora: Leticia Nascimento, LeleNascimennto/empresTI; aviso do LICENSE de origem: "Copyright (c) 2026 lemosriosl", sob licença MIT), com identidade própria. Este ADR registra as escolhas dessa identidade e como elas cabem no que o ADR-001 já fixou: Tailwind e shadcn/ui (seção 2.2) e CSP sem `unsafe-inline` (seção 2.10).
+O ADR-001 citava um design vindo do Figma, o que não vale para este projeto: não há Figma. O ADR-003 (seção 1) registra essa correção, e o design passa a ser especificado em [`docs/layout.md`](../layout.md), cujos requisitos derivam do `layout.md` da turma (autora: Leticia Nascimento, LeleNascimennto/empresTI; aviso do LICENSE de origem: "Copyright (c) 2026 lemosriosl", sob licença MIT), com identidade própria. Este ADR registra as escolhas dessa identidade e como elas cabem no que o ADR-001 já fixou: Tailwind e shadcn/ui (seção 2.2) e CSP sem `unsafe-inline` (seção 2.10).
 
 ---
 

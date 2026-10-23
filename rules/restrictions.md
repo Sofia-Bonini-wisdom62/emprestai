@@ -11,9 +11,9 @@ alwaysApply: true
 
 - Não decida ADR. Decisão nova: rascunhe `docs/adr/00N-<assunto>.md`
   com a decisão e as alternativas, e PARE. Quem aprova é o time.
-- Não reescreva decisão de um ADR existente. Errata ou linha de Revisão
-  num ADR existente: mostre o diff e PARE; só aplique com aprovação
-  explícita do time, registrada na linha de Revisão do próprio ADR.
+- Não edite ADR aceito. Correção, errata ou decisão nova vira ADR novo,
+  que diz quais trechos substitui; no antigo, só a linha de Status muda,
+  para apontar o novo. ADR com status Proposto ainda pode ser editado.
 - Não contrarie o que está em docs/adr/. Se precisar contrariar, pare.
 - Não responda por conta própria o que o PRD ([`docs/PRD.md`](../docs/PRD.md))
   deixou ambíguo. Liste as perguntas em `docs/perguntas-prd.md` e espere.
