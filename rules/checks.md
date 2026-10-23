@@ -27,8 +27,8 @@ o motivo**. Nunca como passou.
 4. Se a tarefa tocou em migration: o passo 2 já provou que o banco sobe
    do zero. Quando o banco de dev existir, rode também
    `pnpm prisma migrate deploy` contra ele e cole a saída.
-5. Se a tarefa tocou num fluxo crítico de interface (ADR-001, seção
-   2.8): `pnpm test:e2e` e cole a última linha. Fora disso, fica no CI.
+5. Se a tarefa tocou num fluxo crítico de interface (ADR-003, seção
+   2.8, que corrige a lista do ADR-001): `pnpm test:e2e` e cole a última linha. Fora disso, fica no CI.
 6. `pnpm build` antes de qualquer push. Build que quebra na Vercel é o
    feedback mais lento e mais caro deste projeto.
 7. `git status --short`. Só podem aparecer arquivos do escopo da tarefa.

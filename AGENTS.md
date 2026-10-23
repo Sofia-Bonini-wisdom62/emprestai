@@ -20,7 +20,7 @@ Critério de sucesso ([`docs/PRD.md`](docs/PRD.md)): Operações consegue abando
 |---|---|
 | [`docs/PRD.md`](docs/PRD.md) | Negócio: problema, personas, escopo da v1. Não é spec, não descreve tela nem comportamento de campo |
 | [`docs/perguntas-prd.md`](docs/perguntas-prd.md) | Ambiguidades do PRD ainda não decididas pelo time. Nenhuma delas é sua para decidir |
-| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack; [`002-design-system.md`](docs/adr/002-design-system.md) é a identidade visual, ainda com status Proposto |
+| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack, lida junto com [`003-stack-corrections.md`](docs/adr/003-stack-corrections.md), que corrige trechos dela; [`002-design-system.md`](docs/adr/002-design-system.md) é a identidade visual, ainda com status Proposto. ADR aceito não se edita: correção vira ADR novo |
 | [`docs/layout.md`](docs/layout.md) | Aparência: tokens, tipografia, componentes e telas. Guarda os valores; o porquê está no ADR-002 |
 | [`docs/specs/`](docs/specs/) | Spec, plano e tarefas de cada funcionalidade. Formato e critérios (CA-xx) em [`docs/specs/README.md`](docs/specs/README.md) |
 | [`docs/andar-zero.md`](docs/andar-zero.md) e [`docs/plan-andar-zero.md`](docs/plan-andar-zero.md) | Os critérios (AZ-xx) do esqueleto que prova a stack, que não é spec, e o plano de tarefas dele. Nenhuma tarefa começa antes de o plano ser aprovado |
@@ -62,19 +62,20 @@ As quatro regras do PRD têm lacunas (o que conta para o limite de três itens, 
 
 Monolito Next.js (App Router) + TypeScript `strict` + tRPC + Prisma + PostgreSQL no Supabase + Supabase Auth via `@supabase/ssr` + Tailwind + shadcn/ui. Gerenciador de pacotes: **pnpm**.
 
-As decisões e o porquê de cada uma estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md). Por assunto:
+As decisões e o porquê de cada uma estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md), com as correções de [`docs/adr/003-stack-corrections.md`](docs/adr/003-stack-corrections.md). O ADR-003 numera cada trecho pela seção do ADR-001 que ele corrige; onde os dois tratam do mesmo ponto, vale o ADR-003. Por assunto:
 
-| Assunto | Seção do ADR-001 |
-|---|---|
-| Monolito, repositório, deploy | 2.1 |
-| Telas, estado, formulários, estilo | 2.2 |
-| tRPC, routers, camadas, validação | 2.3 e 2.4 |
-| Banco, Prisma, conexões, seed | 2.5 |
-| Multi-tenancy (decisão deliberada, pendente da pergunta 6 de `docs/perguntas-prd.md`) | 1 e 2.6 |
-| Auth, sessão, autorização, RLS | 2.7 |
-| Testes | 2.8 |
-| Hospedagem, CI, log, limites | 2.9 |
-| Segurança e segredos | 2.10 |
+| Assunto | ADR-001 | ADR-003 |
+|---|---|---|
+| Produto e condições da decisão | 1 | 1 (substitui inteira) |
+| Monolito, repositório, deploy | 2.1 | — |
+| Telas, estado, formulários, estilo | 2.2 | 2.2 |
+| tRPC, routers, camadas, validação | 2.3 e 2.4 | — |
+| Banco, Prisma, conexões, seed | 2.5 | 2.5 |
+| Multi-tenancy (decisão deliberada, pendente da pergunta 6 de `docs/perguntas-prd.md`) | 2.6 | 1 e 2.6 |
+| Auth, sessão, autorização, RLS | 2.7 | 2.7 |
+| Testes | 2.8 | 2.8 |
+| Hospedagem, CI, log, limites | 2.9 | 2.9 |
+| Segurança e segredos | 2.10 | 2.10 |
 
 ## 6. Bancos, três e só três
 
@@ -109,7 +110,7 @@ Não existe banco local do Supabase CLI neste projeto. O que pode e o que não p
 
 **Não existe** código de aplicação, `package.json`, script de `pnpm`, pasta de código (`src/`, `app/`), `prisma/`, migration nem teste. Nenhum comando (`pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `pnpm build`, `pnpm prisma migrate dev`, `pnpm prisma db seed`) jamais foi executado neste repositório. Quando falar de qualquer um deles, diga "quando o scaffold existir".
 
-Existe hoje, e só: os documentos de `docs/` (PRD, `perguntas-prd.md`, ADR-001, ADR-002 com status Proposto, `layout.md`, `andar-zero.md`, `plan-andar-zero.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
+Existe hoje, e só: os documentos de `docs/` (PRD, `perguntas-prd.md`, ADR-001, ADR-002 com status Proposto, ADR-003, `layout.md`, `andar-zero.md`, `plan-andar-zero.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
 
 Pendente: o andar zero, com critérios e plano escritos e esperando aprovação, e nenhuma tarefa começada (scaffold do app, `package.json`, `prisma/`, primeira migration, procedimento de saúde e os primeiros testes); a aprovação do ADR-002; o segundo projeto Supabase de dev; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy. No PR do andar zero, tirar o `ignoreCommand` do `vercel.json`: com o `package.json` existindo ele vira configuração morta.
 

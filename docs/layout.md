@@ -4,7 +4,7 @@ Especificação visual e de telas do emprestai: os valores que a implementação
 
 Requisitos derivados de `layout.md` de Leticia Nascimento (repositório LeleNascimennto/empresTI; aviso do LICENSE de origem: "Copyright (c) 2026 lemosriosl", sob licença MIT); identidade visual e texto próprios. O que veio de lá e como cada item foi tratado está na seção 12.
 
-Vínculos: produto em [`docs/PRD.md`](PRD.md); lacunas do produto em [`docs/perguntas-prd.md`](perguntas-prd.md); stack e segurança em [`docs/adr/001-stack.md`](adr/001-stack.md), seções 2.2 e 2.10. Onde uma tela precisaria de resposta que o PRD não deu, o texto diz "depende da pergunta N" e o desenho fica neutro.
+Vínculos: produto em [`docs/PRD.md`](PRD.md); lacunas do produto em [`docs/perguntas-prd.md`](perguntas-prd.md); stack e segurança em [`docs/adr/001-stack.md`](adr/001-stack.md), seções 2.2 e 2.10, com as correções de [`docs/adr/003-stack-corrections.md`](adr/003-stack-corrections.md). Onde uma tela precisaria de resposta que o PRD não deu, o texto diz "depende da pergunta N" e o desenho fica neutro.
 
 ---
 

@@ -16,8 +16,9 @@ Não existe código de aplicação, `package.json`, `src/`, `prisma/`, migration
 
 ## Decisões
 
-- [ADR-001 — Stack da aplicação](docs/adr/001-stack.md) — aceito; revisado em 2026-10-02 para refletir o PRD e em 2026-10-23 para tirar a menção a Figma.
+- [ADR-001 — Stack da aplicação](docs/adr/001-stack.md) — aceito em 2026-10-02. O texto é o de 2026-09-14; as correções estão no ADR-003.
 - [ADR-002 — Sistema de design](docs/adr/002-design-system.md) — proposto: só escuro, índigo, Geist, densidade arejada.
+- [ADR-003 — Correções do ADR-001](docs/adr/003-stack-corrections.md) — aceito: produto do PRD, motivo da multi-tenancy, nomes do Prisma 7, do Supabase e do Next 16, e o fim da menção a Figma. Nenhuma escolha de stack muda.
 - [Insumo do ADR](stacks_H.md) — documento de trabalho, congelado antes de o PRD entrar. Não copie nada dele.
 
 ## Para agentes
@@ -37,4 +38,4 @@ Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. Nada 
 
 ## Pendência
 
-A multi-tenancy do ADR-001 é decisão deliberada do time, não exigência do PRD. Ela depende da pergunta 6 de [`docs/perguntas-prd.md`](docs/perguntas-prd.md): se Operações for papel global, a multi-tenancy sai inteira e a saída vira um ADR novo.
+A multi-tenancy do ADR-001 é decisão deliberada do time (ADR-003, seção 1), não exigência do PRD. Ela depende da pergunta 6 de [`docs/perguntas-prd.md`](docs/perguntas-prd.md): se Operações for papel global, a multi-tenancy sai inteira e a saída vira um ADR novo.
