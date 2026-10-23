@@ -8,7 +8,7 @@
 | Insumo | `stacks_H.md` (documento de trabalho) |
 | Vínculo | [`docs/PRD.md`](../PRD.md) |
 | Decide | Arquitetura, linguagem, frameworks, banco, autenticação, multi-tenancy, testes, hospedagem, segurança e qualidade de código |
-| Revisão | 2026-10-02, com autorização explícita do time. Status de Proposto para Aceito. Seção 1 (Contexto) corrigida para o produto do PRD, que entrou no repositório depois deste ADR, e multi-tenancy declarada como decisão deliberada. Erratas de nome e de vocabulário, sem mudar decisão: 2.5 (Prisma 7 e nome do primeiro tenant), 2.6 (nome do tenant), 2.7 (`proxy.ts` e domínio), 2.8 e 2.9 (fluxos e exemplos do domínio atual), 2.10 (secret key). Gatilho novo na seção 5. Nenhuma decisão de stack foi alterada ou removida. |
+| Revisão | 2026-10-02, com autorização explícita do time. Status de Proposto para Aceito. Seção 1 (Contexto) corrigida para o produto do PRD, que entrou no repositório depois deste ADR, e multi-tenancy declarada como decisão deliberada. Erratas de nome e de vocabulário, sem mudar decisão: 2.5 (Prisma 7 e nome do primeiro tenant), 2.6 (nome do tenant), 2.7 (`proxy.ts` e domínio), 2.8 e 2.9 (fluxos e exemplos do domínio atual), 2.10 (secret key). Gatilho novo na seção 5. Nenhuma decisão de stack foi alterada ou removida. 2026-10-23, com autorização explícita da pessoa: as três menções a Figma (Contexto, 2.2 e Alternativas) foram trocadas pelo design próprio de `docs/layout.md`, decidido no ADR-002. Não há Figma neste projeto. A decisão de usar Tailwind e de descartar biblioteca de componentes fechada não mudou. |
 
 ---
 
@@ -19,7 +19,7 @@ O projeto é um sistema web interno de empréstimo de equipamentos, desenvolvido
 - **Uma equipe só**, sem separação entre front e back, e sem necessidade conhecida de escalar as partes de forma independente.
 - **Multi-tenancy desde o início, por decisão deliberada do time — e não por exigência do produto.** O PRD não pede multi-tenancy: ele descreve dois papéis dentro de uma empresa só. A estrutura entra porque o documento de trabalho da turma já a previa (o ADR-001 do colega de turma carrega a mesma decisão, o que confirma a origem) e porque acrescentar `tenant_id` depois exige backfill e revisão de toda query que toca a tabela. O custo é declarado: toda tabela, todo procedimento, toda policy e todo teste de domínio pagam por ela, o vazamento entre tenants passa a ser a falha mais cara do sistema, e o PRD não cobra nada disso. O que confirma ou derruba essa decisão é a pergunta 6 de `docs/perguntas-prd.md` (Operações é papel global ou por área?).
 - **Sem domínio corporativo** de e-mail para federar identidade ou filtrar cadastro.
-- **Design vindo do Figma**, que precisa ser reproduzido de perto.
+- **Design próprio**, especificado em `docs/layout.md` e decidido no ADR-002, que precisa ser reproduzido de perto.
 - **Contexto acadêmico**, o que permite planos gratuitos e aceita latência de demonstração, mas impõe que o plano mude antes de qualquer uso real.
 - **Decisões anteriores mantidas:** tRPC, PostgreSQL no Supabase, Prisma, Supabase Auth com e-mail e senha, e Vitest. Este ADR as confirma e preenche o que faltava em volta delas.
 
@@ -59,7 +59,7 @@ O projeto é um sistema web interno de empréstimo de equipamentos, desenvolvido
 - **TanStack Query pelo adapter do tRPC** — cache, revalidação e loading já vêm resolvidos e tipados a partir do procedimento.
 - **Sem biblioteca de store** — o que sobra de estado de cliente (filtro, modal, wizard) cabe em `useState`.
 - **React Hook Form + zodResolver** — o mesmo schema Zod valida o formulário e a entrada do procedimento; a regra é escrita uma vez.
-- **Tailwind** — biblioteca com visual próprio brigaria com o design do Figma.
+- **Tailwind** — o design próprio de `docs/layout.md` precisa ser reproduzido de perto; biblioteca com visual próprio brigaria com isso.
 - **shadcn/ui** — copia o componente para o repositório em vez de escondê-lo atrás de API de biblioteca; customizar não vira luta contra a dependência.
 
 ### 2.3 Camada de servidor
@@ -260,7 +260,7 @@ Errata de 2026-10-02, sem mudar decisão: o Supabase renomeou as chaves. A públ
 | Supabase CLI como dono das migrations | Dois donos de schema no mesmo banco se sobrescrevem |
 | CASL ou biblioteca de política | As regras cabem em três middlewares de tRPC; a camada extra seria conceito a mais |
 | Zustand ou Redux | O estado de cliente que sobra depois do TanStack Query é pequeno demais |
-| Biblioteca de componentes fechada (MUI, Mantine) | O design vem do Figma e precisaria ser imposto por cima do visual da biblioteca |
+| Biblioteca de componentes fechada (MUI, Mantine) | O design próprio de `docs/layout.md` precisaria ser imposto por cima do visual da biblioteca |
 | Fila (BullMQ, pg-boss) | Sem volume assíncrono conhecido, e worker de vida longa não roda na Vercel |
 | Schema ou banco por tenant | Multiplicaria cada migration pelo número de tenants sem exigência que justifique |
 | Prisma mockado nos testes | Testa o mock; constraint, transação e policy não são exercitadas |

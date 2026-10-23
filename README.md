@@ -11,10 +11,13 @@ Não existe código de aplicação, `package.json`, `src/`, `prisma/`, migration
 - [PRD — Empréstimo de Equipamentos Internos](docs/PRD.md) — o que o negócio precisa. Não é spec.
 - [Perguntas que o PRD não responde](docs/perguntas-prd.md) — enquanto houver pergunta aberta, a spec correspondente não é aprovada.
 - [Formato de spec](docs/specs/README.md) — uma pasta por funcionalidade, com spec, plano e tarefas.
+- [Layout](docs/layout.md) — tokens, componentes e telas. Requisitos derivados de um layout da turma, identidade própria.
+- [Andar zero](docs/andar-zero.md) e [plano](docs/plan-andar-zero.md) — o esqueleto que prova a stack, esperando aprovação.
 
 ## Decisões
 
-- [ADR-001 — Stack da aplicação](docs/adr/001-stack.md) — aceito e revisado em 2026-10-02 para refletir o PRD.
+- [ADR-001 — Stack da aplicação](docs/adr/001-stack.md) — aceito; revisado em 2026-10-02 para refletir o PRD e em 2026-10-23 para tirar a menção a Figma.
+- [ADR-002 — Sistema de design](docs/adr/002-design-system.md) — proposto: só escuro, índigo, Geist, densidade arejada.
 - [Insumo do ADR](stacks_H.md) — documento de trabalho, congelado antes de o PRD entrar. Não copie nada dele.
 
 ## Para agentes

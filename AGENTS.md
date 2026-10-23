@@ -20,8 +20,10 @@ Critério de sucesso ([`docs/PRD.md`](docs/PRD.md)): Operações consegue abando
 |---|---|
 | [`docs/PRD.md`](docs/PRD.md) | Negócio: problema, personas, escopo da v1. Não é spec, não descreve tela nem comportamento de campo |
 | [`docs/perguntas-prd.md`](docs/perguntas-prd.md) | Ambiguidades do PRD ainda não decididas pelo time. Nenhuma delas é sua para decidir |
-| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack |
+| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack; [`002-design-system.md`](docs/adr/002-design-system.md) é a identidade visual, ainda com status Proposto |
+| [`docs/layout.md`](docs/layout.md) | Aparência: tokens, tipografia, componentes e telas. Guarda os valores; o porquê está no ADR-002 |
 | [`docs/specs/`](docs/specs/) | Spec, plano e tarefas de cada funcionalidade. Formato e critérios (CA-xx) em [`docs/specs/README.md`](docs/specs/README.md) |
+| [`docs/andar-zero.md`](docs/andar-zero.md) e [`docs/plan-andar-zero.md`](docs/plan-andar-zero.md) | Os critérios (AZ-xx) do esqueleto que prova a stack, que não é spec, e o plano de tarefas dele. Nenhuma tarefa começa antes de o plano ser aprovado |
 | [`rules/restrictions.md`](rules/restrictions.md) | Única fonte das proibições. Este arquivo não as repete |
 | [`rules/checks.md`](rules/checks.md) | Única fonte do procedimento de fim de tarefa |
 | [`rules/operacao.md`](rules/operacao.md) | Matriz de autorização: o que é livre, o que avisa, o que pede, o que é proibido. Vale sempre |
@@ -45,7 +47,8 @@ Em conflito, nesta ordem:
 2. `docs/adr/` para decisão técnica.
 3. `docs/PRD.md` para regra de negócio.
 4. A spec da funcionalidade em `docs/specs/` para comportamento.
-5. Este arquivo, como síntese operacional, por último.
+5. `docs/layout.md` para aparência.
+6. Este arquivo, como síntese operacional, por último.
 
 Se não estiver escrito em lugar nenhum, pergunte, não decida.
 
@@ -106,9 +109,9 @@ Não existe banco local do Supabase CLI neste projeto. O que pode e o que não p
 
 **Não existe** código de aplicação, `package.json`, script de `pnpm`, pasta de código (`src/`, `app/`), `prisma/`, migration nem teste. Nenhum comando (`pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `pnpm build`, `pnpm prisma migrate dev`, `pnpm prisma db seed`) jamais foi executado neste repositório. Quando falar de qualquer um deles, diga "quando o scaffold existir".
 
-Existe hoje, e só: os documentos de `docs/` (PRD, ADR-001, `perguntas-prd.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
+Existe hoje, e só: os documentos de `docs/` (PRD, `perguntas-prd.md`, ADR-001, ADR-002 com status Proposto, `layout.md`, `andar-zero.md`, `plan-andar-zero.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
 
-Pendente: o andar zero (scaffold do app, `package.json`, `prisma/`, primeira migration, seed e os primeiros testes); o segundo projeto Supabase de dev; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy. No PR do andar zero, tirar o `ignoreCommand` do `vercel.json`: com o `package.json` existindo ele vira configuração morta.
+Pendente: o andar zero, com critérios e plano escritos e esperando aprovação, e nenhuma tarefa começada (scaffold do app, `package.json`, `prisma/`, primeira migration, procedimento de saúde e os primeiros testes); a aprovação do ADR-002; o segundo projeto Supabase de dev; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy. No PR do andar zero, tirar o `ignoreCommand` do `vercel.json`: com o `package.json` existindo ele vira configuração morta.
 
 Esta seção é provisória. Quando o andar zero rodar, ela dá lugar a **Comandos** (a tabela com o que cada script faz, só depois de rodar), **Mapa de diretórios**, **Convenções não obvias** e **Como testar**.
 
