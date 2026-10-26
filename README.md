@@ -18,6 +18,8 @@ Não existe código de aplicação, `package.json`, `src/`, `prisma/`, migration
 
 - [ADR-001 — Stack da aplicação](docs/adr/001-stack.md) — aceito em 2026-10-02. O texto é o de 2026-09-14; as correções estão no ADR-003.
 - [ADR-002 — Sistema de design](docs/adr/002-design-system.md) — proposto: só escuro, índigo, Geist, densidade arejada.
+- [ADR-004 — Ambientes e bancos](docs/adr/004-environments.md) — aceito: dev em Postgres local no Docker, testes no Testcontainers, preview sem banco, produção no Supabase só pelo CI.
+- [ADR-005 — Nome do primeiro tenant](docs/adr/005-first-tenant-name.md) — aceito: `default`, no lugar de `operations`, que é o nome do papel.
 - [ADR-003 — Correções do ADR-001](docs/adr/003-stack-corrections.md) — aceito: produto do PRD, motivo da multi-tenancy, nomes do Prisma 7, do Supabase e do Next 16, e o fim da menção a Figma. Nenhuma escolha de stack muda.
 - [Insumo do ADR](stacks_H.md) — documento de trabalho, congelado antes de o PRD entrar. Não copie nada dele.
 
@@ -30,7 +32,8 @@ Não existe código de aplicação, `package.json`, `src/`, `prisma/`, migration
 
 | Item | Onde |
 |---|---|
-| Banco e Auth | Supabase, projeto `emprestai`, região `sa-east-1`. Pausado por inatividade no plano gratuito |
+| Banco de produção e Auth | Supabase, projeto `emprestai`, região `sa-east-1`. Pausado por inatividade no plano gratuito |
+| Banco de dev | Postgres local em Docker, pelo `compose.yaml` (ADR-004) |
 | Hospedagem | Vercel, plano Hobby. URL reservada https://emprestai-beta.vercel.app, que responde 404 enquanto não houver aplicação |
 | CI | GitHub Actions. O workflow ainda não existe |
 

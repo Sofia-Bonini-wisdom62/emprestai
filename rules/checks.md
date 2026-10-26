@@ -12,8 +12,8 @@ Sempre que você for dizer "pronto", "implementado" ou "funcionando".
 A unidade de tarefa é a de `rules/restrictions.md`, seção Ritmo.
 
 Execute na ordem abaixo **o que existir no repositório**. Hoje não há
-`package.json`, scaffold nem banco de dev (`AGENTS.md`, seção Estado
-atual): os passos de comando são especificação até o andar zero rodar.
+`package.json`, scaffold nem o `compose.yaml` do banco de dev (`AGENTS.md`,
+seção Estado atual): os passos de comando são especificação até o andar zero rodar.
 Passo que ainda não dá para rodar entra na resposta como **pulado, com
 o motivo**. Nunca como passou.
 
@@ -25,7 +25,7 @@ o motivo**. Nunca como passou.
 3. Se a tarefa criou ou alterou um procedure tRPC: confirme que existe
    o teste de isolamento entre tenants e que ele passou. Cite o arquivo.
 4. Se a tarefa tocou em migration: o passo 2 já provou que o banco sobe
-   do zero. Quando o banco de dev existir, rode também
+   do zero. Com o banco de dev local de pé (ADR-004), rode também
    `pnpm prisma migrate deploy` contra ele e cole a saída.
 5. Se a tarefa tocou num fluxo crítico de interface (ADR-003, seção
    2.8, que corrige a lista do ADR-001): `pnpm test:e2e` e cole a última linha. Fora disso, fica no CI.
