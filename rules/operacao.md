@@ -19,11 +19,15 @@ Esta é a parte do contrato que a pessoa ajusta: arquivo gerado é rascunho, nã
 | Deletar ou renomear arquivo | pedir antes |
 | Instalar ou atualizar dependência (o ADR-001 fechou a stack) | pedir antes |
 | Criar ou alterar migration (fluxo em `rules/migration.md`) | pedir antes |
-| Merge na `main`, deploy, painel da Vercel ou do Supabase, secret de Actions | proibido |
+| Editar ou criar `vercel.json` ou arquivo em `.github/workflows/` (`rules/restrictions.md`, seção Escopo) | pedir antes |
+| Merge na `main` (`rules/restrictions.md`, seção Produção) | proibido |
+| Painel ou API da Vercel, do Supabase e do GitHub: deploy, variável de ambiente, configuração de projeto, secret de Actions, branch de produção (`rules/restrictions.md`, seção Produção) | só a pedido da pessoa |
 
 Níveis: **livre**, faça e siga em frente; **avisar depois**, faça e diga na resposta o que fez;
-**pedir antes**, descreva o que pretende fazer e PARE; **proibido**, não faça — nem se a pessoa pedir
-no meio de uma tarefa, e nesse caso lembre esta linha. A matriz só diz quem autoriza: a lista das
+**pedir antes**, descreva o que pretende fazer e PARE; **só a pedido da pessoa**, faça só a mudança
+que a pessoa pediu nesta conversa e, sem esse pedido, não proponha fazer: diga o que falta a pessoa
+fazer; **proibido**, não faça — nem se a pessoa
+pedir, e nesse caso lembre esta linha. A matriz só diz quem autoriza: a lista das
 proibições permanentes é `rules/restrictions.md`, e esta matriz não a substitui nem a resume.
 
 ## 2. Configuração do operador
