@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Aceito. O conteúdo foi aprovado como edição do ADR-001: o produto, a multi-tenancy, os nomes e o gatilho em 2026-10-02, com autorização explícita do time; o design em 2026-10-23, pela pessoa. Em 2026-10-23 saiu do ADR-001 para este ADR, a pedido da pessoa, sem mudar nenhuma decisão |
+| Status | Aceito. O conteúdo foi aprovado como edição do ADR-001: o produto, a multi-tenancy, os nomes e o gatilho em 2026-10-02, com autorização explícita do time; o design em 2026-10-23, pela pessoa. Em 2026-10-23 saiu do ADR-001 para este ADR, a pedido da pessoa, sem mudar nenhuma decisão. Partes substituídas pelo [ADR-005](005-first-tenant-name.md), em 2026-10-26: a linha Seed da seção 2.5 e a linha Primeiro tenant da seção 2.6; onde os dois tratam do mesmo ponto, vale o ADR-005 |
 | Data | 2026-10-23 |
 | Turma | B |
 | Vínculo | [`docs/PRD.md`](../PRD.md) |
