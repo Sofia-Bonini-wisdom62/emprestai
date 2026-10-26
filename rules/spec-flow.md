@@ -24,6 +24,17 @@ Ao iniciar uma funcionalidade que ainda não tem pasta em `docs/specs/`.
 5. Marque `[x]` em `tasks.md` só depois de `rules/checks.md` passar. O ritmo
    de execução é o de `rules/restrictions.md`, seção Ritmo.
 
+## Antes de declarar uma spec pronta
+Quando `tasks.md` fechar todo em `[x]`, e antes de o status da spec
+passar a `implementada`:
+1. Delegue ao subagente `verificador-spec`
+   (`.claude/agents/verificador-spec.md`), passando as duas entradas que
+   o arquivo dele pede: o caminho da spec e o que verificar.
+2. A spec só passa a `implementada` com `Veredito: PRONTA`. Qualquer
+   outro resultado volta para as tarefas: quem corrige é o agente
+   principal, nunca o verificador, e depois delega a verificação de
+   novo, com janela limpa.
+
 ## Ciclo de vida
 `tasks.md` fecha todo em `[x]` e para de mudar; `plan.md` fica preservado como
 registro do caminho escolhido. A `spec.md` continua vigente: descreve o
