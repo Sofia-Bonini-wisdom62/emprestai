@@ -9,49 +9,38 @@ O agente consulta este arquivo antes de supor qualquer comportamento do
 produto. O que ele não pode decidir sozinho está em
 [`rules/restrictions.md`](../rules/restrictions.md), seção Autoridade.
 
-Quem responde é o time de Operações, que escreveu o PRD. Cada resposta vira
-regra de negócio (RN-xx) na spec da funcionalidade e sai desta lista.
+Quem responde é o time. O PRD foi escrito por Operações; neste projeto de
+disciplina, a pessoa que conduz o trabalho responde pelo time, e cada resposta
+diz quem decidiu e quando. O agente acrescenta perguntas, nunca respostas. O arquivo tem duas
+partes. **Abertas** guarda o que ainda não tem resposta. **Respondidas,
+aguardando spec** guarda a resposta, quem decidiu e quando, o custo aceito
+quando houver e a spec em que ela vira regra de negócio (RN-xx). A resposta
+fica nessa parte até a spec da funcionalidade a transformar em RN-xx, ou em
+item de "Fora de escopo" quando a resposta tira algo da v1, e só então sai
+desta lista.
 
-Nas perguntas 8 a 14, "layout de referência" é o `layout.md` de Leticia
+A numeração não muda: outros documentos citam "pergunta 6", "pergunta 9".
+Quando parte de uma pergunta foi respondida e parte não, o que ficou aberto
+vira sub-pergunta, com o número de origem e uma letra: 4b é o que sobrou da 4.
+
+Em todo o arquivo, "spec 001-telas" é a spec de telas do repositório de
+Guilherme (`guinacarelli2/emprestai`). Nas perguntas 8 a 14 e nas
+sub-perguntas delas, "layout de referência" é o `layout.md` de Leticia
 Nascimento, citado em [`docs/layout.md`](layout.md).
 
 ---
 
-1. Um equipamento é uma unidade física individual ou um modelo com quantidade?
-   No catálogo, "notebook" é um item específico que uma pessoa leva, ou um tipo
-   com dez unidades idênticas?
-   tipo: negócio
-   por que importa: muda o schema inteiro — um registro por unidade, ou um
-   registro de modelo mais uma contagem — e muda o que "disponível" significa
-   na tela de catálogo e a que o empréstimo se liga. Todas as telas da v1
-   (seis em [`docs/layout.md`](layout.md)) dependem desta resposta, por isso
-   ela vem primeiro.
+## Abertas
 
-2. Solicitar um empréstimo é self-service ou depende de aprovação de Operações?
-   O PRD diz que o colaborador "pede um item emprestado" e também que
-   Operações "registra devolução no balcão", o que sugere retirada física no
-   meio do caminho.
-   tipo: negócio
-   por que importa: se existir aprovação ou retirada, existe um estado
-   intermediário (solicitado → retirado → devolvido) em vez do par
-   disponível/emprestado hoje implícito — e o limite de 3 itens por pessoa
-   precisa dizer se conta a solicitação pendente ou só o item já em mãos.
-
-3. Quem registra a devolução? O PRD lista "devolver um item que está comigo"
-   como ação do colaborador e, duas seções antes, diz que Operações registra a
-   devolução no balcão.
-   tipo: negócio
-   por que importa: são dois fluxos, com telas e permissões diferentes, e a
-   regra de atraso depende de qual dos dois grava a data. Se o colaborador
-   marca sozinho, ninguém confere que o item voltou de fato.
-
-4. Os 14 dias contam da solicitação ou da retirada, e em dias corridos ou em
-   dias úteis?
-   tipo: negócio
-   por que importa: essa data é a única definição de atraso que o produto tem,
-   e atraso bloqueia pegar outro item emprestado — errar a origem ou a
-   contagem bloqueia a pessoa errada. Depende da pergunta 2: sem etapa de
-   retirada, só existe uma data possível.
+4b. O que acontece quando o vencimento cai num dia em que o balcão está
+    fechado?
+    tipo: negócio
+    por que importa: os 14 dias são corridos (pergunta 4), então o vencimento
+    pode cair em fim de semana ou feriado. O PRD põe a devolução no balcão de
+    Operações; se ele está fechado no dia, a pessoa entra em atraso sem ter
+    onde devolver, e atraso bloqueia pegar outro item. Liga-se à pergunta 3: o
+    colaborador também registra a devolução sozinho, em Meus empréstimos. Sem
+    resposta, `docs/layout.md` mostra a data calculada, sem ajuste.
 
 5. Quem cria as contas de login, e existe tela para isso na v1? O PRD pede
    "Login" sem dizer de onde vêm os usuários, e não cita gestão de usuários
@@ -83,80 +72,242 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
    campo e uma decisão de Operações; se não pode, o item volta a disponível
    mesmo quebrado e a próxima pessoa o pega.
 
-8. A v1 mostra histórico de empréstimos já encerrados? O PRD diz "cada pessoa
-   vê os próprios empréstimos" sem dizer se são só os em aberto, e o layout de
-   referência traz histórico em dois lugares: no detalhe do item (todas as
-   pessoas que já o pegaram) e em Meus empréstimos (o que a pessoa já devolveu).
-   tipo: negócio
-   por que importa: histórico por item mostra a qualquer colaborador quem pegou
-   o quê, o que é decisão de privacidade e se liga à pergunta 6; histórico
-   próprio muda Meus empréstimos de uma lista para duas e exige consultar
-   empréstimos encerrados. Sem resposta, `docs/layout.md` não desenha nenhum dos
-   dois.
+8b. O histórico do item mostra quem pegou?
+    tipo: negócio
+    por que importa: a resposta da pergunta 8 põe no detalhe do item a data, o
+    evento e o resultado, sem a pessoa. Mostrar quem pegou expõe a qualquer
+    colaborador quem esteve com o quê, o que é decisão de privacidade e se liga
+    às perguntas 6 (quem enxerga o estoque de quem) e 14 (o card já mostra quem
+    está com o item agora). Sem resposta, `docs/layout.md` mostra o histórico
+    sem a pessoa.
+
+9b. O item fora de uso aparece no catálogo?
+    tipo: negócio
+    por que importa: a situação existe (pergunta 9), mas a resposta não diz se
+    o item fora de uso some do catálogo ou fica listado sem a opção de pedir,
+    como o item em manutenção (pergunta 16). Muda a contagem "M de N
+    equipamentos podem ser pedidos", o filtro do catálogo, se o detalhe do
+    item continua acessível e o que a prévia do cadastro mostra quando
+    Operações escolhe essa situação. Liga-se à pergunta 7 (quem põe o item em
+    manutenção, e quando). Sem resposta, `docs/layout.md` não desenha o item
+    fora de uso no catálogo.
+
+11b. Existe busca no catálogo, e em que outras telas do colaborador?
+     tipo: negócio
+     por que importa: a busca da tela de Operações já está decidida (pergunta
+     11). A spec 001-telas também põe no header do catálogo um campo "Buscar
+     equipamento", que não entrou entre as respostas adotadas; o protótipo do
+     mesmo repositório repete o campo em Meus empréstimos, onde o layout de
+     referência só tem breadcrumb e o botão "Pegar emprestado". Falta dizer se
+     o catálogo tem busca, o que ela procura (só o nome, ou também patrimônio)
+     e em que telas aparece. Liga-se à pergunta 6 (quem enxerga o estoque de
+     quem). Sem resposta, o catálogo segue só com os filtros de categoria e de
+     disponibilidade, e o header não tem busca.
+
+12b. O detalhe do item mostra uma descrição curta que o cadastro não tem.
+     Descrição e observações são o mesmo campo, e o colaborador vê esse texto?
+     tipo: negócio
+     por que importa: se são o mesmo campo, o que Operações anota sobre o item
+     aparece para todo colaborador no detalhe; se são campos diferentes, o
+     cadastro ganha um campo que a resposta à pergunta 12 não lista. Sem
+     resposta, o detalhe não mostra descrição nem observações.
+
+12c. A lista de categorias é fixa, ou Operações pode criar categoria na v1?
+     tipo: negócio
+     por que importa: a resposta da pergunta 12 dá as cinco categorias, mas a
+     spec 001-telas só as lista, sem dizer se a lista muda. Fixa vira um enum
+     no schema; cadastrável vira tabela e uma tela a mais para Operações. Sem
+     resposta, `docs/layout.md` desenha as cinco, e uma categoria nova usaria o
+     ícone genérico.
+
+13b. A janela de 3 dias vale para o indicador e também para o filtro? O layout
+     de referência e a spec 001-telas têm, além do indicador, um filtro
+     "Vencem esta semana", que é outra janela.
+     tipo: negócio
+     por que importa: com duas janelas na mesma tela, um empréstimo que vence
+     em cinco dias entra no filtro e fica fora do indicador. O número de dias
+     é regra de negócio, não de layout. Sem resposta, a tela de Operações tem
+     o indicador de 3 dias e não tem o filtro.
+
+13c. Nos limites da janela de 3 dias: o que vence hoje entra, e um empréstimo já
+     em atraso também conta como "vence em breve"?
+     tipo: negócio
+     por que importa: os limites mudam o número do indicador e quem Operações
+     procura primeiro. Liga-se à pergunta 4 (dias corridos). Sem resposta,
+     `docs/layout.md` conta só empréstimos ainda no prazo, e os atrasados ficam
+     só em "Em atraso".
+
+17. Quem põe em "Fora de uso" um item já cadastrado, e ele pode voltar a ficar
+    disponível?
+    tipo: negócio
+    por que importa: a resposta da pergunta 9 criou a situação só como situação
+    inicial do cadastro. Sem dono, um item perdido ou quebrado de vez continua
+    no estado em que estava. Liga-se às perguntas 7 (manutenção, que também não
+    tem dono) e 9b. Sem resposta, `docs/layout.md` não tem ação para mudar a
+    situação de um item já cadastrado.
+
+18. Quais campos do equipamento são obrigatórios, e o número de série é único?
+    tipo: negócio
+    por que importa: a resposta da pergunta 12 lista os campos e diz que o
+    patrimônio é único, mas não diz quais podem ficar vazios; um cabo raramente
+    tem número de série. Muda a validação do cadastro e as constraints do
+    schema. Sem resposta, o layout não marca campo obrigatório, e só o
+    patrimônio tem erro de valor repetido.
+
+19. Existe mais de um local de retirada? A resposta da pergunta 2 põe a
+    retirada no balcão de Operações, e a da pergunta 12 dá a cada equipamento
+    um campo "Local de retirada".
+    tipo: negócio
+    por que importa: com um balcão só, o campo repete o mesmo valor em todo
+    registro; com vários, o detalhe precisa dizer onde buscar cada item, e a
+    tela de Operações talvez precise do local. Sem resposta, o detalhe mostra o
+    local cadastrado no item.
+
+20. O que faz quem confirmou um empréstimo e desistiu antes de buscar o item?
+    tipo: negócio
+    por que importa: pela resposta da pergunta 2, confirmar já cria o
+    empréstimo e já conta para o limite, sem etapa de retirada no sistema. Sem
+    cancelamento, a pessoa usa "Devolver" num item que nunca pegou, e o
+    histórico (pergunta 8) registra um empréstimo que não houve; como o próprio
+    colaborador registra a devolução (pergunta 3), ninguém confere. Sem
+    resposta, o layout não tem ação de cancelar.
+
+21. A busca da tela de Operações procura só nos empréstimos em aberto, ou em
+    todo o estoque, inclusive item sem empréstimo, como o que está em
+    manutenção?
+    tipo: negócio
+    por que importa: a resposta da pergunta 11 diz o que a busca encontra
+    (colaborador, patrimônio ou nome), não onde procura. Num caso ela é um
+    filtro da tabela; no outro, a tela precisa de outro tipo de resultado. Sem
+    resposta, `docs/layout.md` desenha a busca como filtro da tabela de
+    empréstimos em aberto.
+
+---
+
+## Respondidas, aguardando spec
+
+Nenhuma spec existe ainda. "Vira RN em" diz a funcionalidade, não o número da
+pasta, que só sai quando a spec for criada.
+
+1. Um equipamento é uma unidade física individual ou um modelo com quantidade?
+   resposta: unidade física individual. Um registro por unidade, identificada
+   pelo patrimônio, que é único.
+   decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+   do repositório do Guilherme.
+   vira RN em: cadastro de equipamento e catálogo.
+
+2. Solicitar um empréstimo é self-service ou depende de aprovação de Operações?
+   resposta: self-service, sem aprovação de Operações. Confirmar no sistema já
+   cria o empréstimo e já conta para o limite de 3 itens. A retirada é física,
+   no balcão de Operações, sem estado próprio no sistema.
+   decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+   do repositório do Guilherme.
+   vira RN em: solicitar empréstimo.
+
+3. Quem registra a devolução?
+   resposta: os dois lados. O colaborador registra em Meus empréstimos, e
+   Operações registra em cada linha da tela de Operações.
+   decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+   do repositório do Guilherme.
+   custo anotado, aceito pela pessoa: se o colaborador marca sozinho, ninguém
+   confere que o item voltou.
+   vira RN em: devolução e tela de Operações.
+
+4. Os 14 dias contam da solicitação ou da retirada, e em dias corridos ou em
+   dias úteis?
+   resposta: 14 dias corridos, contados da confirmação.
+   decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+   do repositório do Guilherme.
+   custo anotado, aceito pela pessoa: a retirada é no balcão, então a pessoa
+   perde os dias entre confirmar e buscar o item.
+   fica aberto: a 4b, vencimento em dia de balcão fechado.
+   vira RN em: solicitar empréstimo.
+
+<!-- A numeração segue a das perguntas e pula de 4 para 8; este comentário
+     separa as listas para o Markdown não renumerar. -->
+
+8. A v1 mostra histórico de empréstimos já encerrados?
+   resposta: sim, em dois lugares. No detalhe do item: a última devolução e
+   os eventos do item, cada um com data, evento (empréstimo, devolução,
+   manutenção) e resultado. Em Meus empréstimos: o que a pessoa já devolveu,
+   no prazo ou com atraso.
+   decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+   do repositório do Guilherme.
+   fica aberto: a 8b, se o histórico do item mostra quem pegou. O evento
+   "manutenção" depende também das perguntas 7 e 17 (quem põe o item nesse
+   estado).
+   vira RN em: catálogo (detalhe do equipamento) e Meus empréstimos.
 
 9. Existe uma situação "fora de uso" além de disponível, emprestado e em
-   manutenção? O layout de referência a oferece como situação inicial no
-   cadastro de equipamento; o PRD só cita manutenção.
-   tipo: negócio
-   por que importa: é um valor a mais no estado do equipamento no schema, e
-   muda o catálogo (o item fora de uso aparece ou some?) e o que Operações faz
-   com um item que não volta mais, como baixa de patrimônio. Liga-se à
-   pergunta 7 (quem põe o item em manutenção, e quando).
+   manutenção?
+   resposta: sim. No cadastro, a situação inicial é Disponível, Em manutenção
+   ou Fora de uso.
+   decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+   do repositório do Guilherme.
+   fica aberto: a 9b, se o item fora de uso aparece no catálogo.
+   vira RN em: cadastro de equipamento.
 
-10. Existe notificação dentro do aplicativo? O PRD tira da v1 a notificação por
-    e-mail e não fala da notificação no app; o layout de referência põe um sino
-    no header.
-    tipo: negócio
-    por que importa: notificação no app é funcionalidade inteira, com tabela,
-    regra de quando dispara (prazo perto do fim, atraso, devolução registrada)
-    e marcação de lida, e o ADR-001 (seção 2.9) não tem fila. Sem resposta, o
-    header fica sem sino.
+10. Existe notificação dentro do aplicativo?
+    resposta: não na v1.
+    decidido: pela pessoa em 2026-10-26, a partir da spec 001-telas do
+    repositório do Guilherme, que mostra o sino sem função e não implementa
+    notificação.
+    no layout: aqui o header não tem sino. É proposta do `docs/layout.md`, não
+    da spec nem decisão da pessoa: sino sem função promete o que não existe. A
+    spec que desenhar o header confirma.
+    vira: item de "Fora de escopo" da primeira spec que desenhar o header, não
+    RN.
 
-11. Existe busca, e o que ela procura? O layout de referência põe um campo de
-    busca no header de todas as telas, sem dizer se encontra equipamento por
-    nome, por código ou também pessoa, na tela de Operações.
-    tipo: negócio
-    por que importa: buscar pessoa expõe quem está com o quê e se liga às
-    perguntas 6 e 14; buscar por código depende da pergunta 12; o escopo
-    decide se a busca é global ou um filtro de cada tela, e se o banco precisa
-    de índice de texto. Sem resposta, o catálogo tem só os filtros por
-    categoria e por disponibilidade.
+11. Existe busca, e o que ela procura?
+    resposta: existe busca na tela de Operações, e ela encontra colaborador,
+    patrimônio ou nome do equipamento.
+    decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+    do repositório do Guilherme.
+    fica aberto: a 11b. A spec 001-telas também põe um campo "Buscar
+    equipamento" no header do catálogo; essa parte não foi adotada e está na
+    11b.
+    vira RN em: tela de Operações.
 
-12. Quais dados um equipamento tem? O PRD fala em "cadastra equipamentos" e
-    cita notebooks, monitores, cabos e câmeras, sem dizer os campos. O layout
-    de referência pede nome, categoria, patrimônio, número de série, local de
-    retirada e observações.
-    tipo: negócio
-    por que importa: define o schema do equipamento, o formulário de cadastro,
-    o que o card e o detalhe mostram, o que é obrigatório e o que é único (o
-    patrimônio identifica a unidade?), e se as categorias são uma lista fixa ou
-    cadastrável. Depende da pergunta 1: modelo com quantidade não tem número de
-    série por registro.
+12. Quais dados um equipamento tem?
+    resposta: Nome, Categoria, Patrimônio, Número de série, Local de retirada,
+    Situação e Observações. A situação inicial é Disponível, Em manutenção ou
+    Fora de uso (pergunta 9). Cinco categorias: Notebooks, Monitores, Câmeras,
+    Cabos, Projetores. O patrimônio é único (pergunta 1).
+    decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+    do repositório do Guilherme.
+    fica aberto: a 12b, descrição e observações; a 12c, se a lista de
+    categorias é fixa; e a 18, campos obrigatórios.
+    vira RN em: cadastro de equipamento e catálogo.
 
 13. Operações quer ver os empréstimos que estão para vencer, e com quantos
-    dias de antecedência? O layout de referência tem um indicador e um filtro
-    "vencem em breve" na tela de Operações; o PRD só pede os empréstimos em
-    aberto.
-    tipo: negócio
-    por que importa: é um número e um filtro a mais na tela de Operações, e o
-    limite em dias é regra de negócio, não de layout. Depende da pergunta 4,
-    que define a contagem dos dias. Sem resposta, a tela mostra só em aberto,
-    em atraso e em manutenção.
+    dias de antecedência?
+    resposta: sim. Operações vê o aviso a partir de 3 dias antes do
+    vencimento.
+    decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+    do repositório do Guilherme.
+    fica aberto: a 13b, se a janela de 3 dias vale também para o filtro.
+    vira RN em: tela de Operações.
 
-14. O colaborador vê quem está com um item emprestado? O layout de referência
-    mostra o nome da pessoa e a data de devolução no card do catálogo.
-    tipo: negócio
-    por que importa: é dado de uma pessoa visível para todas as outras, o que é
-    decisão de privacidade de Operações, e se liga à pergunta 6 (quem enxerga o
-    estoque de quem) e à pergunta 8 (o histórico por item também mostra quem
-    pegou). Sem resposta, o card mostra só "Emprestado" e a data de
-    volta.
+14. O colaborador vê quem está com um item emprestado?
+    resposta: sim. O card do catálogo mostra o nome de quem está com o item e
+    a data de devolução.
+    decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+    do repositório do Guilherme.
+    ainda liga-se à pergunta 6, como a 8b: o nome aparece para todo
+    colaborador que enxerga o item.
+    vira RN em: catálogo.
 
-15. Existe recuperação de senha na v1? O PRD pede login com e-mail e senha e
-    não diz o que acontece quando a pessoa esquece a senha.
-    tipo: negócio, com consequência técnica
-    por que importa: sem recuperação, cada senha esquecida vira um pedido a quem
-    administra as contas, o que se liga à pergunta 5 (quem cria as contas). Com
-    recuperação, entram o link no login, o e-mail de redefinição e a página que
-    recebe o link, e o ADR-001 já exige que esse fluxo rode no servidor. Sem
-    resposta, o login não oferece recuperação.
+15. Existe recuperação de senha na v1?
+    resposta: não. O login diz "Sem acesso? Fale com Operações."
+    decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
+    do repositório do Guilherme.
+    ainda liga-se à pergunta 5: a frase manda a pessoa a Operações, e quem
+    cria as contas não está decidido.
+    vira RN em: login.
+
+16. Item em manutenção aparece no catálogo? O PRD diz que ele "não aparece
+    como disponível", sem dizer se fica listado de outro jeito ou some.
+    resposta: aparece, sem a opção de pedir. É como `docs/layout.md` já
+    desenhava.
+    decidido: pela pessoa, diretamente, em 2026-10-26.
+    vira RN em: catálogo.
