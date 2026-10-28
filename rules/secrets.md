@@ -20,10 +20,12 @@ ou Prisma. Os nomes exatos e o que cada um significa estão em `.env.example`.
    mapeada literalmente — `process.env.NEXT_PUBLIC_X`, senão o Next não inlina)
    e `src/env/runtime.ts` (derivados das `VERCEL_*`). Hoje é especificação:
    nenhum dos três existe.
-3. Variável nova existe em três lugares ou em nenhum: `.env.local` (máquina),
-   `.env.example` (versionado, com placeholder) e painel da Vercel (production e
-   preview). Edite o `.env.example` e DECLARE na resposta o que falta a
-   pessoa fazer no painel. Variável na Vercel não se mexe por sua iniciativa,
+3. Variável nova entra no `.env.example` (versionado, com placeholder) e, por
+   padrão, no `.env.local` (máquina) e no painel da Vercel (production e
+   preview). Exceção fica escrita ao lado da variável, na linha `onde:` do
+   `.env.example` (ex.: `DIRECT_URL` não vai para a Vercel; os ambientes estão
+   no ADR-004). Edite o `.env.example` e DECLARE na resposta o que falta a
+   pessoa fazer no `.env.local` e no painel. Variável na Vercel não se mexe por sua iniciativa,
    mesmo que você tenha a ferramenta: `rules/restrictions.md`, seção Produção.
 
 ## Verificação

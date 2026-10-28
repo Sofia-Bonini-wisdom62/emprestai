@@ -42,3 +42,6 @@ prisma/*.db-journal
 .DS_Store
 Thumbs.db
 *.log
+
+# Despejo de falha de programa do Git Bash (ex.: grep.exe.stackdump)
+*.stackdump

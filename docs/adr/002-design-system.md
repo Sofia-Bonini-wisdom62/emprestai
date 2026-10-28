@@ -22,7 +22,7 @@ O ADR-001 citava um design vindo do Figma, o que não vale para este projeto: n�
 |---|---|
 | Tema | Só escuro, sem alternador; `color-scheme: dark` |
 | Cor de marca e ação | Indigo (`--primary` = indigo 600), nunca usado como estado |
-| Estados | Verde = disponível, âmbar = manutenção, vermelho = atraso, cinza neutro = emprestado; sempre com texto |
+| Estados | Verde = disponível, âmbar = manutenção, vermelho = atraso, cinza neutro = emprestado, neutro apagado (sem fundo, contorno tracejado) = fora de uso; sempre com texto |
 | Tipografia | Geist, família única, servida por `next/font` |
 | Densidade | Arejada: alvos de 40 a 44px, mais espaço que o padrão do shadcn/ui |
 | Ícones | Lucide, pelo pacote `lucide-react`. **Proposta do agente; confirmada com a aprovação deste ADR** |
@@ -31,7 +31,7 @@ O ADR-001 citava um design vindo do Figma, o que não vale para este projeto: n�
 | Restrição de segurança | Nenhum atributo `style` em componente nosso; nada de fonte, ícone, CSS ou script por CDN |
 
 - **Só escuro** — escolha da pessoa. Um tema só é um conjunto de tokens e uma conferência de contraste; o que isso custa está na seção 4.
-- **Indigo como marca e ação** — a pessoa quis cor própria, distinta do azul-marinho do layout de origem. O matiz fica longe de verde, âmbar e vermelho, então botão primário não é lido como estado; emprestado é neutro para que nenhum dos quatro estados use indigo, e estado sempre leva texto, porque cor reforça e não informa sozinha.
+- **Indigo como marca e ação** — a pessoa quis cor própria, distinta do azul-marinho do layout de origem. O matiz fica longe de verde, âmbar e vermelho, então botão primário não é lido como estado; emprestado e fora de uso são neutros para que nenhum estado use indigo, e estado sempre leva texto, porque cor reforça e não informa sozinha.
 - **Geist via `next/font`** — escolha da pessoa entre Geist, Inter e IBM Plex Sans. As três seriam entregues do mesmo jeito; o critério foi identidade. O `next/font` baixa o arquivo no build e o serve do próprio domínio, o que mantém `font-src 'self'`.
 - **Arejado** — escolha da pessoa: alvo grande e uma ideia por bloco favorecem quem usa o sistema de passagem e quem registra devolução no balcão. O custo em linhas por tela foi aceito em `docs/layout.md`, seção 4.
 - **Lucide** — proposta do agente; confirmada com a aprovação deste ADR. É o pacote que o shadcn/ui já usa nos próprios primitivos, então não abre biblioteca fora do ADR-001; vira SVG no bundle, sem fonte de ícone nem CDN.
@@ -95,8 +95,8 @@ O ADR-001 citava um design vindo do Figma, o que não vale para este projeto: n�
 | A tabela de Operações precisa de densidade que a paginação não resolve | Densidade arejada |
 | Alguém confunde indigo com atraso, ou o foco com o botão primário | Escala do indigo; cores de estado |
 | Um ícone necessário não existe no Lucide | Ícones |
-| No scaffold, com a CSP ligada, `Select`, `DropdownMenu`, `Sidebar` ou `ToggleGroup` é bloqueado por escrever `style` | Sem `style`, e o ADR-001, 2.10 |
-| Uma resposta do PRD cria estado novo (depende das perguntas 2 e 9) | Cores de estado: a cor nova não pode colidir com o indigo nem com as quatro atuais |
+| Na primeira tela com componentes do shadcn/ui, com a CSP ligada, `Select`, `DropdownMenu`, `Sidebar` ou `ToggleGroup` é bloqueado por escrever `style` | Sem `style`, e o ADR-001, 2.10 |
+| Uma resposta do PRD cria outro estado (perguntas 7, 9b e 17) | Cores de estado: a cor nova não pode colidir com o indigo nem com os cinco estados atuais |
 
 ---
 
@@ -106,5 +106,5 @@ O ADR-001 citava um design vindo do Figma, o que não vale para este projeto: n�
 - Copy final de botão, mensagem e estado vazio: entra na spec; `docs/layout.md`, seção 9, dá só o tom.
 - Ilustração, foto de equipamento e logotipo além do ícone de marca.
 - As perguntas abertas de `docs/perguntas-prd.md`; onde o desenho depende de uma, `docs/layout.md` diz "depende da pergunta N".
-- Regra de lint que proíbe a prop `style`: sugestão a confirmar na tarefa de scaffold.
-- Versões de `lucide-react`, Geist, Tailwind e shadcn/ui: versão estável atual, conferida na tarefa de scaffold.
+- Regra de lint que proíbe a prop `style`: entra na T1 do plano do andar zero.
+- Versões: Geist e Tailwind, versão estável atual, conferida na tarefa de scaffold (T1); `lucide-react` e shadcn/ui, na primeira tarefa que os instalar, fora do andar zero.

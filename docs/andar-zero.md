@@ -3,20 +3,21 @@
 Isto **não é uma spec**. Não há comportamento de produto aqui, nem regra RN-xx, nem
 critério CA-xx: nada do [`docs/PRD.md`](PRD.md) é implementado. O andar zero é a
 verificação de que a stack de [`docs/adr/001-stack.md`](adr/001-stack.md) funciona
-junta — tela, servidor, banco, testes e deploy — antes da primeira funcionalidade.
+junta — tela, servidor, banco, testes e deploy —, nos ambientes do
+[`docs/adr/004-environments.md`](adr/004-environments.md), antes da primeira funcionalidade.
 Os critérios usam o prefixo AZ para não se confundirem com os CA-xx das specs.
 
 ## Critérios de aceitação
 
-- **AZ-01** · Numa máquina limpa com Node 24 e pnpm, a aplicação sobe só com os comandos documentados (instalar, migrar o banco de dev, rodar); o único passo fora deles é preencher o `.env.local` a partir do `.env.example`. O banco de dev é remoto (ADR-001); quem sobe Postgres sozinho é o AZ-06.
+- **AZ-01** · Numa máquina limpa com Node 24, pnpm e Docker, a aplicação sobe só com os comandos documentados (instalar, subir o banco de dev, migrar, rodar); o único passo fora deles é preencher o `.env.local` a partir do `.env.example`. O banco de dev é o Postgres local do `compose.yaml`, que sobe com um comando (ADR-004).
 - **AZ-02** · Sem uma variável obrigatória, a aplicação não sobe nem compila, e a mensagem cita a variável. Com as variáveis presentes, a aplicação sobe com o banco fora do ar.
 - **AZ-03** · Existe uma migration versionada pelo Prisma Migrate que cria uma única tabela técnica, fora do domínio, já com RLS habilitada (ADR-001, 2.7) e ao menos uma policy explícita ([`rules/migration.md`](../rules/migration.md)), e ela se aplica do zero sem passo manual.
 - **AZ-04** · Um procedimento tRPC público de saúde responde com o status da conexão com o banco, a partir de uma consulta trivial à tabela do AZ-03. Banco fora do ar = resposta de falha explícita, sem erro genérico.
 - **AZ-05** · A página raiz (`/`) da aplicação chama esse procedimento pelo cliente tRPC com TanStack Query e mostra o resultado, provando que tela, servidor e banco se falam.
-- **AZ-06** · `pnpm test` roda a suíte: sobe um Postgres efêmero pelo Testcontainers, aplica as migrations do zero e tem pelo menos um teste do procedimento de saúde via `createCaller`, contra banco real.
+- **AZ-06** · `pnpm test` roda a suíte: sobe um Postgres efêmero pelo Testcontainers, aplica as migrations do zero e tem pelo menos um teste do procedimento de saúde via `createCaller` e um que prova que a policy da tabela do AZ-03 não deixa os papéis `anon` e `authenticated` lerem nada, contra banco real.
 - **AZ-07** · Toda configuração vem de variável de ambiente, validada com Zod e dividida entre servidor e cliente, e o `.env.example` versionado lista todas, sem valor real.
 - **AZ-08** · `.env*` (exceto `.env.example`) está no `.gitignore`, e nenhum segredo está no repositório nem no histórico.
-- **AZ-09** · O preview da Vercel compila a aplicação e serve a página do AZ-05.
+- **AZ-09** · O preview da Vercel compila a aplicação e serve a página do AZ-05. O Preview não tem banco (ADR-004), então a página mostra o estado de falha, e é isso que se espera dele.
 
 Nota sobre o AZ-09: ele vai além do critério da aula porque o deploy faz parte do
 ADR-001.
@@ -40,23 +41,21 @@ ADR-001.
 - A organização de pastas além do que o ADR-001 já fixa (`app/api/trpc/[trpc]/route.ts`,
   `src/server/api/routers/<dominio>.ts`, `prisma.config.ts`, `prisma/`) e do que
   [`rules/secrets.md`](../rules/secrets.md) já especifica para `src/env/`. O plano
-  propõe; a pessoa revisa antes de qualquer arquivo ser criado.
+  propõe; a pessoa revisa antes de qualquer arquivo ser criado. Já decidido pela
+  pessoa em 2026-10-26: cada teste fica ao lado do arquivo que testa.
 
 ## Depende de coisa fora do repositório
 
 | Critério | Do que depende | Quem resolve |
 |---|---|---|
-| AZ-01 a AZ-05, contra banco de verdade | Banco de dev: o segundo projeto Supabase ainda não existe | A pessoa: decisão e painel do Supabase |
-| AZ-06 (e AZ-03 e AZ-04 provados por ele) | Docker Desktop com o daemon de pé (hoje está instalado, mas parado) e a migration gerada (banco de dev ou R5 do plano) | A pessoa abre o Docker, e o agente não tenta subi-lo (`rules/checks.md`); a pessoa decide entre o banco de dev e o R5 |
-| AZ-09 | `DATABASE_URL` no ambiente Preview da Vercel, a única variável obrigatória no andar zero (T2 do plano), onde hoje só existem as públicas; `DIRECT_URL` não vai para a Vercel | A pessoa, no painel da Vercel |
+| AZ-01 a AZ-06, contra banco de verdade | Docker Desktop com o daemon de pé (hoje está instalado, mas parado): ele sobe o banco de dev (AZ-01 a AZ-05) e o Postgres dos testes (AZ-06) | A pessoa abre o Docker, e o agente não tenta subi-lo (`rules/checks.md`) |
+| AZ-09 | `DATABASE_URL` no ambiente Preview da Vercel, com um valor que não aponta para banco nenhum (ADR-004), a única variável obrigatória no andar zero (T2 do plano), onde hoje só existem as públicas; `DIRECT_URL` não vai para a Vercel | A pessoa, no painel da Vercel |
 | AZ-09 | Aprovação explícita para editar o `vercel.json` (`rules/restrictions.md`, seção Escopo) | A pessoa, nesta conversa |
 
 O que dá para provar sem essas dependências, e como:
 
-- **Sem banco de dev:** o Testcontainers cobre AZ-03 (a migration se aplica do zero
-  num Postgres novo), AZ-04 (o procedimento de saúde lê a tabela) e AZ-06 (a suíte
-  inteira) — todos com o Docker de pé e a migration já gerada, o que exige o banco de
-  dev ou a aprovação da alternativa sem banco ([plano](plan-andar-zero.md), R5).
+- **Sem Docker:** nada que dependa de banco fecha (AZ-01, AZ-03, o caminho de sucesso
+  do AZ-04 e do AZ-05, e o AZ-06). O resto dá para provar como está abaixo.
 - **Banco ausente:** com as variáveis preenchidas e nenhum banco respondendo, a
   segunda metade do AZ-02 (a aplicação sobe) e a resposta de falha do AZ-04 são
   provadas de propósito, e o AZ-05 mostra essa falha na página. A primeira metade do AZ-02

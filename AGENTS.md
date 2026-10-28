@@ -19,14 +19,14 @@ Critério de sucesso ([`docs/PRD.md`](docs/PRD.md)): Operações consegue abando
 | Documento | Papel |
 |---|---|
 | [`docs/PRD.md`](docs/PRD.md) | Negócio: problema, personas, escopo da v1. Não é spec, não descreve tela nem comportamento de campo |
-| [`docs/perguntas-prd.md`](docs/perguntas-prd.md) | Ambiguidades do PRD ainda não decididas pelo time. Nenhuma delas é sua para decidir |
-| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack, lida junto com [`003-stack-corrections.md`](docs/adr/003-stack-corrections.md), que corrige trechos dela; [`002-design-system.md`](docs/adr/002-design-system.md) é a identidade visual, ainda com status Proposto. ADR aceito não se edita: correção vira ADR novo |
+| [`docs/perguntas-prd.md`](docs/perguntas-prd.md) | Lacunas do PRD. As abertas não são suas para decidir; as já respondidas pelo time valem até virar RN-xx na spec |
+| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack, lida junto com [`003-stack-corrections.md`](docs/adr/003-stack-corrections.md), que corrige trechos dela; [`002-design-system.md`](docs/adr/002-design-system.md) é a identidade visual, ainda com status Proposto. [`004-environments.md`](docs/adr/004-environments.md) decide os ambientes e os bancos; [`005-first-tenant-name.md`](docs/adr/005-first-tenant-name.md) dá o nome do primeiro tenant. ADR aceito não se edita: correção vira ADR novo |
 | [`docs/layout.md`](docs/layout.md) | Aparência: tokens, tipografia, componentes e telas. Guarda os valores; o porquê está no ADR-002 |
 | [`docs/specs/`](docs/specs/) | Spec, plano e tarefas de cada funcionalidade. Formato e critérios (CA-xx) em [`docs/specs/README.md`](docs/specs/README.md) |
 | [`docs/andar-zero.md`](docs/andar-zero.md) e [`docs/plan-andar-zero.md`](docs/plan-andar-zero.md) | Os critérios (AZ-xx) do esqueleto que prova a stack, que não é spec, e o plano de tarefas dele. Nenhuma tarefa começa antes de o plano ser aprovado |
 | [`rules/restrictions.md`](rules/restrictions.md) | Única fonte das proibições. Este arquivo não as repete |
 | [`rules/checks.md`](rules/checks.md) | Única fonte do procedimento de fim de tarefa |
-| [`rules/operacao.md`](rules/operacao.md) | Matriz de autorização: o que é livre, o que avisa, o que pede, o que é proibido. Vale sempre |
+| [`rules/operacao.md`](rules/operacao.md) | Matriz de autorização: o que é livre, o que avisa, o que pede, o que só vale a pedido da pessoa, o que é proibido. Vale sempre |
 | [`.env.example`](.env.example) | Nomes exatos das variáveis e onde cada uma vive |
 
 Demais rules de `rules/`, por gatilho:
@@ -41,7 +41,7 @@ Demais rules de `rules/`, por gatilho:
 
 ## 3. Precedência
 
-Em conflito, nesta ordem:
+O que pesa mais, nesta ordem:
 
 1. Isolamento de tenant e segurança — sempre prevalece.
 2. `docs/adr/` para decisão técnica.
@@ -50,13 +50,15 @@ Em conflito, nesta ordem:
 5. `docs/layout.md` para aparência.
 6. Este arquivo, como síntese operacional, por último.
 
+A ordem diz onde procurar e o que pesa mais; ela não autoriza escolher. Se dois documentos discordarem, pare e avise, sem aplicar nenhum dos dois por conta própria, mesmo quando um deles está acima na lista. Até a pessoa decidir, isolamento de tenant e segurança continuam valendo.
+
 Se não estiver escrito em lugar nenhum, pergunte, não decida.
 
 ## 4. Regras de negócio e escopo da v1
 
 Estão em [`docs/PRD.md`](docs/PRD.md), nas seções "Regras que Operações já decidiu", "O que precisa existir na primeira versão" e "O que NÃO entra nesta versão". Leia de lá, não daqui: este arquivo não as copia, para não haver duas versões.
 
-As quatro regras do PRD têm lacunas (o que conta para o limite de três itens, de quando contam os 14 dias, quem registra a devolução, quem põe um item em manutenção). Elas estão em [`docs/perguntas-prd.md`](docs/perguntas-prd.md), e nenhuma é sua para decidir.
+As quatro regras do PRD tinham lacunas: o que conta para o limite de três itens, de quando contam os 14 dias, quem registra a devolução e quem põe um item em manutenção. As três primeiras já têm resposta do time; a última segue aberta. Tudo está em [`docs/perguntas-prd.md`](docs/perguntas-prd.md): o que está em Abertas não é seu para decidir, e o que está em Respondidas vale até virar RN-xx na spec da funcionalidade.
 
 ## 5. Stack
 
@@ -77,15 +79,17 @@ As decisões e o porquê de cada uma estão em [`docs/adr/001-stack.md`](docs/ad
 | Hospedagem, CI, log, limites | 2.9 | 2.9 |
 | Segurança e segredos | 2.10 | 2.10 |
 
+Ambientes e bancos: [ADR-004](docs/adr/004-environments.md). Nome do primeiro tenant: [ADR-005](docs/adr/005-first-tenant-name.md), que substitui as linhas do ADR-003 sobre ele.
+
 ## 6. Bancos, três e só três
 
 | Banco | Onde | Quem escreve nele |
 |---|---|---|
-| Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | GitHub Actions, via `prisma migrate deploy` |
-| Desenvolvimento | **ainda não existe.** Quando for criado: segundo projeto Supabase, remoto e separado, apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md` e a aplicação; nenhum rodou até hoje |
-| Testes | Postgres efêmero do Testcontainers, imagem `supabase/postgres` (traz o schema `auth` que as policies referenciam) | o globalSetup do Vitest, quando existir |
+| Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | schema: GitHub Actions, via `prisma migrate deploy`; dado: a aplicação na Vercel |
+| Desenvolvimento | Postgres local em Docker, imagem `supabase/postgres`, subido por `docker compose` a partir do `compose.yaml` (que entra no andar zero) e apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md` e a aplicação; nenhum rodou até hoje |
+| Testes | Postgres efêmero do Testcontainers, a mesma imagem `supabase/postgres` (traz o schema `auth` que as policies referenciam) | o globalSetup do Vitest, quando existir |
 
-Não existe banco local do Supabase CLI neste projeto. O que pode e o que não pode em cada banco, inclusive enquanto o de dev não existir, está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
+O Preview da Vercel não tem banco: a página mostra o estado de falha. Não existe Supabase CLI neste projeto; o banco local é só o Postgres do `compose.yaml`. A decisão e o porquê estão no [ADR-004](docs/adr/004-environments.md); o que pode e o que não pode em cada banco está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
 
 ## 7. Idioma
 
@@ -103,6 +107,8 @@ Não existe banco local do Supabase CLI neste projeto. O que pode e o que não p
 | área (tenant) | `tenant` |
 | vínculo pessoa–tenant | `membership` |
 | administrador | `admin` |
+| situação do equipamento: disponível, emprestado, em manutenção, fora de uso | `available`, `loaned`, `maintenance`, `out_of_service` (em classe e variante de CSS, com hífen: `out-of-service`) |
+| em atraso | `overdue` |
 
 "Chamado" e `ticket` não existem mais neste produto: não é um sistema de suporte.
 
@@ -110,9 +116,9 @@ Não existe banco local do Supabase CLI neste projeto. O que pode e o que não p
 
 **Não existe** código de aplicação, `package.json`, script de `pnpm`, pasta de código (`src/`, `app/`), `prisma/`, migration nem teste. Nenhum comando (`pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, `pnpm build`, `pnpm prisma migrate dev`, `pnpm prisma db seed`) jamais foi executado neste repositório. Quando falar de qualquer um deles, diga "quando o scaffold existir".
 
-Existe hoje, e só: os documentos de `docs/` (PRD, `perguntas-prd.md`, ADR-001, ADR-002 com status Proposto, ADR-003, `layout.md`, `andar-zero.md`, `plan-andar-zero.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
+Existe hoje, e só: os documentos de `docs/` (PRD, `perguntas-prd.md`, ADR-001, ADR-002 com status Proposto, ADR-003, ADR-004, ADR-005, `layout.md`, `andar-zero.md`, `plan-andar-zero.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
 
-Pendente: o andar zero, com critérios e plano escritos e esperando aprovação, e nenhuma tarefa começada (scaffold do app, `package.json`, `prisma/`, primeira migration, procedimento de saúde e os primeiros testes); a aprovação do ADR-002; o segundo projeto Supabase de dev; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy. No PR do andar zero, tirar o `ignoreCommand` do `vercel.json`: com o `package.json` existindo ele vira configuração morta.
+Pendente: o andar zero, com critérios e plano escritos e esperando aprovação, e nenhuma tarefa começada (scaffold do app, `package.json`, `compose.yaml` do banco de dev, `prisma/`, primeira migration, procedimento de saúde e os primeiros testes); a aprovação do ADR-002; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy. No PR do andar zero, tirar o `ignoreCommand` do `vercel.json`: com o `package.json` existindo ele vira configuração morta.
 
 Esta seção é provisória. Quando o andar zero rodar, ela dá lugar a **Comandos** (a tabela com o que cada script faz, só depois de rodar), **Mapa de diretórios**, **Convenções não obvias** e **Como testar**.
 
@@ -134,7 +140,7 @@ Siga [`rules/checks.md`](rules/checks.md) antes do push. Ele diz o que fazer com
 |---|---|
 | GitHub | `Sofia-Bonini-wisdom62/emprestai`, privado |
 | Supabase (produção) | projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. **Pausado por inatividade**: a reativação é manual, no painel, por uma pessoa — https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
-| Supabase (dev) | segundo projeto, ainda não existe. Enquanto não existir, não há banco de desenvolvimento; a ref entra aqui quando for criado |
+| Banco de dev | Postgres local em Docker ([ADR-004](docs/adr/004-environments.md)); não há projeto Supabase de dev |
 | Vercel | projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. URL de produção reservada: https://emprestai-beta.vercel.app, que responde 404 enquanto não houver aplicação |
 | CI | GitHub Actions. `vercel.json` desliga o deploy por push na `main`; o deploy de produção sai de Deploy Hook depois do `prisma migrate deploy`. O workflow ainda não existe. Enquanto não houver `package.json`, o `ignoreCommand` do `vercel.json` faz a Vercel pular o build dos previews em vez de falhar |
 | Variáveis | lista completa e onde cada uma vive em [`.env.example`](.env.example) |
