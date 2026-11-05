@@ -26,6 +26,9 @@
   --status-maintenance: #f0c05a;
   --status-maintenance-bg: #2d2410;
   --status-maintenance-border: #9a7420;
+  --status-overdue: #ff9497;
+  --status-overdue-bg: #33171b;
+  --status-overdue-border: #c24c55;
 }
 
 @theme inline {
@@ -51,6 +54,9 @@
   --color-status-maintenance: var(--status-maintenance);
   --color-status-maintenance-bg: var(--status-maintenance-bg);
   --color-status-maintenance-border: var(--status-maintenance-border);
+  --color-status-overdue: var(--status-overdue);
+  --color-status-overdue-bg: var(--status-overdue-bg);
+  --color-status-overdue-border: var(--status-overdue-border);
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
