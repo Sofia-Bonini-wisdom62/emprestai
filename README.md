@@ -4,7 +4,7 @@ Sistema web interno para controlar empréstimo de equipamentos. Projeto de disci
 
 ## Estado atual
 
-Não existe código de aplicação, `package.json`, `src/`, `prisma/`, migration nem teste. Hoje o repositório é só documento e regra: PRD, ADR, perguntas em aberto, formato de spec e `rules/`. O inventário completo e o que falta estão em [AGENTS.md, seção Estado atual](AGENTS.md).
+O andar zero está em andamento: existe o scaffold do Next.js e uma landing provisória, ainda sem banco, login nem telas do produto. O inventário completo e o que falta estão em [AGENTS.md, seção Estado atual](AGENTS.md).
 
 ## Documentos
 

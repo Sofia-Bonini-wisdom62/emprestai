@@ -31,7 +31,7 @@ ADR-001.
 - Cabeçalhos HTTP e CSP (ADR-001, 2.10). A primeira tela com componentes do shadcn/ui
   tem que conferir a CSP, porque o [`docs/layout.md`](layout.md) registrou que alguns
   primitivos escrevem `style`.
-- Design system: a página do AZ-05 é propositalmente simples.
+- Design system, além dos tokens de [`docs/layout.md`](layout.md) que a landing provisória usa (pedido da pessoa em 2026-11-05). shadcn/ui e `lucide-react` não entram.
 - Sentry, rate limit e auditoria.
 - Playwright.
 - O workflow do GitHub Actions com `prisma migrate deploy` e o Deploy Hook, que vem logo depois do andar zero.

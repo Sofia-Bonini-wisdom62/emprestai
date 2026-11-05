@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* Valores de docs/layout.md, seção 2. Em :root, não em .dark: há um tema só. */
+:root {
+  color-scheme: dark;
+
+  --background: #0b0c14;
+  --card: #13151f;
+  --border: #262938;
+  --foreground: #edeef5;
+  --text-secondary: #bcc0d2;
+  --muted-foreground: #9196ae;
+
+  --indigo-100: #dde0ff;
+  --indigo-300: #a5acff;
+  --indigo-400: #8c93fa;
+  --indigo-900: #24275c;
+  --indigo-950: #171936;
+
+  --status-available: #5bd69b;
+  --status-available-bg: #0e2a1e;
+  --status-available-border: #2f8f62;
+  --status-loaned: #c3c7d8;
+  --status-loaned-bg: #1f2232;
+  --status-loaned-border: #6b7190;
+  --status-maintenance: #f0c05a;
+  --status-maintenance-bg: #2d2410;
+  --status-maintenance-border: #9a7420;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-secondary-text: var(--text-secondary);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-indigo-100: var(--indigo-100);
+  --color-indigo-300: var(--indigo-300);
+  --color-indigo-400: var(--indigo-400);
+  --color-indigo-900: var(--indigo-900);
+  --color-indigo-950: var(--indigo-950);
+
+  --color-status-available: var(--status-available);
+  --color-status-available-bg: var(--status-available-bg);
+  --color-status-available-border: var(--status-available-border);
+  --color-status-loaned: var(--status-loaned);
+  --color-status-loaned-bg: var(--status-loaned-bg);
+  --color-status-loaned-border: var(--status-loaned-border);
+  --color-status-maintenance: var(--status-maintenance);
+  --color-status-maintenance-bg: var(--status-maintenance-bg);
+  --color-status-maintenance-border: var(--status-maintenance-border);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 24px;
+}
