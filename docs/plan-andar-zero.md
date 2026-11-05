@@ -104,13 +104,13 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   depende de: T3 (Prisma CLI, para a verificação); de fora do repo, o Docker de pé
   detalhes: a T5 escolhe a tag da imagem e confere que ela sobe; a T8 reaproveita a mesma tag no Testcontainers (R10); porta ligada só a `127.0.0.1`; volume nomeado, para o dado sobreviver a `docker compose down`; senha lida do `.env.local`, nunca escrita no `compose.yaml`; nada de Supabase CLI (`rules/restrictions.md`, Bancos e schema). Antes de commitar, a tarefa mostra como o compose recebe a senha: do `.env.local`, para a pessoa, e por variável na linha de comando, para a verificação do agente, que não abre o `.env.local`
   verifico assim: com a senha fictícia na linha de comando, `docker compose up -d` e `docker compose ps` mostram o serviço saudável; `docker compose port` mostra só `127.0.0.1`; `pnpm prisma migrate status`, com a URL fictícia do banco local na linha de comando, conecta e não acha migration; `docker compose down` seguido de `up -d` mantém o volume; `grep -n -i password compose.yaml` só mostra a referência à variável (`${...}`), sem valor
-- [ ] T6 · Migration `add_health_checks_table` com o SQL de RLS, sem aplicar antes de o SQL entrar
+- [x] T6 · Migration `add_health_checks_table` com o SQL de RLS, sem aplicar antes de o SQL entrar
   atende: AZ-03
   adiciona dependência: nenhuma
   depende de: T5 (banco de dev local de pé); de fora do repo, o Docker
   teste da policy: o caso que prova o bloqueio (`rules/tests.md`, passo 3) entra na T8, no mesmo PR do andar zero; a migration não chega à `main` sem ele
   passos: o modelo já está no `schema.prisma` desde a T4; a T6 só gera a migration. (1) `pnpm prisma migrate dev --create-only --name add_health_checks_table`; (2) colar no `migration.sql` gerado o SQL de RLS aprovado na T4; (3) `pnpm prisma migrate dev` para aplicar
-  verifico assim: `pnpm prisma migrate status` mostra a migration aplicada; o diff do `migration.sql` contra o DDL da T4 não tem diferença; `pnpm prisma migrate reset` no dev local aplica do zero
+  verifico assim: `pnpm prisma migrate status` mostra a migration aplicada; o diff do `migration.sql` contra o DDL da T4 não tem diferença; aplicar do zero, num Postgres novo da mesma imagem, com `pnpm prisma migrate deploy`. O `pnpm prisma migrate reset` recusa rodar a partir de um agente sem consentimento da pessoa, então o agente não o usa para esta prova
 - [x] T7 · tRPC: `initTRPC` com superjson, contexto mínimo `{ db }` sem sessão, route handler, `health.check` público e o service
   atende: AZ-04, AZ-02 (banco fora do ar)
   adiciona dependência: @trpc/server, superjson
