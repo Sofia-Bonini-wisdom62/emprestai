@@ -111,7 +111,7 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   teste da policy: o caso que prova o bloqueio (`rules/tests.md`, passo 3) entra na T8, no mesmo PR do andar zero; a migration não chega à `main` sem ele
   passos: o modelo já está no `schema.prisma` desde a T4; a T6 só gera a migration. (1) `pnpm prisma migrate dev --create-only --name add_health_checks_table`; (2) colar no `migration.sql` gerado o SQL de RLS aprovado na T4; (3) `pnpm prisma migrate dev` para aplicar
   verifico assim: `pnpm prisma migrate status` mostra a migration aplicada; o diff do `migration.sql` contra o DDL da T4 não tem diferença; `pnpm prisma migrate reset` no dev local aplica do zero
-- [ ] T7 · tRPC: `initTRPC` com superjson, contexto mínimo `{ db }` sem sessão, route handler, `health.check` público e o service
+- [x] T7 · tRPC: `initTRPC` com superjson, contexto mínimo `{ db }` sem sessão, route handler, `health.check` público e o service
   atende: AZ-04, AZ-02 (banco fora do ar)
   adiciona dependência: @trpc/server, superjson
   depende de: T4 aprovada (o modelo no client tipado); de fora do repo, nada para o caminho de falha e banco de dev para o de sucesso

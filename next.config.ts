@@ -7,6 +7,8 @@ import {
 import { parseServerEnv } from "./src/env/schema";
 
 const nextConfig: NextConfig = {
+  // Sem isso, o next dev escreve um bloco próprio no nosso AGENTS.md.
+  agentRules: false,
   turbopack: {
     rules: {
       "*.css": {
