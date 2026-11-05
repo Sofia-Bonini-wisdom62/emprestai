@@ -47,6 +47,24 @@ describe.each(["authenticated", "anon"])("health_checks como %s", (role) => {
   });
 });
 
+// Com a RLS ligada, tirar a policy dá os mesmos zero acima: só o catálogo mostra.
+it("az_03 a policy explícita nega tudo a anon e authenticated", async () => {
+  await expect(
+    db.$queryRaw`
+      SELECT policyname, roles::text[], cmd, qual, with_check
+      FROM pg_policies
+      WHERE schemaname = 'public' AND tablename = 'health_checks'`,
+  ).resolves.toEqual([
+    {
+      policyname: "health_checks_deny_all",
+      roles: ["anon", "authenticated"],
+      cmd: "ALL",
+      qual: "false",
+      with_check: "false",
+    },
+  ]);
+});
+
 // O Prisma cria esta tabela sozinho, fora do schema: não há modelo nem service.
 describe.each(["authenticated", "anon"])(
   "_prisma_migrations como %s",
