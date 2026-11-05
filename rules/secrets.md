@@ -18,8 +18,9 @@ ou Prisma. Os nomes exatos e o que cada um significa estão em `.env.example`.
 2. Quando o andar zero existir, o schema Zod nasce dividido em três: `src/env/server.ts` (com
    `import 'server-only'`), `src/env/client.ts` (só as `NEXT_PUBLIC_`, cada uma
    mapeada literalmente — `process.env.NEXT_PUBLIC_X`, senão o Next não inlina)
-   e `src/env/runtime.ts` (derivados das `VERCEL_*`). Hoje é especificação:
-   nenhum dos três existe.
+   e `src/env/runtime.ts` (derivados das `VERCEL_*`). O schema do servidor fica
+   em `src/env/schema.ts`, sem `server-only`, para o `next.config.ts` validar
+   no build e no dev.
 3. Variável nova entra no `.env.example` (versionado, com placeholder) e, por
    padrão, no `.env.local` (máquina) e no painel da Vercel (production e
    preview). Exceção fica escrita ao lado da variável, na linha `onde:` do
@@ -36,4 +37,5 @@ tem toda chave que o projeto usa, sem nenhum valor real. Enquanto não houver
 
 ## Não faça
 - Não dê prefixo `NEXT_PUBLIC_` a segredo, nem leia `process.env` fora de `src/env/`.
+  Exceção: `prisma.config.ts`, que o ADR-003, 2.5, manda ler `DIRECT_URL` direto.
 - Proibições sobre `.env.local`, segredo em log ou PR e painel de provedor: `rules/restrictions.md`.

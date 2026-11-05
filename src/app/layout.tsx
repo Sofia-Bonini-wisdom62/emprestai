@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "Empréstimo de equipamentos internos",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="pt-BR"
