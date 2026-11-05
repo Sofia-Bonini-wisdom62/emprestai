@@ -23,7 +23,6 @@ playwright/.cache/
 .env
 .env.*
 !.env.example
-!.env.test
 .env.sentry-build-plugin
 
 # prisma
