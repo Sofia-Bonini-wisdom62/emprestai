@@ -152,6 +152,14 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   depende de fora do repo: aprovação explícita (`rules/restrictions.md`, Escopo); `DATABASE_URL` no ambiente Preview da Vercel, cadastrada pela pessoa com um valor que não aponta para banco nenhum (ADR-004; nunca a URL de produção) (é a única obrigatória da T2; as opcionais entram com a funcionalidade que as usa, e `DIRECT_URL` não vai para a Vercel)
   banco do Preview: nenhum (ADR-004); a página mostra o estado de falha do procedimento de saúde, e é isso que o AZ-09 espera
   verifico assim: a pessoa lê o log do deploy de preview no painel da Vercel e cola o trecho do build (o agente só o lê com pedido explícito nesta conversa); a URL do preview, na raiz `/`, mostra o estado de falha
+- [x] Fora da numeração · Migration `protect_prisma_migrations_table`: RLS e policy de negação na `_prisma_migrations`
+  atende: nenhum AZ; ADR-001, 2.7 (RLS em todas as tabelas). Pedido direto da pessoa em 2026-11-05, com o DDL aprovado na conversa
+  adiciona dependência: nenhuma
+  depende de: T6 (ordem das migrations); de fora do repo, o Docker
+  por quê: o Prisma cria a tabela sozinho, fora das migrations, e ela nasce sem RLS. Na imagem local, `anon` e `authenticated` liam, apagavam, atualizavam e inseriam linhas
+  o `IF` da migration: sem ele, o `migrate dev` falha com `P3018` no shadow database, que não tem a tabela
+  fora do alcance: a RLS não cobre `TRUNCATE`; hoje nenhum caminho leva `anon` ou `authenticated` a esse comando
+  verifico assim: sem a migration, os casos `adr_001` de `src/server/services/health.test.ts` falham; com ela, `pnpm test` passa; sem o `CREATE POLICY`, só o caso de catálogo falha; `pnpm prisma migrate dev` passa no shadow database e `pnpm prisma migrate deploy` aplica do zero
 
 ## 4. Riscos e pontos a confirmar
 

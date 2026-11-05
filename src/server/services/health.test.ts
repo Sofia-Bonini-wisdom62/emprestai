@@ -47,6 +47,76 @@ describe.each(["authenticated", "anon"])("health_checks como %s", (role) => {
   });
 });
 
+// O Prisma cria esta tabela sozinho, fora do schema: não há modelo nem service.
+describe.each(["authenticated", "anon"])(
+  "_prisma_migrations como %s",
+  (role) => {
+    const setRole = `SET LOCAL ROLE ${role}`;
+
+    async function countMigrations(tx: Prisma.TransactionClient) {
+      const [{ total }] = await tx.$queryRaw<[{ total: bigint }]>`
+        SELECT count(*) AS total FROM "_prisma_migrations"`;
+      return Number(total);
+    }
+
+    it(`adr_001 ${role} não lê, não apaga nem atualiza o histórico de migrations`, async () => {
+      await inRolledBackTransaction(async (tx) => {
+        expect(await countMigrations(tx)).toBeGreaterThan(0);
+
+        await tx.$executeRawUnsafe(setRole);
+
+        await expect(countMigrations(tx)).resolves.toBe(0);
+        await expect(
+          tx.$executeRaw`DELETE FROM "_prisma_migrations"`,
+        ).resolves.toBe(0);
+        await expect(
+          tx.$executeRaw`UPDATE "_prisma_migrations" SET "logs" = 'x'`,
+        ).resolves.toBe(0);
+      });
+    });
+
+    it(`adr_001 ${role} não registra migration falsa`, async () => {
+      await inRolledBackTransaction(async (tx) => {
+        await tx.$executeRawUnsafe(setRole);
+
+        await expect(
+          tx.$executeRaw`INSERT INTO "_prisma_migrations" ("id", "checksum", "migration_name") VALUES ('x', 'x', 'x')`,
+        ).rejects.toThrow(/row-level security/);
+      });
+    });
+
+    // Controle: prova que o bloqueio acima vem da RLS, e não de outra coisa.
+    it(`adr_001 ${role} lê o histórico quando a RLS está desligada`, async () => {
+      await inRolledBackTransaction(async (tx) => {
+        await tx.$executeRaw`ALTER TABLE "_prisma_migrations" DISABLE ROW LEVEL SECURITY`;
+
+        await tx.$executeRawUnsafe(setRole);
+
+        await expect(countMigrations(tx)).resolves.toBeGreaterThan(0);
+      });
+    });
+  },
+);
+
+// A RLS sozinha já nega tudo: só o catálogo mostra se a policy explícita existe.
+describe("_prisma_migrations no catálogo", () => {
+  it("adr_001 a policy explícita nega tudo a anon e authenticated", async () => {
+    const policies = await db.$queryRaw`
+      SELECT policyname, roles::text[] AS roles, cmd, qual, with_check
+      FROM pg_policies WHERE tablename = '_prisma_migrations'`;
+
+    expect(policies).toEqual([
+      {
+        policyname: "prisma_migrations_deny_all",
+        roles: ["anon", "authenticated"],
+        cmd: "ALL",
+        qual: "false",
+        with_check: "false",
+      },
+    ]);
+  });
+});
+
 afterAll(async () => {
   await db.$disconnect();
 });
