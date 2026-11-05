@@ -72,15 +72,6 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
    campo e uma decisão de Operações; se não pode, o item volta a disponível
    mesmo quebrado e a próxima pessoa o pega.
 
-8b. O histórico do item mostra quem pegou?
-    tipo: negócio
-    por que importa: a resposta da pergunta 8 põe no detalhe do item a data, o
-    evento e o resultado, sem a pessoa. Mostrar quem pegou expõe a qualquer
-    colaborador quem esteve com o quê, o que é decisão de privacidade e se liga
-    às perguntas 6 (quem enxerga o estoque de quem) e 14 (o card já mostra quem
-    está com o item agora). Sem resposta, `docs/layout.md` mostra o histórico
-    sem a pessoa.
-
 9b. O item fora de uso aparece no catálogo?
     tipo: negócio
     por que importa: a situação existe (pergunta 9), mas a resposta não diz se
@@ -92,17 +83,14 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
     manutenção, e quando). Sem resposta, `docs/layout.md` não desenha o item
     fora de uso no catálogo.
 
-11b. Existe busca no catálogo, e em que outras telas do colaborador?
+11c. A busca do catálogo procura só pelo nome, ou também por patrimônio? E ela
+     aparece em Meus empréstimos?
      tipo: negócio
-     por que importa: a busca da tela de Operações já está decidida (pergunta
-     11). A spec 001-telas também põe no header do catálogo um campo "Buscar
-     equipamento", que não entrou entre as respostas adotadas; o protótipo do
-     mesmo repositório repete o campo em Meus empréstimos, onde o layout de
-     referência só tem breadcrumb e o botão "Pegar emprestado". Falta dizer se
-     o catálogo tem busca, o que ela procura (só o nome, ou também patrimônio)
-     e em que telas aparece. Liga-se à pergunta 6 (quem enxerga o estoque de
-     quem). Sem resposta, o catálogo segue só com os filtros de categoria e de
-     disponibilidade, e o header não tem busca.
+     por que importa: a resposta da 11b diz que o catálogo tem busca, e a fonte
+     só traz o placeholder "Buscar equipamento". O protótipo do mesmo
+     repositório repete o campo em Meus empréstimos, onde o layout de
+     referência só tem breadcrumb e o botão "Pegar emprestado". Sem resposta,
+     `docs/layout.md` procura pelo nome do equipamento, e só no catálogo.
 
 12b. O detalhe do item mostra uma descrição curta que o cadastro não tem.
      Descrição e observações são o mesmo campo, e o colaborador vê esse texto?
@@ -112,13 +100,13 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
      cadastro ganha um campo que a resposta à pergunta 12 não lista. Sem
      resposta, o detalhe não mostra descrição nem observações.
 
-12c. A lista de categorias é fixa, ou Operações pode criar categoria na v1?
+12d. Categoria criada pode ser renomeada ou excluída? E o que acontece com os
+     equipamentos dela?
      tipo: negócio
-     por que importa: a resposta da pergunta 12 dá as cinco categorias, mas a
-     spec 001-telas só as lista, sem dizer se a lista muda. Fixa vira um enum
-     no schema; cadastrável vira tabela e uma tela a mais para Operações. Sem
-     resposta, `docs/layout.md` desenha as cinco, e uma categoria nova usaria o
-     ícone genérico.
+     por que importa: a resposta da 12c deixa Operações criar categoria na v1,
+     mas não diz se um nome errado pode ser corrigido, nem o que acontece com
+     um equipamento cuja categoria some. Muda o schema e a tela de cadastro.
+     Sem resposta, `docs/layout.md` só desenha a criação.
 
 13b. A janela de 3 dias vale para o indicador e também para o filtro? O layout
      de referência e a spec 001-telas têm, além do indicador, um filtro
@@ -233,10 +221,16 @@ pasta, que só sai quando a spec for criada.
    no prazo ou com atraso.
    decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
    do repositório do Guilherme.
-   fica aberto: a 8b, se o histórico do item mostra quem pegou. O evento
-   "manutenção" depende também das perguntas 7 e 17 (quem põe o item nesse
-   estado).
+   fica aberto: o evento "manutenção" depende das perguntas 7 e 17 (quem põe
+   o item nesse estado).
    vira RN em: catálogo (detalhe do equipamento) e Meus empréstimos.
+
+8b. O histórico do item mostra quem pegou?
+    resposta: sim. O histórico do item mostra a pessoa de cada empréstimo.
+    decidido: pela pessoa, diretamente, em 2026-11-05.
+    ainda liga-se à pergunta 6: "qualquer colaborador" depende de quem enxerga
+    o estoque de quem.
+    vira RN em: catálogo (detalhe do equipamento).
 
 9. Existe uma situação "fora de uso" além de disponível, emprestado e em
    manutenção?
@@ -263,21 +257,33 @@ pasta, que só sai quando a spec for criada.
     patrimônio ou nome do equipamento.
     decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
     do repositório do Guilherme.
-    fica aberto: a 11b. A spec 001-telas também põe um campo "Buscar
-    equipamento" no header do catálogo; essa parte não foi adotada e está na
-    11b.
     vira RN em: tela de Operações.
+
+11b. Existe busca no catálogo?
+     resposta: sim. O header do catálogo tem um campo "Buscar equipamento",
+     como na spec 001-telas.
+     decidido: pela pessoa, diretamente, em 2026-11-05.
+     fica aberto: a 11c, o que a busca procura e se ela aparece em Meus
+     empréstimos.
+     vira RN em: catálogo.
 
 12. Quais dados um equipamento tem?
     resposta: Nome, Categoria, Patrimônio, Número de série, Local de retirada,
     Situação e Observações. A situação inicial é Disponível, Em manutenção ou
-    Fora de uso (pergunta 9). Cinco categorias: Notebooks, Monitores, Câmeras,
-    Cabos, Projetores. O patrimônio é único (pergunta 1).
+    Fora de uso (pergunta 9). Cinco categorias iniciais: Notebooks, Monitores,
+    Câmeras, Cabos, Projetores. O patrimônio é único (pergunta 1).
     decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
     do repositório do Guilherme.
-    fica aberto: a 12b, descrição e observações; a 12c, se a lista de
-    categorias é fixa; e a 18, campos obrigatórios.
+    fica aberto: a 12b, descrição e observações; e a 18, campos obrigatórios.
     vira RN em: cadastro de equipamento e catálogo.
+
+12c. A lista de categorias é fixa, ou Operações pode criar categoria na v1?
+     resposta: não é fixa. Operações pode criar categoria na v1.
+     decidido: pela pessoa, diretamente, em 2026-11-05.
+     custo aceito: uma tabela a mais no schema e uma ação a mais para
+     Operações, que o PRD não lista em "o que precisa existir".
+     fica aberto: a 12d, renomear ou excluir categoria.
+     vira RN em: cadastro de equipamento.
 
 13. Operações quer ver os empréstimos que estão para vencer, e com quantos
     dias de antecedência?
