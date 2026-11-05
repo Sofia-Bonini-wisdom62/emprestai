@@ -97,7 +97,7 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   depende de fora do repo: aprovação do DDL, dada pela pessoa em 2026-11-05
   SQL de RLS aprovado, para a T6 colar na migration: `ALTER TABLE "health_checks" ENABLE ROW LEVEL SECURITY;` e `CREATE POLICY "health_checks_deny_all" ON "health_checks" FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);`
   verifico assim: o DDL está na resposta e a pessoa aprova ou corrige; depois da aprovação, `pnpm prisma generate` passa sem banco e `pnpm typecheck` sem erro; nada em `prisma/migrations/` ainda
-- [ ] T5 · Banco de dev local: `compose.yaml` com a imagem `supabase/postgres`
+- [x] T5 · Banco de dev local: `compose.yaml` com a imagem `supabase/postgres`
   atende: AZ-01 (o banco de dev sobe com um comando); pré-requisito da T6 e da T10
   adiciona dependência: nenhuma de pacote; usa o Docker Compose do Docker Desktop (ADR-004)
   altera: cria `compose.yaml` na raiz; acrescenta ao `.env.example` a variável da senha local, com placeholder e a indicação de que ela só vive no `.env.local` (`rules/secrets.md`, passo 3), e avisa que o valor falta lá
