@@ -86,8 +86,8 @@ Ambientes e bancos: [ADR-004](docs/adr/004-environments.md). Nome do primeiro te
 | Banco | Onde | Quem escreve nele |
 |---|---|---|
 | Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | schema: GitHub Actions, via `prisma migrate deploy`; dado: a aplicação na Vercel |
-| Desenvolvimento | Postgres local em Docker, imagem `supabase/postgres`, subido por `docker compose` a partir do `compose.yaml` (que entra no andar zero) e apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md` e a aplicação; nenhum rodou até hoje |
-| Testes | Postgres efêmero do Testcontainers, a mesma imagem `supabase/postgres` (traz o schema `auth` que as policies referenciam) | o globalSetup do Vitest, quando existir |
+| Desenvolvimento | Postgres local em Docker, imagem `supabase/postgres`, subido por `docker compose` a partir do `compose.yaml` e apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md` e a aplicação |
+| Testes | Postgres efêmero do Testcontainers, a mesma imagem `supabase/postgres` (traz o schema `auth` que as policies referenciam) | o globalSetup do Vitest |
 
 O Preview da Vercel não tem banco: a página mostra o estado de falha. Não existe Supabase CLI neste projeto; o banco local é só o Postgres do `compose.yaml`. A decisão e o porquê estão no [ADR-004](docs/adr/004-environments.md); o que pode e o que não pode em cada banco está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
 
@@ -112,15 +112,60 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 
 "Chamado" e `ticket` não existem mais neste produto: não é um sistema de suporte.
 
-## 8. Estado atual do projeto
+## 8. O repositório hoje
 
-O andar zero está em andamento, na branch `feat/walking-skeleton`. O scaffold do Next.js existe, e `pnpm lint`, `pnpm typecheck`, `pnpm dev` e `pnpm build` já rodam. A raiz `/` é uma landing provisória. **Ainda não existe** `prisma/`, migration nem teste: `pnpm test`, `pnpm test:e2e`, `pnpm prisma migrate dev` e `pnpm prisma db seed` nunca rodaram.
+Andar zero em andamento, na branch `feat/walking-skeleton`. A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. Pendente: a aprovação do ADR-002 e o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy.
 
-Existe hoje, e só: os documentos de `docs/` (PRD, `perguntas-prd.md`, ADR-001, ADR-002 com status Proposto, ADR-003, ADR-004, ADR-005, `layout.md`, `andar-zero.md`, `plan-andar-zero.md` e `specs/README.md`), as oito rules de `rules/`, `stacks_H.md` (insumo do ADR, congelado antes de o PRD entrar: descreve um domínio e nomes de chave superados, não copie nada dele), `src/app/`, `package.json` e as configs do scaffold, `.env.example`, `.gitignore`, `.gitattributes`, `vercel.json`, `README.md`, este arquivo e `CLAUDE.md`. Confira com `git ls-files` antes de atualizar esta lista.
+### Comandos
 
-Pendente: o resto do andar zero (`compose.yaml` do banco de dev, `prisma/`, primeira migration, procedimento de saúde e os primeiros testes); a aprovação do ADR-002; o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy. No PR do andar zero, tirar o `ignoreCommand` do `vercel.json`: com o `package.json` existindo ele vira configuração morta.
+Só o que já rodou. Antes de tudo: `.env.local` preenchido a partir do `.env.example` e Docker Desktop aberto.
 
-Esta seção é provisória. Quando o andar zero rodar, ela dá lugar a **Comandos** (a tabela com o que cada script faz, só depois de rodar), **Mapa de diretórios**, **Convenções não obvias** e **Como testar**.
+| Comando | O que faz |
+|---|---|
+| `pnpm install` | Instala e gera o client do Prisma |
+| `docker compose --env-file .env.local up -d --wait` | Sobe o Postgres de dev e espera ele ficar saudável |
+| `docker compose --env-file .env.local down` | Derruba o banco; o dado fica no volume |
+| `pnpm prisma migrate deploy` | Aplica as migrations no banco de dev |
+| `pnpm prisma migrate dev --name <nome>` | Cria migration nova (`rules/migration.md`) |
+| `pnpm dev` | Roda em http://localhost:3000 |
+| `pnpm lint` e `pnpm typecheck` | ESLint e `tsc --noEmit` |
+| `pnpm test` | Suíte no Testcontainers; exige o Docker de pé |
+| `pnpm build` | Build de produção; exige `DATABASE_URL` |
+
+### Mapa de diretórios
+
+| Pasta | O que mora ali |
+|---|---|
+| `src/app/` | Rotas do App Router; `api/trpc/[trpc]/` é o route handler único |
+| `src/env/` | Única leitura de `process.env`, com as exceções de `rules/secrets.md` |
+| `src/server/api/` | `initTRPC`, contexto, `appRouter` e, em `routers/`, um router por domínio |
+| `src/server/services/` | Regra de negócio; nunca no router nem na tela |
+| `src/server/db.ts` | Singleton do Prisma |
+| `src/trpc/` | Lado cliente do tRPC |
+| `src/generated/prisma/` | Client gerado, fora do git e do lint |
+| `prisma/` | `schema.prisma` e migrations |
+| `tests/` | Só infraestrutura de teste: globalSetup e helpers |
+
+Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `routers/`, `services/` e `src/app/<rota>/`, mais `prisma/` se tiver tabela nova.
+
+### Convenções não óbvias
+
+- Comentário não desliga regra de lint: exceção entra no `eslint.config.mjs`, com a justificativa ao lado.
+- `src/env/schema.ts` não tem `server-only`, porque o `next.config.ts` o importa para validar no build e no dev. Por isso `next typegen` também exige `DATABASE_URL`, e o `layout.tsx` não usa o tipo gerado `LayoutProps`.
+- Sem `.env.local`, passe uma URL fictícia na linha de comando: `DATABASE_URL=postgresql://127.0.0.1:1/x pnpm build`.
+- `prisma` fica na versão exata do `package.json`: o `latest` do npm aponta para o 8.0.0-rc.
+- `agentRules: false` no `next.config.ts` não sai: sem ele, o `next dev` escreve no nosso `AGENTS.md`.
+- A tag da imagem é a mesma em `compose.yaml` e `tests/global-setup.ts`; mudou numa, muda na outra.
+- O contêiner dos testes sobe como `supabase_admin` e os testes conectam como `postgres`, dono das tabelas. A imagem dá `SELECT` a `anon` e `authenticated`, então quem bloqueia é a RLS.
+- O agente não roda `pnpm prisma migrate reset`: a ferramenta exige consentimento da pessoa. Para provar do zero, use um Postgres novo com `pnpm prisma migrate deploy`.
+- Service não repassa erro do driver, que pode trazer host e usuário do banco.
+- Procedimento sem entrada usa `.input(z.void())`, porque o ADR-001, 2.3, pede Zod em todo `.input()`.
+
+### Como testar
+
+`pnpm test` sobe um Postgres efêmero, aplica as migrations do zero e roda os casos. Regras em `rules/tests.md`. Tabela com policy tem caso com `SET LOCAL ROLE`, mais um controle com a RLS desligada, para provar que o bloqueio vem dela.
+
+Na mão: com o banco de dev de pé e `pnpm dev`, a landing mostra o estado do banco, e `curl http://localhost:3000/api/trpc/health.check` devolve o mesmo resultado.
 
 ## 9. Fluxo de trabalho com git
 
@@ -134,13 +179,6 @@ Quem autoriza commit, push e PR está em [`rules/operacao.md`](rules/operacao.md
 
 Siga [`rules/checks.md`](rules/checks.md) antes do push. Ele diz o que fazer com os passos que ainda não dá para rodar. Este arquivo não resume aquele procedimento, de propósito.
 
-## 11. Infraestrutura (referência, sem segredos)
+## 11. Infraestrutura
 
-| Item | Valor |
-|---|---|
-| GitHub | `Sofia-Bonini-wisdom62/emprestai`, privado |
-| Supabase (produção) | projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. **Pausado por inatividade**: a reativação é manual, no painel, por uma pessoa — https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
-| Banco de dev | Postgres local em Docker ([ADR-004](docs/adr/004-environments.md)); não há projeto Supabase de dev |
-| Vercel | projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. URL de produção reservada: https://emprestai-beta.vercel.app, que responde 404 enquanto não houver aplicação |
-| CI | GitHub Actions. `vercel.json` desliga o deploy por push na `main`; o deploy de produção sai de Deploy Hook depois do `prisma migrate deploy`. O workflow ainda não existe. Enquanto não houver `package.json`, o `ignoreCommand` do `vercel.json` faz a Vercel pular o build dos previews em vez de falhar |
-| Variáveis | lista completa e onde cada uma vive em [`.env.example`](.env.example) |
+IDs, URLs e estado de GitHub, Supabase, Vercel e CI: [`README.md`](README.md), seção Infraestrutura. Variáveis e onde cada uma vive: [`.env.example`](.env.example).

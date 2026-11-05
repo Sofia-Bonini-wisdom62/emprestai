@@ -11,11 +11,8 @@ alwaysApply: true
 Sempre que você for dizer "pronto", "implementado" ou "funcionando".
 A unidade de tarefa é a de `rules/restrictions.md`, seção Ritmo.
 
-Execute na ordem abaixo **o que existir no repositório**. Hoje não há
-`compose.yaml`, Prisma nem Vitest (`AGENTS.md`, seção Estado atual): os passos
-que dependem deles são especificação até o andar zero chegar lá.
-Passo que ainda não dá para rodar entra na resposta como **pulado, com
-o motivo**. Nunca como passou.
+Execute na ordem abaixo. Passo que não dá para rodar entra na resposta
+como **pulado, com o motivo**. Nunca como passou.
 
 ## Procedimento
 1. `pnpm lint` e `pnpm typecheck`. Cole a última linha de cada saída.
