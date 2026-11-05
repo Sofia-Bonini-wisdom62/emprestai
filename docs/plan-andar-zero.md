@@ -24,7 +24,7 @@ Sai de [`docs/andar-zero.md`](andar-zero.md) (critérios AZ-01 a AZ-09) e é res
 └── tests/                só infraestrutura de teste: globalSetup do Testcontainers e helpers de banco
 ```
 
-**(a) Convenção do Next.js / create-next-app — herança, não decisão:** `src/app/` e o roteamento por pasta (`page.tsx` na raiz, `api/trpc/[trpc]/route.ts`), `public/`, os arquivos de config na raiz (`next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`), o alias `@/*`. `pnpm-workspace.yaml`, se aparecer, é convenção do pnpm.
+**(a) Convenção do Next.js / create-next-app — herança, não decisão:** `src/app/` e o roteamento por pasta (`page.tsx` na raiz, `api/trpc/[trpc]/route.ts`), `public/`, os arquivos de config na raiz (`next.config.ts`, `tsconfig.json`, `eslint.config.mjs`), o alias `@/*`. `pnpm-workspace.yaml`, se aparecer, é convenção do pnpm.
 
 **(b) Já decidido pelo ADR-001 ou por rule:** route handler do tRPC em `api/trpc/[trpc]/route.ts` (2.3); `src/server/api/routers/<domínio>.ts`, um router por domínio (2.3); `prisma/` e `prisma.config.ts` (2.5, com a correção do ADR-003). O ADR fixa também a camada Service entre router e Prisma (2.3) e o singleton do Prisma (2.5), mas não o caminho deles: os caminhos estão no grupo (c). Fixado por `rules/secrets.md`, não pelo ADR: `src/env/{server,client,runtime}.ts`.
 
@@ -56,9 +56,9 @@ pnpm create next-app@<versão> emprestai-scaffold --ts --eslint --tailwind --app
 
 Turbopack vem ligado por padrão (doc). `--no-agents-md` porque o repositório já tem o seu `AGENTS.md`; `--no-*` nega opção padrão, pela doc.
 
-Esperado (conferido contra o resultado real, que a T1 mostra): `package.json`, `tsconfig.json`, `next.config.ts`, `next-env.d.ts`, `eslint.config.mjs`, `postcss.config.mjs`, `.gitignore`, `README.md`, `public/*.svg`, `src/app/{layout.tsx,page.tsx,globals.css,favicon.ico}`.
+Esperado (conferido contra o resultado real, que a T1 mostra): `package.json`, `tsconfig.json`, `next.config.ts`, `next-env.d.ts`, `eslint.config.mjs`, `pnpm-workspace.yaml`, `.gitignore`, `README.md`, `public/*.svg`, `src/app/{layout.tsx,page.tsx,globals.css,favicon.ico}`.
 
-O que a T1 faz logo em seguida: copia `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `postcss.config.mjs` e `src/app/`; **não** copia `README.md`, `.gitignore` (o do repositório já cobre o do scaffold; diferença mostrada) nem `next-env.d.ts` (ignorado); remove os SVGs de `public/`, o `next/image` e o conteúdo de exemplo de `page.tsx` (que fica como placeholder mínimo, sem conteúdo de produto, até a T9 pôr nele a página do AZ-05), mas **mantém** o `next/font` do `layout.tsx`, que já traz a Geist, a fonte proposta no ADR-002, servida pelo próprio Next a partir do build, sem CDN em tempo de execução (nada além disso do design system entra no andar zero); acrescenta o script `typecheck` (`tsc --noEmit`), exigido por `rules/checks.md`; acrescenta ao `eslint.config.mjs` as regras descritas na T1; roda `pnpm install` no repositório, o que cria `pnpm-lock.yaml` (e `pnpm-workspace.yaml`, se o pnpm criar ao aprovar builds, R11).
+O que a T1 faz logo em seguida: copia `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `pnpm-workspace.yaml` e `src/app/`; **não** copia `README.md`, `.gitignore` (o do repositório já cobre o do scaffold; diferença mostrada) nem `next-env.d.ts` (ignorado); remove os SVGs de `public/`, o `next/image` e o conteúdo de exemplo de `page.tsx` (que fica como placeholder mínimo, sem conteúdo de produto, até a T9 pôr nele a página do AZ-05), mas **mantém** o `next/font` do `layout.tsx`, que já traz a Geist, a fonte proposta no ADR-002, servida pelo próprio Next a partir do build, sem CDN em tempo de execução (nada além disso do design system entra no andar zero); acrescenta o script `typecheck` (`next typegen && tsc --noEmit`, porque o `LayoutProps` do scaffold é gerado pelo Next e não existe num clone limpo), exigido por `rules/checks.md`; acrescenta ao `eslint.config.mjs` as regras descritas na T1; roda `pnpm install` no repositório, o que cria `pnpm-lock.yaml` (e `pnpm-workspace.yaml`, se o pnpm criar ao aprovar builds, R11).
 
 ## 3. Tarefas
 
@@ -68,7 +68,7 @@ Decisões sem documento: o relato de cada tarefa termina com a lista do que o ag
 
 Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rules/restrictions.md`, Dados e segredos). Onde a verificação pede variáveis presentes, ele passa valores fictícios na linha de comando, sem `.env.local`, por exemplo `DATABASE_URL=postgresql://127.0.0.1:1/x pnpm dev` (porta fechada, sem usuário nem senha). Vale também para o `pnpm build` do passo 6 de `rules/checks.md` a partir da T2.
 
-- [ ] T1 · Scaffold do Next.js na raiz do repositório, com o lint da seção Ferramentas de `rules/restrictions.md`
+- [x] T1 · Scaffold do Next.js na raiz do repositório, com o lint da seção Ferramentas de `rules/restrictions.md`
   atende: pré-requisito de T2 a T12
   adiciona dependência: next, react, react-dom, typescript, tailwindcss, eslint (as que o scaffold traz); nenhuma para o lint
   depende de fora do repo: nada
