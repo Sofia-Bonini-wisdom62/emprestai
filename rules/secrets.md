@@ -37,5 +37,6 @@ tem toda chave que o projeto usa, sem nenhum valor real. Enquanto não houver
 
 ## Não faça
 - Não dê prefixo `NEXT_PUBLIC_` a segredo, nem leia `process.env` fora de `src/env/`.
-  Exceção: `prisma.config.ts`, que o ADR-003, 2.5, manda ler `DIRECT_URL` direto.
+  Exceções: `prisma.config.ts`, que o ADR-003, 2.5, manda ler `DIRECT_URL` direto, e
+  `tests/global-setup.ts`, que repassa o ambiente ao Prisma CLI.
 - Proibições sobre `.env.local`, segredo em log ou PR e painel de provedor: `rules/restrictions.md`.
