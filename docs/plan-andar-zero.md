@@ -91,10 +91,11 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   altera: `.gitignore` e `eslint.config.mjs`, os dois passam a ignorar `src/generated/`. O client gerado do Prisma 7 abre com `/* eslint-disable */` e `// @ts-nocheck`, que o `noInlineConfig` da T1 deixa de respeitar; no ESLint em flat config, o `.gitignore` não vale, então a exceção entra por `globalIgnores(["src/generated/**"])`, de `eslint/config`, sem dependência nova. É a única exceção do lint neste plano e é aprovada junto com ele
   depende de fora do repo: nada
   verifico assim: `pnpm prisma generate` passa sem `DIRECT_URL` definida (o caso da Vercel); `src/generated/` aparece em `git check-ignore -v`; `pnpm typecheck` sem erro; `grep -n "max: 1" src/server/db.ts` acha a linha; `pnpm lint` sem erro com o client gerado presente
-- [ ] T4 · DDL da tabela técnica: modelo Prisma + `ENABLE ROW LEVEL SECURITY` + policy, na resposta, e PARAR; aprovado o DDL, o modelo entra no `schema.prisma` e o client é gerado sem banco
+- [x] T4 · DDL da tabela técnica: modelo Prisma + `ENABLE ROW LEVEL SECURITY` + policy, na resposta, e PARAR; aprovado o DDL, o modelo entra no `schema.prisma` e o client é gerado sem banco
   atende: AZ-03 (passo 1 de `rules/migration.md`)
   adiciona dependência: nenhuma
-  depende de fora do repo: aprovação do DDL
+  depende de fora do repo: aprovação do DDL, dada pela pessoa em 2026-11-05
+  SQL de RLS aprovado, para a T6 colar na migration: `ALTER TABLE "health_checks" ENABLE ROW LEVEL SECURITY;` e `CREATE POLICY "health_checks_deny_all" ON "health_checks" FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);`
   verifico assim: o DDL está na resposta e a pessoa aprova ou corrige; depois da aprovação, `pnpm prisma generate` passa sem banco e `pnpm typecheck` sem erro; nada em `prisma/migrations/` ainda
 - [ ] T5 · Banco de dev local: `compose.yaml` com a imagem `supabase/postgres`
   atende: AZ-01 (o banco de dev sobe com um comando); pré-requisito da T6 e da T10
