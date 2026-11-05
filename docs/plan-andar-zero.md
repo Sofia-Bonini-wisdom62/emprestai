@@ -183,4 +183,65 @@ Não são tarefas deste plano: são os passos da aula 8 que vêm em seguida.
 - **O workflow do GitHub Actions** com `prisma migrate deploy` e o Deploy Hook (`docs/andar-zero.md`, Fora de escopo). Mexer em `.github/workflows/` pede aprovação explícita (`rules/restrictions.md`, Escopo).
 - **A spec 001**: uma funcionalidade do PRD que atravesse banco, servidor e tela (aula 9). Começa pelo passo 1 de `rules/spec-flow.md`: as perguntas que o PRD não responde sobre ela vão para `docs/perguntas-prd.md`, e PARA.
 
+### 5.1 Ordem e o que aparece em cada etapa
+
+Mapa registrado em 2026-11-05. É proposta: não substitui ADR nem spec, e a pessoa pode mudar a ordem. As etapas 3 e 4 podem correr em paralelo.
+
+| # | Etapa | Quem faz | O que aparece ao terminar |
+|---|---|---|---|
+| 1 | Fechar as tarefas da seção 3 | O agente; a pessoa na T10 e na T12 | Na máquina, a landing com banco ok. No preview, a landing com o estado de falha, que é o esperado (AZ-09) |
+| 2 | Merge do PR do andar zero, tag `andar-zero` e conferência das decisões do agente | A pessoa; o agente na conferência | Nada novo na tela: a URL de produção segue em 404 |
+| 3 | Workflow e produção (5.3) | O agente escreve, com aprovação; a pessoa faz os painéis | https://emprestai-beta.vercel.app sai do 404 e mostra a landing com banco ok |
+| 4 | Decisões de 5.2 | A pessoa | Nenhuma tela; libera a spec 001 |
+| 5 | Specs, na ordem de 5.4 | O agente rascunha; a pessoa aprova | As telas do PRD, uma por vez |
+
+### 5.2 O que trava a spec 001
+
+1. **Pergunta 6 de `docs/perguntas-prd.md`:** Operações é papel global ou por área? Se for global, a multi-tenancy sai inteira e a saída vira ADR novo (ADR-003, seção 5). Vem primeiro porque, enquanto não existir tabela de domínio, mudar custa só documento.
+2. **Pergunta 5:** quem cria as contas, e se existe tela de convite na v1.
+3. **Como o desenvolvimento autentica.** O Supabase Auth não roda no Postgres local, e o ADR-004 (seções 4 a 6) deixou isso para a spec de login. Proposta do agente: Auth em contêiner, já que não há vaga para um projeto remoto de dev. A escolha é da pessoa e vira ADR novo.
+4. **Aprovação do ADR-002.** É ela que confirma o `lucide-react`, usado nas telas.
+
+### 5.3 Produção: o que depende da pessoa
+
+Painel e secret só mudam a pedido da pessoa (`rules/operacao.md`). Comece pelo primeiro item: se ele falhar, o resto espera.
+
+- **Reativar o projeto Supabase `emprestai`.** O limite de dois projetos ativos do plano gratuito, que impediu criar o projeto de dev (ADR-004, seção 1), pode barrar a reativação também. É risco, ainda não verificado.
+- **Resetar a senha do banco**, que nunca foi exposta, para ter as URLs de conexão.
+- **Criar o Deploy Hook na Vercel** e guardar a URL dele e a `DIRECT_URL` nos secrets do Actions.
+- **Cadastrar a `DATABASE_URL`** no ambiente Production da Vercel (pooler, porta 6543).
+- **Conferir a `SUPABASE_SECRET_KEY`:** ela só pode existir em Production.
+- **Decidir o gatilho do workflow**, que o ADR-004 (seção 6) deixou para o PR dele: merge na `main` ou disparo manual. Proposta do agente: merge na `main`, o caminho que o ADR-004, seção 2, já descreve.
+- **Excluir o projeto `emprestai-vazio-pode-excluir`** no painel da Vercel. É limpeza, não trava nada.
+
+### 5.4 Ordem proposta das specs
+
+O número definitivo sai quando cada pasta for criada (`docs/specs/README.md`). O login vem primeiro porque o `tenantProcedure` e o critério de isolamento dependem de sessão. Todas as perguntas de Abertas em `docs/perguntas-prd.md`, na data do mapa, estão nesta tabela; com pergunta aberta, a spec não passa de rascunho (`rules/spec-flow.md`, passo 1).
+
+| Spec | O que aparece | Perguntas abertas |
+|---|---|---|
+| 001 Login | `/login`, sessão, tenant `default` e `memberships` | 5, 6 |
+| 002 Catálogo e detalhe | `/catalog` e `/catalog/[equipmentId]`; a raiz `/` passa a redirecionar para o catálogo e a landing sai | 9b, 11c, 12b; no histórico, 7 e 17 |
+| 003 Cadastro de equipamento | `/operations/equipment/new` | 9b, 12b, 12d, 18, 19 |
+| 004 Solicitar empréstimo | Botão e diálogo no detalhe | 4b, 19 |
+| 005 Devolver e Meus empréstimos | `/my-loans` | 7, 20 |
+| 006 Tela de Operações | `/operations/loans` | 7, 13b, 13c, 17, 21 |
+
+Na 002, o catálogo fica vazio em dev até existir o cadastro, salvo se o seed ganhar equipamentos fictícios. A spec decide.
+
+### 5.5 Decisões do ADR-001 sem tarefa em nenhum plano
+
+A coluna da direita é proposta do agente. Instalar qualquer dependência daqui é pedir antes (`rules/operacao.md`).
+
+| Item | Onde entraria |
+|---|---|
+| Prettier, lint-staged e husky (2.11; R13) | Tarefa própria antes da spec 001, para não misturar reformatação com funcionalidade |
+| CI de PR: lint, teste, build e E2E (2.9; `rules/checks.md`, passo 5) | No PR do workflow: o `rules/checks.md` manda o E2E para o CI, e o workflow previsto só faz migrate e deploy |
+| Cabeçalhos HTTP e CSP (2.10; R12) | Spec 001, a primeira tela com shadcn/ui; a CSP exige nonce |
+| Rate limit (2.10) | Spec 001, porque o login é o primeiro alvo |
+| Log JSON com `request_id` e `tenant_id` (2.9) | Spec 001, junto do novo `createContext` |
+| Playwright e Testing Library (2.8) | Spec 001, porque o login é fluxo crítico (ADR-003, 2.8) |
+| Auditoria (2.10) | Antes da primeira escrita de domínio; exige revisão humana (`rules/restrictions.md`, Bancos e schema) |
+| Sentry (2.9) | Junto da produção ou da spec 001 |
+
 Plano para aprovação. Nenhuma tarefa começa antes de a pessoa aprovar este plano e a proposta de pastas.
