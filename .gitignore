@@ -27,6 +27,7 @@ playwright/.cache/
 .env.sentry-build-plugin
 
 # prisma
+src/generated/
 prisma/*.db
 prisma/*.db-journal
 
