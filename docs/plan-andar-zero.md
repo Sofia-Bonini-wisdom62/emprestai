@@ -62,7 +62,7 @@ O que a T1 faz logo em seguida: copia `package.json`, `tsconfig.json`, `next.con
 
 ## 3. Tarefas
 
-Sem Docker, depois das decisões indicadas: T1 (pastas + R3), T2, T3 (R4 e R14), T4, T7 (T4 aprovada; caminho de falha), T9 (caminho de falha, depois da T7). **Esperam o Docker:** T5 (banco de dev local), T6 (a migration, no banco de dev), T8 (testes; também R15), T9 (caminho de sucesso, depois da T6), T10 (AZ-01, com o banco de dev). **Depois da T5 e da T10:** T11 (R7), para a varredura pegar o `compose.yaml` e os comandos. **Espera a pessoa:** T12 (aprovação e painel da Vercel).
+Sem Docker, depois das decisões indicadas: T1 (pastas + R3), T2, T3, T4, T7 (T4 aprovada; caminho de falha), T9 (caminho de falha, depois da T7). **Esperam o Docker:** T5 (banco de dev local), T6 (a migration, no banco de dev), T8 (testes; também R15), T9 (caminho de sucesso, depois da T6), T10 (AZ-01, com o banco de dev). **Depois da T5 e da T10:** T11 (R7), para a varredura pegar o `compose.yaml` e os comandos. **Espera a pessoa:** T12 (aprovação e painel da Vercel).
 
 Decisões sem documento: o relato de cada tarefa termina com a lista do que o agente precisou decidir sozinho, porque nem os ADRs, nem o `AGENTS.md`, nem as rules diziam (aula 8). A T10 junta essas listas para escrever as Convenções não óbvias e não acrescenta nada que não esteja nelas.
 
@@ -74,6 +74,11 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   depende de fora do repo: nada
   lint: o `eslint.config.mjs` do scaffold ganha regras que tornam parte da seção Ferramentas de `rules/restrictions.md` garantia em vez de pedido ("Rule é pedido; lint é garantia", aula 9). `linterOptions` com `noInlineConfig: true` (nenhum `eslint-disable` vale) e `reportUnusedDisableDirectives: "error"`; `@typescript-eslint/ban-ts-comment` com `ts-expect-error` e `ts-ignore` em `true`, sem a exceção com descrição que o `recommended` aceita; `no-restricted-syntax` com o seletor `JSXAttribute[name.name='style']`, por causa da CSP sem `unsafe-inline` (ADR-001, 2.10; o ADR-002 já sugeria essa regra); `no-restricted-properties` para `it.only`, `test.only`, `describe.only`, `it.skip`, `test.skip` e `describe.skip`; `@typescript-eslint/no-explicit-any` como erro, o que cobre `as any` (o `recommended` já liga; a T1 confere o nível no config real). Tudo é do ESLint ou do typescript-eslint que o `eslint-config-next/typescript` já traz (ele parte do `recommended` do typescript-eslint); a T1 confere no config real e para se alguma regra ou opção não existir. Continua só como regra: afrouxar `tsconfig`. Exceção inevitável deixa de caber num comentário na linha: vira mudança no `eslint.config.mjs`, que já pede aprovação
   verifico assim: `pnpm dev` e abrir http://localhost:3000; `pnpm lint` e `pnpm typecheck` sem erro; um arquivo temporário em `src/` (ex.: `src/lint-check.tsx`) com uma violação de cada regra (`style=` com um `eslint-disable-next-line` em cima, `@ts-ignore`, `@ts-expect-error` com descrição, um `as any` e os seis `.only`/`.skip`) faz `pnpm lint` falhar com um erro por violação, inclusive a que está sob o `eslint-disable`; o arquivo é removido e `pnpm lint` volta a passar; `git status --short` só com a lista da seção 2 + `pnpm-lock.yaml` (+ `pnpm-workspace.yaml`, se R11), sem o arquivo temporário
+- [x] Fora da numeração · Landing provisória em `src/app/page.tsx`, com os tokens de `docs/layout.md` em `src/app/globals.css`
+  atende: nenhum AZ; pedido direto da pessoa em 2026-11-05, para o deploy não ficar vazio
+  adiciona dependência: nenhuma
+  depende de fora do repo: nada
+  verifico assim: `pnpm lint`, `pnpm typecheck` e `pnpm build` sem erro; a página abre em 1024px e em 375px sem rolagem lateral
 - [ ] T2 · Validação de env com Zod em `src/env/{server,client,runtime}.ts`
   atende: AZ-07, AZ-02 (variável faltando)
   adiciona dependência: zod; server-only (exigido por `rules/secrets.md` passo 1, não pelo ADR; aprovação junto com o plano)
@@ -121,7 +126,7 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   caso da policy: o Prisma da aplicação conecta como dono da tabela e passa por cima da RLS (ADR-001, 2.7), por isso o caso troca de papel. Numa transação: insere uma linha como dono e confere que o dono a lê; `SET LOCAL ROLE authenticated`; consulta a tabela técnica. Passa com erro de permissão (SQLSTATE `42501`; outro erro falha o caso) ou zero linhas, e falha com qualquer linha. O mesmo, em outra transação, com `anon`. Nenhuma das duas é confirmada. Cumpre o passo 3 de `rules/tests.md`: tabela com policy chega com o teste que prova o bloqueio
   nome do caso: formato `az_03` e `az_04`, adaptação do formato `ca_xx` de `rules/tests.md` (passo 5), sujeita a aprovação; `rules/checks.md` passo 3: não se aplica, procedimento técnico sem tenant
   verifico assim: `pnpm test` lista os dois arquivos de `src/` e mostra no resumo os casos `az_04` (banco de pé = ok; URL para porta fechada = falha) e os dois `az_03` (`authenticated` e `anon` não leem a linha que o dono lê); o log do globalSetup mostra o host do container; `docker ps` durante a execução mostra o container, e depois não; com o Docker parado, `pnpm test` falha citando o Docker
-- [ ] T9 · Cliente tRPC com `@trpc/react-query` e Provider em `src/trpc/`; página da raiz `/` (`src/app/page.tsx`) mostrando o resultado
+- [ ] T9 · Cliente tRPC com `@trpc/react-query` e Provider em `src/trpc/`; a landing da raiz `/` (`src/app/page.tsx`) passa a mostrar o resultado
   atende: AZ-05
   adiciona dependência: @trpc/client, @trpc/react-query, @tanstack/react-query
   depende de fora do repo: nada para mostrar a falha; banco de dev para mostrar sucesso
@@ -154,7 +159,7 @@ Consultei a documentação oficial (out/2026) e confirmei: Next.js — flags do 
 - **R1 · tRPC:** a doc atual diz sobre `@trpc/tanstack-react-query`: "recommend using this over the classic client". O ADR 2.2 diz `@trpc/react-query`. O plano segue o ADR; trocar é decisão do time, por ADR novo.
 - **R2 · Nomes que o ADR cita e o scaffold muda:** ADR 2.10 diz `next.config.js`, o scaffold gera `next.config.ts`; ADR 2.3 diz `app/api/trpc/...`, com `src/` vira `src/app/api/trpc/...`. Não muda decisão, mas o ADR aceito não se edita: se o time quiser registrar, é ADR novo, como o ADR-003.
 - **R3 · Cache Components** vem ligado por padrão e não está no ADR. Proposta: desligar, já que as telas são Client Components com dado via tRPC. Decisão do time antes da T1.
-- **R4 · `.env.local` para o Prisma CLI:** o Prisma não lê `.env` e o Next lê `.env.local`. Caminhos: `dotenv` (fora do ADR, precisa de aprovação), `@next/env` (`loadEnvConfig`; também dependência explícita sob o pnpm, também fora do ADR) ou `node --env-file` num script, que muda os comandos que `rules/restrictions.md` lista. A pessoa decide antes da T3.
+- **R4 · `.env.local` para o Prisma CLI:** decidido pela pessoa em 2026-11-05. O `prisma.config.ts` carrega o `.env.local` com `process.loadEnvFile`, do Node 24, quando o arquivo existir. Não pede dependência nova nem muda os comandos que `rules/restrictions.md` lista.
 - **R5 · Migration sem banco de dev:** superado pelo ADR-004. Com o banco de dev local da T5, a T6 gera e aplica a migration por `migrate dev`, como `rules/migration.md` pede. A alternativa de gerar o SQL sem banco (`prisma migrate diff --from-empty`) não é mais necessária e não entra no plano.
 - **R6 · Policy da tabela técnica:** ADR 2.7 pede deny by default; `rules/migration.md` pede ao menos uma policy explícita. A T4 propõe negar `anon` e `authenticated` (papéis que existem no Supabase e na imagem `supabase/postgres`, não num Postgres puro).
 - **R7 · `.gitignore` libera `.env.test`**, e o AZ-08 diz "exceto `.env.example`". A T11 não escolhe: pergunta.
@@ -164,7 +169,7 @@ Consultei a documentação oficial (out/2026) e confirmei: Next.js — flags do 
 - **R11 · pnpm 11 e Vercel:** o pnpm bloqueia scripts de build de dependências até aprovação, e não confirmei o suporte da Vercel a pnpm 11 e Node 24. A T1 mostra o que foi pedido; a T12 confere no log.
 - **R12 · CSP sem `unsafe-inline`** exige nonce para os scripts inline do próprio Next; não é AZ, mas a página do andar zero não usa `style=` para não criar dívida, e o lint da T1 passa a barrar o atributo.
 - **R13 · Qualidade de código (ADR 2.11):** o ESLint entra na T1, com as regras de lint de lá. Prettier, o pré-commit com lint-staged + husky e o shadcn/ui não estão nos AZ; ficam fora deste plano, salvo pedido da pessoa.
-- **R14 · `prisma.config.ts` lê `process.env`:** por exigência do ADR-003, 2.5, `datasource.url = process.env.DIRECT_URL`; isso contraria `rules/secrets.md` ("nem leia `process.env` fora de `src/env/`"). Pela seção Precedência de `rules/restrictions.md`, paro e aviso: a pessoa decide se a rule ganha a exceção. O plano não resolve; a T3 espera a decisão.
+- **R14 · `prisma.config.ts` lê `process.env`:** decidido pela pessoa em 2026-11-05. O ADR-003, 2.5, exige `datasource.url = process.env.DIRECT_URL`, e `rules/secrets.md` ganha a exceção para esse arquivo na T3.
 - **R15 · Vitest × `server-only`:** `server-only` lança erro quando importado fora da condição `react-server`, e o teste da T8 via `createCaller` importa `db.ts` e `src/env/server.ts`. A T8 resolve por `resolve.conditions` com `react-server` ou por alias para módulo vazio no `vitest.config.ts`, sem dependência nova, e mostra antes de commitar.
 
 ## 5. Depois do andar zero
