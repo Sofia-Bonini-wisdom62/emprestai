@@ -146,12 +146,13 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   adiciona dependência: nenhuma
   depende de: T5 e T10, para a varredura pegar o `compose.yaml` e os comandos documentados; de fora do repo, nada (decisão da pessoa sobre R7)
   verifico assim: `git ls-files | grep -E '(^|/)\.env'` só lista `.env.example`; `git log --all -p | grep -nE 'sb_secret_[A-Za-z0-9_-]{8,}' | grep -vE 'sb_secret_x+[[:space:]]*$'` e, em separado, `git log --all -p | grep -nE 'postgres(ql)?://[^<[:space:]]+:[^<@$[:space:]]+@'` e `git log --all -p | grep -nE '(^|[^{A-Za-z_])[A-Z_]*PASSWORD[A-Z_]*[=:][[:space:]]*["]?[^<$[:space:]{"]'` (as duas ignoram referência a variável, como `${POSTGRES_PASSWORD}`, e placeholder entre `< >`); o esperado das três é vazio, depois de excluir o placeholder documentado do `.env.example`
-- [ ] T12 · Tirar o `ignoreCommand` do `vercel.json` e verificar o preview
+- [x] T12 · Tirar o `ignoreCommand` do `vercel.json` e verificar o preview
   atende: AZ-09
   adiciona dependência: nenhuma
   depende de fora do repo: aprovação explícita (`rules/restrictions.md`, Escopo); `DATABASE_URL` no ambiente Preview da Vercel, cadastrada pela pessoa com um valor que não aponta para banco nenhum (ADR-004; nunca a URL de produção) (é a única obrigatória da T2; as opcionais entram com a funcionalidade que as usa, e `DIRECT_URL` não vai para a Vercel)
   banco do Preview: nenhum (ADR-004); a página mostra o estado de falha do procedimento de saúde, e é isso que o AZ-09 espera
   verifico assim: a pessoa lê o log do deploy de preview no painel da Vercel e cola o trecho do build (o agente só o lê com pedido explícito nesta conversa); a URL do preview, na raiz `/`, mostra o estado de falha
+  verificado em 2026-11-06, no preview do commit `89a5c63`: o agente leu o log a pedido da pessoa, sem aviso nem erro; a raiz `/` mostra "Banco de dados indisponível", e `health.check` responde `unavailable`, sem connection string
 - [x] Fora da numeração · Migration `protect_prisma_migrations_table`: RLS e policy de negação na `_prisma_migrations`
   atende: nenhum AZ; ADR-001, 2.7 (RLS em todas as tabelas). Pedido direto da pessoa em 2026-11-05, com o DDL aprovado na conversa
   adiciona dependência: nenhuma
@@ -175,7 +176,7 @@ Consultei a documentação oficial (out/2026) e confirmei: Next.js — flags do 
 - **R8 · Validar env no build × `server-only`:** resolvido na T2. O schema fica em `src/env/schema.ts`, sem `server-only`; o `src/env/server.ts` e o `next.config.ts` usam esse arquivo.
 - **R9 · Previews passam a compilar:** com `package.json` na branch, o `ignoreCommand` deixa de pular o build; cada push depois da T1 gera preview que falha até as variáveis existirem no painel; no Preview, o `DATABASE_URL` é o valor sem banco do ADR-004.
 - **R10 · Imagem `supabase/postgres` no Testcontainers:** resolvido na T8. O contêiner sobe com o usuário `supabase_admin`, o padrão da imagem, e os testes conectam como `postgres`, que consegue `SET ROLE` para `anon` e `authenticated`.
-- **R11 · pnpm 11 e Vercel:** o pnpm bloqueia scripts de build de dependências até aprovação, e não confirmei o suporte da Vercel a pnpm 11 e Node 24. A T1 mostra o que foi pedido; a T12 confere no log.
+- **R11 · pnpm 11 e Vercel:** o pnpm bloqueia scripts de build de dependências até aprovação, e não confirmei o suporte da Vercel a pnpm 11 e Node 24. Resolvido na T12 quanto ao pnpm: o build do preview roda com o pnpm 11.5.2, sem aviso nem erro. O Node 24 na Vercel segue sem confirmação: o log não mostra a versão, e o `package.json` não a fixa.
 - **R12 · CSP sem `unsafe-inline`** exige nonce para os scripts inline do próprio Next; não é AZ, mas a página do andar zero não usa `style=` para não criar dívida, e o lint da T1 passa a barrar o atributo.
 - **R13 · Qualidade de código (ADR 2.11):** o ESLint entra na T1, com as regras de lint de lá. Prettier, o pré-commit com lint-staged + husky e o shadcn/ui não estão nos AZ; ficam fora deste plano, salvo pedido da pessoa.
 - **R14 · `prisma.config.ts` lê `process.env`:** decidido pela pessoa em 2026-11-05. O ADR-003, 2.5, exige `datasource.url = process.env.DIRECT_URL`, e `rules/secrets.md` ganha a exceção para esse arquivo na T3.
