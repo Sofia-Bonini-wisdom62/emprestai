@@ -7,11 +7,6 @@ Síntese operacional para qualquer agente que trabalhe neste repositório. Leia 
 O emprestai substitui a planilha de controle de equipamentos internos (notebooks, monitores, cabos, câmeras).
 Colaboradores pedem e devolvem itens; Operações cadastra equipamentos e acompanha os empréstimos em aberto. Projeto de disciplina da turma B, sem uso comercial.
 
-| Persona | O que faz na v1 |
-|---|---|
-| Colaborador | Login, catálogo, solicitar empréstimo, devolver item, ver os próprios empréstimos |
-| Operações | Cadastrar equipamentos, ver quem está com o quê, registrar devolução no balcão |
-
 Critério de sucesso ([`docs/PRD.md`](docs/PRD.md)): Operações consegue abandonar a planilha depois de duas semanas de uso.
 
 ## 2. Onde olhar
@@ -20,14 +15,11 @@ Critério de sucesso ([`docs/PRD.md`](docs/PRD.md)): Operações consegue abando
 |---|---|
 | [`docs/PRD.md`](docs/PRD.md) | Negócio: problema, personas, escopo da v1. Não é spec, não descreve tela nem comportamento de campo |
 | [`docs/perguntas-prd.md`](docs/perguntas-prd.md) | Lacunas do PRD. As abertas não são suas para decidir; as já respondidas pelo time valem até virar RN-xx na spec |
-| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma. [`001-stack.md`](docs/adr/001-stack.md) é a stack, lida junto com [`003-stack-corrections.md`](docs/adr/003-stack-corrections.md), que corrige trechos dela; [`002-design-system.md`](docs/adr/002-design-system.md) é a identidade visual, ainda com status Proposto. [`004-environments.md`](docs/adr/004-environments.md) decide os ambientes e os bancos; [`005-first-tenant-name.md`](docs/adr/005-first-tenant-name.md) dá o nome do primeiro tenant. ADR aceito não se edita: correção vira ADR novo |
+| [`docs/adr/`](docs/adr/) | Decisões técnicas e o porquê de cada uma; quais valem e como se leem juntos: seção 5. ADR aceito não se edita: correção vira ADR novo |
 | [`docs/layout.md`](docs/layout.md) | Aparência: tokens, tipografia, componentes e telas. Guarda os valores; o porquê está no ADR-002 |
 | [`docs/specs/`](docs/specs/) | Spec, plano e tarefas de cada funcionalidade. Formato e critérios (CA-xx) em [`docs/specs/README.md`](docs/specs/README.md) |
-| [`docs/andar-zero.md`](docs/andar-zero.md) e [`docs/plan-andar-zero.md`](docs/plan-andar-zero.md) | Os critérios (AZ-xx) do esqueleto que prova a stack, que não é spec, e o plano de tarefas dele. Nenhuma tarefa começa antes de o plano ser aprovado |
-| [`rules/restrictions.md`](rules/restrictions.md) | Única fonte das proibições. Este arquivo não as repete |
-| [`rules/checks.md`](rules/checks.md) | Única fonte do procedimento de fim de tarefa |
-| [`rules/operacao.md`](rules/operacao.md) | Matriz de autorização: o que é livre, o que avisa, o que pede, o que só vale a pedido da pessoa, o que é proibido. Vale sempre |
-| [`.env.example`](.env.example) | Nomes exatos das variáveis e onde cada uma vive |
+| [`docs/andar-zero.md`](docs/andar-zero.md) e [`docs/plan-andar-zero.md`](docs/plan-andar-zero.md) | Os critérios (AZ-xx) do esqueleto que prova a stack, que não é spec, e o plano de tarefas dele |
+| [`rules/restrictions.md`](rules/restrictions.md), [`rules/checks.md`](rules/checks.md) e [`rules/operacao.md`](rules/operacao.md) | Proibições, procedimento de fim de tarefa e quem autoriza o quê. Valem sempre, e cada assunto mora num só deles |
 
 Demais rules de `rules/`, por gatilho:
 
@@ -35,7 +27,7 @@ Demais rules de `rules/`, por gatilho:
 |---|---|
 | `migration.md` | Você vai mudar `prisma/schema.prisma` ou criar migration |
 | `secrets.md` | Variável de ambiente, chave ou fronteira servidor/cliente |
-| `tests.md` | Você vai escrever ou alterar teste |
+| `tests.md` | Você vai escrever, alterar ou rodar teste |
 | `spec-flow.md` | Começo de funcionalidade: do PRD à spec, ao plano e às tarefas |
 | `handoff.md` | Fim de sessão, passar o bastão para a próxima |
 
@@ -64,22 +56,7 @@ As quatro regras do PRD tinham lacunas: o que conta para o limite de três itens
 
 Monolito Next.js (App Router) + TypeScript `strict` + tRPC + Prisma + PostgreSQL no Supabase + Supabase Auth via `@supabase/ssr` + Tailwind + shadcn/ui. Gerenciador de pacotes: **pnpm**.
 
-As decisões e o porquê de cada uma estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md), com as correções de [`docs/adr/003-stack-corrections.md`](docs/adr/003-stack-corrections.md). O ADR-003 numera cada trecho pela seção do ADR-001 que ele corrige; onde os dois tratam do mesmo ponto, vale o ADR-003. Por assunto:
-
-| Assunto | ADR-001 | ADR-003 |
-|---|---|---|
-| Produto e condições da decisão | 1 | 1 (substitui inteira) |
-| Monolito, repositório, deploy | 2.1 | — |
-| Telas, estado, formulários, estilo | 2.2 | 2.2 |
-| tRPC, routers, camadas, validação | 2.3 e 2.4 | — |
-| Banco, Prisma, conexões, seed | 2.5 | 2.5 |
-| Multi-tenancy (decisão deliberada, pendente da pergunta 6 de `docs/perguntas-prd.md`) | 2.6 | 1 e 2.6 |
-| Auth, sessão, autorização, RLS | 2.7 | 2.7 |
-| Testes | 2.8 | 2.8 |
-| Hospedagem, CI, log, limites | 2.9 | 2.9 |
-| Segurança e segredos | 2.10 | 2.10 |
-
-Ambientes e bancos: [ADR-004](docs/adr/004-environments.md). Nome do primeiro tenant: [ADR-005](docs/adr/005-first-tenant-name.md), que substitui as linhas do ADR-003 sobre ele.
+As decisões e o porquê estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md), lido junto com [`docs/adr/003-stack-corrections.md`](docs/adr/003-stack-corrections.md): o ADR-003 numera cada trecho pela seção do ADR-001 que corrige, e onde os dois tratam do mesmo ponto vale o ADR-003. A multi-tenancy é decisão deliberada, pendente da pergunta 6 de `docs/perguntas-prd.md`. [ADR-002](docs/adr/002-design-system.md): identidade visual, ainda Proposto. [ADR-004](docs/adr/004-environments.md): ambientes e bancos. [ADR-005](docs/adr/005-first-tenant-name.md): nome do primeiro tenant, que substitui as linhas do ADR-003 sobre ele.
 
 ## 6. Bancos, três e só três
 
@@ -172,9 +149,7 @@ Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `rout
 
 ### Como testar
 
-`pnpm test` sobe um Postgres efêmero, aplica as migrations do zero e roda os casos. Regras em `rules/tests.md`. Tabela com policy tem caso com `SET LOCAL ROLE`, mais um controle com a RLS desligada, para provar que o bloqueio vem dela.
-
-Na mão: com o banco de dev de pé e `pnpm dev`, a landing mostra o estado do banco, e `curl http://localhost:3000/api/trpc/health.check` devolve o mesmo resultado.
+Em [`rules/tests.md`](rules/tests.md), que carrega quando o assunto é teste.
 
 ## 9. Fluxo de trabalho com git
 

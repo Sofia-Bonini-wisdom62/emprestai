@@ -1,5 +1,5 @@
 ---
-description: Como se escreve teste aqui, ao criar ou alterar teste, procedure, service ou policy
+description: Como se escreve e se roda teste aqui, ao criar, alterar ou rodar teste, procedure, service ou policy
 globs: ["**/*.test.ts", "**/*.test.tsx", "tests/**", "vitest.config.*", "playwright.config.*"]
 alwaysApply: false
 ---
@@ -29,9 +29,13 @@ que mexe em policy de RLS.
 6. Teste de endpoint verifica status E corpo. Status sozinho não prova nada.
 
 ## Verificação
-`pnpm test` passa com o Docker de pé. O script nasce com o scaffold do app;
-enquanto ele não existir, isto é especificação, não check já rodado. O resto do
-fim de tarefa está em `rules/checks.md`.
+`pnpm test` passa com o Docker de pé: sobe um Postgres efêmero, aplica as
+migrations do zero e roda os casos. Tabela com policy tem caso com
+`SET LOCAL ROLE`, um controle com a RLS desligada e um de catálogo em
+`pg_policies`, porque a RLS sozinha já dá os mesmos zero. Na mão: com o banco
+de dev de pé e `pnpm dev`, a landing mostra o estado do banco, e
+`curl http://localhost:3000/api/trpc/health.check` devolve o mesmo resultado.
+O resto do fim de tarefa está em `rules/checks.md`.
 
 ## Não faça
 - Mock do Prisma, banco onde o teste pode rodar e Supabase CLI:

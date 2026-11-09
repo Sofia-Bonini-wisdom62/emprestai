@@ -40,6 +40,20 @@ O andar zero está em andamento: existe o scaffold do Next.js e uma landing prov
 
 Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. A lista completa, e onde cada uma vive, está no próprio `.env.example`. Nada com valor real vai para o repositório.
 
+## Configuração do operador
+
+Para a pessoa, não para o agente: ele não escolhe o próprio modelo.
+
+| Fase | Modelo / raciocínio |
+|---|---|
+| Escrever a spec e o plano | raciocínio alto |
+| Executar uma tarefa já decidida | rápido |
+| Debugar o que quebrou | raciocínio alto |
+| Revisar o diff | padrão |
+
+- Revisão de diff em sessão limpa e, de preferência, com modelo diferente do que escreveu.
+- Sessão longa não se corrige com regra mais enfática: encerre com handoff e abra outra.
+
 ## Pendência
 
 A multi-tenancy do ADR-001 é decisão deliberada do time (ADR-003, seção 1), não exigência do PRD. Ela depende da pergunta 6 de [`docs/perguntas-prd.md`](docs/perguntas-prd.md): se Operações for papel global, a multi-tenancy sai inteira e a saída vira um ADR novo.
