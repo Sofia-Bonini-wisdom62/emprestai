@@ -120,17 +120,26 @@ Andar zero em andamento, na branch `feat/walking-skeleton`. A raiz `/` é uma la
 
 Só o que já rodou. Antes de tudo: `.env.local` preenchido a partir do `.env.example` e Docker Desktop aberto.
 
+Primeira subida, nesta ordem:
+
+| Passo | Comando | O que faz |
+|---|---|---|
+| 1 | `pnpm install` | Instala e gera o client do Prisma |
+| 2 | `docker compose --env-file .env.local up -d --wait` | Sobe o Postgres de dev e espera ele ficar saudável |
+| 3 | `pnpm prisma migrate deploy` | Aplica as migrations no banco de dev |
+| 4 | `pnpm dev` | Roda em http://localhost:3000; a landing mostra "Banco de dados ok" |
+
+Depois, quando precisar:
+
 | Comando | O que faz |
 |---|---|
-| `pnpm install` | Instala e gera o client do Prisma |
-| `docker compose --env-file .env.local up -d --wait` | Sobe o Postgres de dev e espera ele ficar saudável |
-| `docker compose --env-file .env.local down` | Derruba o banco; o dado fica no volume |
-| `pnpm prisma migrate deploy` | Aplica as migrations no banco de dev |
-| `pnpm prisma migrate dev --name <nome>` | Cria migration nova (`rules/migration.md`) |
-| `pnpm dev` | Roda em http://localhost:3000 |
 | `pnpm lint` e `pnpm typecheck` | ESLint e `tsc --noEmit` |
 | `pnpm test` | Suíte no Testcontainers; exige o Docker de pé |
 | `pnpm build` | Build de produção; exige `DATABASE_URL` |
+| `pnpm prisma migrate dev --name <nome>` | Cria migration nova (`rules/migration.md`) |
+| `docker compose --env-file .env.local down` | Derruba o banco; o dado fica no volume |
+
+O Prisma avisa que há versão nova e sugere `npm i prisma@latest`: ignore. O projeto usa pnpm e fixa o Prisma na versão exata do `package.json`, porque o `latest` é o 8.0.0-rc.
 
 ### Mapa de diretórios
 
@@ -153,7 +162,6 @@ Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `rout
 - Comentário não desliga regra de lint: exceção entra no `eslint.config.mjs`, com a justificativa ao lado.
 - `src/env/schema.ts` não tem `server-only`, porque o `next.config.ts` o importa para validar no build e no dev. Por isso `next typegen` também exige `DATABASE_URL`, e o `layout.tsx` não usa o tipo gerado `LayoutProps`.
 - Sem `.env.local`, passe uma URL fictícia na linha de comando: `DATABASE_URL=postgresql://127.0.0.1:1/x pnpm build`.
-- `prisma` fica na versão exata do `package.json`: o `latest` do npm aponta para o 8.0.0-rc.
 - O `build` roda `prisma generate`: o client fica fora do git, e o cache da Vercel pula o `postinstall` quando o lockfile não muda.
 - `agentRules: false` no `next.config.ts` não sai: sem ele, o `next dev` escreve no nosso `AGENTS.md`.
 - A tag da imagem é a mesma em `compose.yaml` e `tests/global-setup.ts`; mudou numa, muda na outra.
