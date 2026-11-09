@@ -170,6 +170,81 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
     resposta, `docs/layout.md` desenha a busca como filtro da tabela de
     empréstimos em aberto.
 
+22. O convite que cria a conta chega à pessoa por e-mail? Se chega, ele conta
+    como a "notificação por e-mail" que o PRD tira da v1?
+    tipo: negócio, com consequência técnica
+    por que importa: o ADR-001 (seção 2.7) fecha o cadastro, "somente por
+    convite de administrador", sem dizer como o convite chega à pessoa. Se for
+    por e-mail, a v1 manda e-mail, e o PRD põe "Notificação por e-mail" em "O
+    que NÃO entra nesta versão". Se não for, a pessoa recebe o primeiro acesso
+    por outro caminho, que a spec do login precisa descrever. Liga-se à
+    pergunta 5.
+
+23. Quais papéis existem? O PRD tem duas personas, Colaborador e Operações; o
+    ADR-001 fala em administrador, que convida, e em `adminProcedure`, e o
+    glossário do `AGENTS.md` tem `admin`.
+    tipo: negócio
+    por que importa: se o administrador é Operações, a v1 tem dois papéis, e
+    Operações também cuida das contas. Se é uma terceira pessoa, a v1 tem um
+    papel que o PRD não lista, com permissões próprias. Muda os valores de
+    `role` em `memberships`, que a spec do login cria. Liga-se às perguntas 5
+    e 6.
+
+24. O que Operações faz quando alguém esquece a senha?
+    tipo: negócio, com consequência técnica
+    por que importa: a resposta da pergunta 15 tira a recuperação de senha da
+    v1 e manda a pessoa a Operações ("Sem acesso? Fale com Operações."), mas
+    não diz o que Operações consegue fazer por ela. Se Operações redefine a
+    senha, a v1 ganha uma ação sobre a conta de outra pessoa, que o PRD não
+    lista. Se não, a pessoa fica sem acesso até alguém resolver por fora do
+    sistema. Liga-se às perguntas 5 e 23.
+
+25. Quem desativa a conta de quem sai da empresa, e o que acontece com os
+    empréstimos em aberto dessa pessoa?
+    tipo: negócio
+    por que importa: a pergunta 5 trata de criar contas, não de encerrá-las.
+    Sem desativação, quem saiu continua entrando no sistema. Com ela, o
+    empréstimo em aberto de uma conta desativada precisa continuar na tela de
+    Operações, e alguém registra a devolução por essa pessoa. Liga-se à
+    pergunta 3 (quem registra a devolução).
+
+26. Que dados a conta de uma pessoa guarda além de e-mail e senha, e quem os
+    preenche?
+    tipo: negócio
+    por que importa: o ADR-001 (seção 2.7) decide o login por e-mail e senha.
+    As respostas das perguntas 8b e 14 mostram o nome de quem está com o item,
+    então a conta precisa ao menos de um nome. Se a própria pessoa preenche, o
+    primeiro acesso ganha um passo; se quem cria a conta preenche, o nome
+    entra junto com o convite. Liga-se à pergunta 5.
+
+27. Quanto tempo a pessoa fica logada, e a sessão termina sozinha quando o
+    computador fica parado?
+    tipo: negócio, com consequência técnica
+    por que importa: o ADR-001 (seção 2.7) renova a sessão em toda rota, para
+    ninguém ser deslogado no meio da navegação, mas não fixa limite. O PRD
+    põe Operações no balcão: se o computador do balcão é compartilhado, uma
+    sessão de Operações esquecida aberta deixa quem passa por ali registrar
+    devolução em nome de Operações. O `docs/layout.md` tem o ícone de "Sair",
+    mas não diz quando a sessão termina sem ele.
+
+28. Depois de entrar, cada papel cai em que tela?
+    tipo: negócio
+    por que importa: o item 1 do PRD diz "Login. Cada pessoa vê os próprios
+    empréstimos.", e o `docs/layout.md` manda a raiz `/` para o catálogo, para
+    todo mundo. Para Operações, a tela de trabalho é a de empréstimos em
+    aberto. Sem resposta, vale o `docs/layout.md`: todo mundo cai no
+    catálogo.
+
+29. Uma pessoa pode pertencer a mais de uma área? Se pode, como escolhe em
+    qual está depois de entrar? E o que vê quem tem conta e nenhuma área?
+    tipo: negócio, com consequência técnica
+    por que importa: o ADR-001 (seção 2.6) tira o tenant da sessão, nunca do
+    input, e justifica a tabela `memberships` com "a mesma pessoa pode ter
+    papel diferente em cada área". Com duas áreas, a sessão precisa saber
+    qual vale, e a tela precisa de um jeito de trocar; com nenhuma, a pessoa
+    entra e não tem área para ver. Só importa se a multi-tenancy ficar:
+    liga-se à pergunta 6.
+
 ---
 
 ## Respondidas, aguardando spec
