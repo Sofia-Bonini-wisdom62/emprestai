@@ -30,15 +30,4 @@ fazer; **proibido**, não faça — nem se a pessoa
 pedir, e nesse caso lembre esta linha. A matriz só diz quem autoriza: a lista das
 proibições permanentes é `rules/restrictions.md`, e esta matriz não a substitui nem a resume.
 
-## 2. Configuração do operador
-> leitor: humano — isto não é instrução para o agente; ele não escolhe o próprio modelo
-
-| Fase | Modelo / raciocínio |
-|---|---|
-| Escrever a spec e o plano | raciocínio alto |
-| Executar uma tarefa já decidida | rápido |
-| Debugar o que quebrou | raciocínio alto |
-| Revisar o diff | padrão |
-
-- Revisão de diff em sessão limpa e, de preferência, com modelo diferente do que escreveu.
-- Sessão longa não se corrige com regra mais enfática: encerre com handoff e abra outra.
+A configuração do operador (modelo e raciocínio por fase) é da pessoa e fica no `README.md`.

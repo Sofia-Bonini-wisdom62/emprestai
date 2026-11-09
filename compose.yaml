@@ -1,0 +1,22 @@
+# Banco de dev local (ADR-004): só o Postgres, sem Supabase CLI.
+# A senha vem de fora do arquivo. Todo subcomando precisa da flag, porque o Compose sozinho só lê .env:
+# docker compose --env-file .env.local up -d (vale também para ps, logs, port e down)
+# A tag é a mesma do Testcontainers, para o dev e os testes rodarem a mesma imagem.
+services:
+  db:
+    image: supabase/postgres:17.11.0.018
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?preencha POSTGRES_PASSWORD no .env.local e passe --env-file .env.local no comando}
+    ports:
+      - "127.0.0.1:54322:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # -h localhost usa TCP: o servidor temporário da inicialização só escuta no socket.
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  db-data:

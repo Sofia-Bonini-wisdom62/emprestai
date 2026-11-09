@@ -49,6 +49,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Client gerado pelo Prisma: abre com eslint-disable e @ts-nocheck, que o
+    // noInlineConfig deixa de respeitar. Fica fora do git (plano do andar zero, T3).
+    "src/generated/**",
   ]),
 ]);
 

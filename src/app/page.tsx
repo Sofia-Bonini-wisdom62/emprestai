@@ -1,3 +1,5 @@
+import { HealthStatus } from "@/app/health-status";
+
 type EquipmentStatus = "available" | "loaned" | "maintenance";
 
 const statusPill: Record<EquipmentStatus, { label: string; className: string }> = {
@@ -132,9 +134,12 @@ export default function Home() {
           <BrandMark />
           <span className="text-[17px]/6 font-semibold">emprestai</span>
         </div>
-        <span className="rounded-full border border-border px-3 py-1 text-[13px]/[18px] font-medium text-secondary-text">
-          Primeira versão em construção
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-border px-3 py-1 text-[13px]/[18px] font-medium text-secondary-text">
+            Primeira versão em construção
+          </span>
+          <HealthStatus />
+        </div>
       </header>
 
       <main className="flex flex-1 flex-col gap-16">

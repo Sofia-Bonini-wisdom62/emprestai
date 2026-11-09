@@ -4,7 +4,7 @@ Sistema web interno para controlar empréstimo de equipamentos. Projeto de disci
 
 ## Estado atual
 
-O andar zero está em andamento: existe o scaffold do Next.js e uma landing provisória, ainda sem banco, login nem telas do produto. O inventário completo e o que falta estão em [AGENTS.md, seção Estado atual](AGENTS.md).
+O andar zero está em andamento: existe o scaffold do Next.js e uma landing provisória, ainda sem banco, login nem telas do produto. Comandos para instalar, subir o banco e rodar: [AGENTS.md, seção 8](AGENTS.md).
 
 ## Documentos
 
@@ -30,14 +30,29 @@ O andar zero está em andamento: existe o scaffold do Next.js e uma landing prov
 
 ## Infraestrutura
 
-| Item | Onde |
+| Item | Valor |
 |---|---|
-| Banco de produção e Auth | Supabase, projeto `emprestai`, região `sa-east-1`. Pausado por inatividade no plano gratuito |
-| Banco de dev | Postgres local em Docker, pelo `compose.yaml` (ADR-004) |
-| Hospedagem | Vercel, plano Hobby. URL reservada https://emprestai-beta.vercel.app, que responde 404 enquanto não houver aplicação |
-| CI | GitHub Actions. O workflow ainda não existe |
+| GitHub | `Sofia-Bonini-wisdom62/emprestai`, privado |
+| Supabase (produção e Auth) | Projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. **Pausado por inatividade**: a reativação é manual, no painel, por uma pessoa — https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
+| Banco de dev | Postgres local em Docker, pelo `compose.yaml` ([ADR-004](docs/adr/004-environments.md)); não há projeto Supabase de dev |
+| Vercel | Projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. URL de produção reservada: https://emprestai-beta.vercel.app |
+| CI | GitHub Actions. `vercel.json` desliga o deploy por push na `main`; o deploy de produção sai de Deploy Hook depois do `prisma migrate deploy`. O workflow ainda não existe |
 
-Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. Nada com valor real vai para o repositório.
+Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. A lista completa, e onde cada uma vive, está no próprio `.env.example`. Nada com valor real vai para o repositório.
+
+## Configuração do operador
+
+Para a pessoa, não para o agente: ele não escolhe o próprio modelo.
+
+| Fase | Modelo / raciocínio |
+|---|---|
+| Escrever a spec e o plano | raciocínio alto |
+| Executar uma tarefa já decidida | rápido |
+| Debugar o que quebrou | raciocínio alto |
+| Revisar o diff | padrão |
+
+- Revisão de diff em sessão limpa e, de preferência, com modelo diferente do que escreveu.
+- Sessão longa não se corrige com regra mais enfática: encerre com handoff e abra outra.
 
 ## Pendência
 

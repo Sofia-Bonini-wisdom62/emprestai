@@ -33,7 +33,7 @@ Sai de [`docs/andar-zero.md`](andar-zero.md) (critérios AZ-01 a AZ-09) e é res
 - `src/trpc/` para o cliente. Por que: o que roda no navegador fica fora de `src/server/`, e a busca de `rules/secrets.md` (segredo em código de cliente) tem um alvo claro.
 - `src/generated/prisma/`, ignorado no git e gerado no `postinstall`. Por que: o Prisma 7 exige `output`; dentro de `src/` o alias `@/` alcança, e fora do git não há código gerado para revisar em PR.
 - `src/server/services/` para a camada Service. Por que: o ADR 2.3 fixa a camada, não o caminho; ao lado de `src/server/api/`, o service fica do lado do servidor, longe do código de cliente.
-- `src/server/db.ts` para o singleton do Prisma. Por que: o ADR 2.5 fixa o singleton, não o caminho; um arquivo só em `src/server/` é o único lugar que instancia o client.
+- `src/server/db.ts` para o singleton do Prisma. Por que: o ADR 2.5 fixa o singleton, não o caminho; um arquivo só em `src/server/` é o único lugar que instancia o client da aplicação; os testes criam o deles em `tests/helpers/db.ts`, com a URI do contêiner.
 - A página do AZ-05 na raiz `/` (`src/app/page.tsx`), sem rota `/health` separada. Por que: é o que o preview da Vercel abre (AZ-09) e é uma peça a menos. É provisória: quando a spec do catálogo entrar, `/` passa a levar ao catálogo (`docs/layout.md`, seção 6) e a verificação de saúde fica só no procedimento tRPC.
 - Teste ao lado do arquivo que testa (`routers/health.test.ts` junto de `routers/health.ts`), e `tests/` na raiz só com a infraestrutura de teste: o globalSetup do Testcontainers e os helpers de banco. Por que: a aula 8 considera boa a feature que toca duas ou três pastas, e uma `tests/` espelhando `src/` seria a quarta; o ADR-001, 2.3, organiza por domínio porque "por domínio, a feature inteira fica junta", e o teste é parte da feature. O globalSetup e os helpers não pertencem a módulo nenhum, por isso ficam em `tests/`. `rules/tests.md` já cobre os dois lugares: `**/*.test.ts` e `tests/**`.
 - O teste da policy da tabela técnica (casos `az_03`, T8) em `services/health.test.ts`, junto do service que lê a tabela. Por que: a policy mora na migration, `prisma/migrations/` só guarda o que o Prisma Migrate gera, e o teste fica com o domínio da tabela. Alternativa: um arquivo de teste em `prisma/`. A pessoa escolhe junto com as pastas.
@@ -58,7 +58,7 @@ Turbopack vem ligado por padrão (doc). `--no-agents-md` porque o repositório j
 
 Esperado (conferido contra o resultado real, que a T1 mostra): `package.json`, `tsconfig.json`, `next.config.ts`, `next-env.d.ts`, `eslint.config.mjs`, `pnpm-workspace.yaml`, `.gitignore`, `README.md`, `public/*.svg`, `src/app/{layout.tsx,page.tsx,globals.css,favicon.ico}`.
 
-O que a T1 faz logo em seguida: copia `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `pnpm-workspace.yaml` e `src/app/`; **não** copia `README.md`, `.gitignore` (o do repositório já cobre o do scaffold; diferença mostrada) nem `next-env.d.ts` (ignorado); remove os SVGs de `public/`, o `next/image` e o conteúdo de exemplo de `page.tsx` (que fica como placeholder mínimo, sem conteúdo de produto, até a T9 pôr nele a página do AZ-05), mas **mantém** o `next/font` do `layout.tsx`, que já traz a Geist, a fonte proposta no ADR-002, servida pelo próprio Next a partir do build, sem CDN em tempo de execução (nada além disso do design system entra no andar zero); acrescenta o script `typecheck` (`next typegen && tsc --noEmit`, porque o `LayoutProps` do scaffold é gerado pelo Next e não existe num clone limpo), exigido por `rules/checks.md`; acrescenta ao `eslint.config.mjs` as regras descritas na T1; roda `pnpm install` no repositório, o que cria `pnpm-lock.yaml` (e `pnpm-workspace.yaml`, se o pnpm criar ao aprovar builds, R11).
+O que a T1 faz logo em seguida: copia `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `pnpm-workspace.yaml` e `src/app/`; **não** copia `README.md`, `.gitignore` (o do repositório já cobre o do scaffold; diferença mostrada) nem `next-env.d.ts` (ignorado); remove os SVGs de `public/`, o `next/image` e o conteúdo de exemplo de `page.tsx` (que fica como placeholder mínimo, sem conteúdo de produto, até a T9 pôr nele a página do AZ-05), mas **mantém** o `next/font` do `layout.tsx`, que já traz a Geist, a fonte proposta no ADR-002, servida pelo próprio Next a partir do build, sem CDN em tempo de execução (nada além disso do design system entra no andar zero); acrescenta o script `typecheck` (`tsc --noEmit`), exigido por `rules/checks.md`; acrescenta ao `eslint.config.mjs` as regras descritas na T1; roda `pnpm install` no repositório, o que cria `pnpm-lock.yaml` (e `pnpm-workspace.yaml`, se o pnpm criar ao aprovar builds, R11).
 
 ## 3. Tarefas
 
@@ -79,59 +79,60 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   adiciona dependência: nenhuma
   depende de fora do repo: nada
   verifico assim: `pnpm lint`, `pnpm typecheck` e `pnpm build` sem erro; a página abre em 1024px e em 375px sem rolagem lateral
-- [ ] T2 · Validação de env com Zod em `src/env/{server,client,runtime}.ts`
+- [x] T2 · Validação de env com Zod em `src/env/{server,client,runtime}.ts`
   atende: AZ-07, AZ-02 (variável faltando)
   adiciona dependência: zod; server-only (exigido por `rules/secrets.md` passo 1, não pelo ADR; aprovação junto com o plano)
   schema: obrigatória no andar zero só `DATABASE_URL`; `LOG_LEVEL` tem default; `LOG_PRETTY` é opcional (só máquina de dev, ignorada na Vercel) e `PORT` é opcional (default do Next); as do Supabase, do Sentry, do rate limit e `APP_URL` entram como opcionais até a funcionalidade que as usa; `DIRECT_URL` fica fora do schema de runtime (só o `prisma.config.ts` a lê)
   depende de fora do repo: nada
   verifico assim: num clone limpo sem `.env.local` e sem variável na linha de comando, `pnpm build` e `pnpm dev` param com mensagem que cita `DATABASE_URL`; com a `DATABASE_URL` fictícia na linha de comando, os dois passam; `grep -rn "process.env" --include=*.ts --include=*.tsx --include=*.js --include=*.mjs . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=generated` só acha `src/env/` e as exceções aceitas (`prisma.config.ts`, quando existir, conforme R14); toda chave usada está no `.env.example`
-- [ ] T3 · Prisma 7: `prisma.config.ts`, `schema.prisma` sem modelo, `src/server/db.ts` com `PrismaPg` e `max: 1`
+- [x] T3 · Prisma 7: `prisma.config.ts`, `schema.prisma` sem modelo, `src/server/db.ts` com `PrismaPg` e `max: 1`
   atende: pré-requisito de T4 (modelo no schema), T5 (verificação pelo Prisma CLI), T6 e T7
-  adiciona dependência: prisma, @prisma/adapter-pg; @prisma/client: necessidade conferida na tarefa contra a documentação do Prisma 7
+  adiciona dependência: prisma 7.10.1 (versão exata: o `latest` do npm aponta para o 8.0.0-rc, fora do ADR), @prisma/adapter-pg, @prisma/client; `pnpm-workspace.yaml` libera os scripts de build de `prisma` e `@prisma/engines`
   altera: `.gitignore` e `eslint.config.mjs`, os dois passam a ignorar `src/generated/`. O client gerado do Prisma 7 abre com `/* eslint-disable */` e `// @ts-nocheck`, que o `noInlineConfig` da T1 deixa de respeitar; no ESLint em flat config, o `.gitignore` não vale, então a exceção entra por `globalIgnores(["src/generated/**"])`, de `eslint/config`, sem dependência nova. É a única exceção do lint neste plano e é aprovada junto com ele
   depende de fora do repo: nada
   verifico assim: `pnpm prisma generate` passa sem `DIRECT_URL` definida (o caso da Vercel); `src/generated/` aparece em `git check-ignore -v`; `pnpm typecheck` sem erro; `grep -n "max: 1" src/server/db.ts` acha a linha; `pnpm lint` sem erro com o client gerado presente
-- [ ] T4 · DDL da tabela técnica: modelo Prisma + `ENABLE ROW LEVEL SECURITY` + policy, na resposta, e PARAR; aprovado o DDL, o modelo entra no `schema.prisma` e o client é gerado sem banco
+- [x] T4 · DDL da tabela técnica: modelo Prisma + `ENABLE ROW LEVEL SECURITY` + policy, na resposta, e PARAR; aprovado o DDL, o modelo entra no `schema.prisma` e o client é gerado sem banco
   atende: AZ-03 (passo 1 de `rules/migration.md`)
   adiciona dependência: nenhuma
-  depende de fora do repo: aprovação do DDL
+  depende de fora do repo: aprovação do DDL, dada pela pessoa em 2026-11-05
+  SQL de RLS aprovado, para a T6 colar na migration: `ALTER TABLE "health_checks" ENABLE ROW LEVEL SECURITY;` e `CREATE POLICY "health_checks_deny_all" ON "health_checks" FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);`
   verifico assim: o DDL está na resposta e a pessoa aprova ou corrige; depois da aprovação, `pnpm prisma generate` passa sem banco e `pnpm typecheck` sem erro; nada em `prisma/migrations/` ainda
-- [ ] T5 · Banco de dev local: `compose.yaml` com a imagem `supabase/postgres`
+- [x] T5 · Banco de dev local: `compose.yaml` com a imagem `supabase/postgres`
   atende: AZ-01 (o banco de dev sobe com um comando); pré-requisito da T6 e da T10
   adiciona dependência: nenhuma de pacote; usa o Docker Compose do Docker Desktop (ADR-004)
   altera: cria `compose.yaml` na raiz; acrescenta ao `.env.example` a variável da senha local, com placeholder e a indicação de que ela só vive no `.env.local` (`rules/secrets.md`, passo 3), e avisa que o valor falta lá
   depende de: T3 (Prisma CLI, para a verificação); de fora do repo, o Docker de pé
   detalhes: a T5 escolhe a tag da imagem e confere que ela sobe; a T8 reaproveita a mesma tag no Testcontainers (R10); porta ligada só a `127.0.0.1`; volume nomeado, para o dado sobreviver a `docker compose down`; senha lida do `.env.local`, nunca escrita no `compose.yaml`; nada de Supabase CLI (`rules/restrictions.md`, Bancos e schema). Antes de commitar, a tarefa mostra como o compose recebe a senha: do `.env.local`, para a pessoa, e por variável na linha de comando, para a verificação do agente, que não abre o `.env.local`
   verifico assim: com a senha fictícia na linha de comando, `docker compose up -d` e `docker compose ps` mostram o serviço saudável; `docker compose port` mostra só `127.0.0.1`; `pnpm prisma migrate status`, com a URL fictícia do banco local na linha de comando, conecta e não acha migration; `docker compose down` seguido de `up -d` mantém o volume; `grep -n -i password compose.yaml` só mostra a referência à variável (`${...}`), sem valor
-- [ ] T6 · Migration `add_health_checks_table` com o SQL de RLS, sem aplicar antes de o SQL entrar
+- [x] T6 · Migration `add_health_checks_table` com o SQL de RLS, sem aplicar antes de o SQL entrar
   atende: AZ-03
   adiciona dependência: nenhuma
   depende de: T5 (banco de dev local de pé); de fora do repo, o Docker
   teste da policy: o caso que prova o bloqueio (`rules/tests.md`, passo 3) entra na T8, no mesmo PR do andar zero; a migration não chega à `main` sem ele
   passos: o modelo já está no `schema.prisma` desde a T4; a T6 só gera a migration. (1) `pnpm prisma migrate dev --create-only --name add_health_checks_table`; (2) colar no `migration.sql` gerado o SQL de RLS aprovado na T4; (3) `pnpm prisma migrate dev` para aplicar
-  verifico assim: `pnpm prisma migrate status` mostra a migration aplicada; o diff do `migration.sql` contra o DDL da T4 não tem diferença; `pnpm prisma migrate reset` no dev local aplica do zero
-- [ ] T7 · tRPC: `initTRPC` com superjson, contexto mínimo `{ db }` sem sessão, route handler, `health.check` público e o service
+  verifico assim: `pnpm prisma migrate status` mostra a migration aplicada; o diff do `migration.sql` contra o DDL da T4 não tem diferença; aplicar do zero, num Postgres novo da mesma imagem, com `pnpm prisma migrate deploy`. O `pnpm prisma migrate reset` recusa rodar a partir de um agente sem consentimento da pessoa, então o agente não o usa para esta prova
+- [x] T7 · tRPC: `initTRPC` com superjson, contexto mínimo `{ db }` sem sessão, route handler, `health.check` público e o service
   atende: AZ-04, AZ-02 (banco fora do ar)
   adiciona dependência: @trpc/server, superjson
   depende de: T4 aprovada (o modelo no client tipado); de fora do repo, nada para o caminho de falha e banco de dev para o de sucesso
   contexto: reduzido ao Prisma porque Auth e tenant estão fora do andar zero; o `createContext` do ADR 2.3 (sessão, `tenant_id`, `role`, Prisma) entra com a primeira spec
   `rules/checks.md` passo 3: não se aplica, procedimento técnico sem tenant (`andar-zero.md`, Fora de escopo); nome do caso no formato `az_04` (T8)
   verifico assim: com a `DATABASE_URL` fictícia na linha de comando e sem `.env.local`, `pnpm dev` sobe e `curl http://localhost:3000/api/trpc/health.check` devolve a falha explícita, sem connection string no corpo
-- [ ] T8 · Vitest com globalSetup do Testcontainers (`supabase/postgres`, `prisma migrate deploy` do zero, URI por `provide`/`inject`), teste de `health.check` via `createCaller` e teste da policy da tabela técnica
+- [x] T8 · Vitest com globalSetup do Testcontainers (`supabase/postgres`, `prisma migrate deploy` do zero, URI por `provide`/`inject`), teste de `health.check` via `createCaller` e teste da policy da tabela técnica
   atende: AZ-06 e AZ-03 pela policy (casos `az_03`); prova também o AZ-04 e a migration do AZ-03 aplicada do zero
-  adiciona dependência: vitest, @testcontainers/postgresql
+  adiciona dependência: vitest, @testcontainers/postgresql; `@types/node` sobe para a 24, que é o Node do projeto e o que o Vitest pede; `pnpm-workspace.yaml` nega os scripts de build de `cpu-features`, `protobufjs` e `ssh2`, opcionais para o Testcontainers
   depende de fora do repo: Docker (e a migration da T6; R15 decidido)
-  config: alias `@/` por `resolve.alias` no `vitest.config.ts`, sem plugin; `server-only` conforme R15; sem `include` próprio, porque o padrão do Vitest (`**/*.{test,spec}.?(c|m)[jt]s?(x)`, conferido na doc em 2026-10-26) acha o teste ao lado do código, e o globalSetup em `tests/` não casa com ele (quando o Playwright entrar, fora do andar zero, os `*.spec.ts` dele também casam e vão pedir `exclude`). O globalSetup chama o Prisma CLI com `DIRECT_URL` e `DATABASE_URL` sobrescritas pela URI do container e aborta se o host não for `localhost`/`127.0.0.1`
+  config: alias `@/` por `resolve.alias` no `vitest.config.mts`, sem plugin; `server-only` conforme R15; sem `include` próprio, porque o padrão do Vitest (`**/*.{test,spec}.?(c|m)[jt]s?(x)`, conferido na doc em 2026-10-26) acha o teste ao lado do código, e o globalSetup em `tests/` não casa com ele (quando o Playwright entrar, fora do andar zero, os `*.spec.ts` dele também casam e vão pedir `exclude`). O globalSetup chama o Prisma CLI com `DIRECT_URL` e `DATABASE_URL` sobrescritas pela URI do container e aborta se o host não for `localhost`/`127.0.0.1`
   arquivos: `src/server/api/routers/health.test.ts` (casos `az_04`) e `src/server/services/health.test.ts` (casos `az_03`), cada um ao lado do que testa; em `tests/`, só o globalSetup e os helpers de banco
-  caso da policy: o Prisma da aplicação conecta como dono da tabela e passa por cima da RLS (ADR-001, 2.7), por isso o caso troca de papel. Numa transação: insere uma linha como dono e confere que o dono a lê; `SET LOCAL ROLE authenticated`; consulta a tabela técnica. Passa com erro de permissão (SQLSTATE `42501`; outro erro falha o caso) ou zero linhas, e falha com qualquer linha. O mesmo, em outra transação, com `anon`. Nenhuma das duas é confirmada. Cumpre o passo 3 de `rules/tests.md`: tabela com policy chega com o teste que prova o bloqueio
+  caso da policy: o Prisma da aplicação conecta como dono da tabela e passa por cima da RLS (ADR-001, 2.7), por isso o caso troca de papel. A imagem dá `SELECT` automático a `anon` e `authenticated` nas tabelas de `public`, então quem bloqueia é a RLS, não a falta de permissão. Numa transação: insere uma linha como dono e confere que o dono a lê; `SET LOCAL ROLE`; a consulta tem de devolver zero linhas, e qualquer erro falha o caso. Caso de controle, um para cada papel: com a RLS desligada na mesma transação, a consulta devolve a linha, o que prova que o zero vem da RLS. Nenhuma transação é confirmada. Cumpre o passo 3 de `rules/tests.md`
   nome do caso: formato `az_03` e `az_04`, adaptação do formato `ca_xx` de `rules/tests.md` (passo 5), sujeita a aprovação; `rules/checks.md` passo 3: não se aplica, procedimento técnico sem tenant
-  verifico assim: `pnpm test` lista os dois arquivos de `src/` e mostra no resumo os casos `az_04` (banco de pé = ok; URL para porta fechada = falha) e os dois `az_03` (`authenticated` e `anon` não leem a linha que o dono lê); o log do globalSetup mostra o host do container; `docker ps` durante a execução mostra o container, e depois não; com o Docker parado, `pnpm test` falha citando o Docker
-- [ ] T9 · Cliente tRPC com `@trpc/react-query` e Provider em `src/trpc/`; a landing da raiz `/` (`src/app/page.tsx`) passa a mostrar o resultado
+  verifico assim: `pnpm test --reporter=verbose` lista os dois arquivos de `src/` e os casos: dois `az_04` (banco de pé = ok; porta fechada = falha) e cinco `az_03`: dois de bloqueio, dois de controle e um de catálogo, que confere a policy em `pg_policies`, porque a RLS sozinha já daria os mesmos zero; o log do globalSetup mostra o host do contêiner; `docker ps` durante a execução mostra o contêiner, e depois não; com o Docker parado, `pnpm test` falha com `Could not find a working container runtime strategy`
+- [x] T9 · Cliente tRPC com `@trpc/react-query` e Provider em `src/trpc/`; a landing da raiz `/` (`src/app/page.tsx`) passa a mostrar o resultado
   atende: AZ-05
   adiciona dependência: @trpc/client, @trpc/react-query, @tanstack/react-query
   depende de fora do repo: nada para mostrar a falha; banco de dev para mostrar sucesso
   verifico assim: com a `DATABASE_URL` fictícia na linha de comando, abrir http://localhost:3000 e ver o estado de falha; na aba Network, a chamada a `/api/trpc/health.check`; `grep -rn "style=" src` vazio. Com o banco de dev de pé e a T6 aplicada, a mesma página mostra o banco ok: é o que prova que tela, servidor e banco se falam (AZ-05)
-- [ ] T10 · Trocar a seção 8 do `AGENTS.md` pelas quatro seções que ela prevê: Comandos (só com o que já rodou), Mapa de diretórios, Convenções não óbvias e Como testar; documentar os comandos (instalar, subir e derrubar o banco de dev, migrar, rodar) só na seção Comandos, com um link para ela no `README.md`; enxugar o que o `CLAUDE.md` carrega em toda mensagem
+- [x] T10 · Trocar a seção 8 do `AGENTS.md` pelas quatro seções que ela prevê: Comandos (só com o que já rodou), Mapa de diretórios, Convenções não óbvias e Como testar; documentar os comandos (instalar, subir e derrubar o banco de dev, migrar, rodar) só na seção Comandos, com um link para ela no `README.md`; enxugar o que o `CLAUDE.md` carrega em toda mensagem
   atende: AZ-01; confirma o AZ-05 com o banco ok
   adiciona dependência: nenhuma
   depende de: T5 a T9 (os comandos, a página e os testes que as seções novas descrevem); de fora do repo, o Docker
@@ -140,17 +141,28 @@ Variáveis nas verificações: o agente não lê nem escreve `.env.local` (`rule
   comandos num lugar só: o `README.md` não repete comando, só aponta a seção Comandos do `AGENTS.md` ("a mesma instrução nunca vai para dois lugares", aula 9)
   enxugamento: o `CLAUDE.md` carrega `AGENTS.md`, `rules/restrictions.md`, `rules/checks.md` e `rules/operacao.md` em toda mensagem, hoje mais de 340 linhas (a T10 mede de novo antes de começar, com `wc -l`), e a aula 9 pede curto o que paga pedágio em toda mensagem. (1) a tabela de infraestrutura do `AGENTS.md` (seção 11) sai para o `README.md`, juntada à que ele já tem, sem linha repetida, e o `AGENTS.md` aponta para lá; (2) a seção 8 provisória dá lugar às quatro seções acima; (3) o texto de `rules/checks.md` sobre passos que ainda não dá para rodar encolhe, porque os comandos passam a existir. Meta: abaixo de 250 linhas, sem perder regra. As três mudanças tiram cerca de 20 linhas e as quatro seções novas devolvem parte delas; o resto do corte não está decidido: a T10 mede, lista o que mais sairia ou encurtaria e para antes de cortar
   verifico assim: verificação feita pela pessoa, que clona em pasta nova, segue só a seção Comandos do `AGENTS.md` (pode chegar a ela pelo link do `README.md`), preenchendo o `.env.local` a partir do `.env.example`, vê a página da raiz com o banco ok e cola o resultado; o agente não toca o `.env.local`. Enxugamento: `wc -l AGENTS.md rules/restrictions.md rules/checks.md rules/operacao.md` antes e depois, com o total abaixo de 250; no diff, cada linha que sai de um dos quatro arquivos tem destino (o `README.md` ou a forma curta no mesmo arquivo), e nenhuma regra é removida
-- [ ] T11 · Conferência do `.gitignore` e varredura de segredo no repositório e no histórico
+  verificado em 2026-11-09 (AZ-01 e AZ-05 com banco ok): clone limpo da `feat/walking-skeleton` no commit `256b962`; a pessoa criou o `.env.local`, e os comandos da seção Comandos rodaram a pedido dela, pelo agente, não por ela: `pnpm install`, `docker compose --env-file .env.local up -d --wait` (saudável), `pnpm prisma migrate deploy` (2 migrations) e `pnpm dev`. A pessoa abriu a página e viu "Banco de dados ok". Depois disso, a seção Comandos passou a mostrar a ordem da primeira subida e o aviso de versão do Prisma
+  enxugamento, decidido pela pessoa em 2026-11-09: a meta de menos de 250 linhas só se cumpria cortando regra, glossário ou mapa, e foi trocada por "nada repetido e nada que seja só para a pessoa". Saíram a tabela de personas (o PRD a tem), as linhas repetidas de "Onde olhar" e a tabela de ADRs da seção 5, que virou uma frase. "Como testar" foi para `rules/tests.md`, e a configuração do operador, do `rules/operacao.md` para o `README.md`. Os quatro arquivos foram de 396 para 360 linhas e de 22,1 mil para 20,0 mil caracteres. As quebras em 72 colunas das regras ficaram como estavam: juntá-las só baixaria a contagem de linhas
+- [x] T11 · Conferência do `.gitignore` e varredura de segredo no repositório e no histórico
   atende: AZ-08
   adiciona dependência: nenhuma
   depende de: T5 e T10, para a varredura pegar o `compose.yaml` e os comandos documentados; de fora do repo, nada (decisão da pessoa sobre R7)
   verifico assim: `git ls-files | grep -E '(^|/)\.env'` só lista `.env.example`; `git log --all -p | grep -nE 'sb_secret_[A-Za-z0-9_-]{8,}' | grep -vE 'sb_secret_x+[[:space:]]*$'` e, em separado, `git log --all -p | grep -nE 'postgres(ql)?://[^<[:space:]]+:[^<@$[:space:]]+@'` e `git log --all -p | grep -nE '(^|[^{A-Za-z_])[A-Z_]*PASSWORD[A-Z_]*[=:][[:space:]]*["]?[^<$[:space:]{"]'` (as duas ignoram referência a variável, como `${POSTGRES_PASSWORD}`, e placeholder entre `< >`); o esperado das três é vazio, depois de excluir o placeholder documentado do `.env.example`
-- [ ] T12 · Tirar o `ignoreCommand` do `vercel.json` e verificar o preview
+- [x] T12 · Tirar o `ignoreCommand` do `vercel.json` e verificar o preview
   atende: AZ-09
   adiciona dependência: nenhuma
   depende de fora do repo: aprovação explícita (`rules/restrictions.md`, Escopo); `DATABASE_URL` no ambiente Preview da Vercel, cadastrada pela pessoa com um valor que não aponta para banco nenhum (ADR-004; nunca a URL de produção) (é a única obrigatória da T2; as opcionais entram com a funcionalidade que as usa, e `DIRECT_URL` não vai para a Vercel)
   banco do Preview: nenhum (ADR-004); a página mostra o estado de falha do procedimento de saúde, e é isso que o AZ-09 espera
   verifico assim: a pessoa lê o log do deploy de preview no painel da Vercel e cola o trecho do build (o agente só o lê com pedido explícito nesta conversa); a URL do preview, na raiz `/`, mostra o estado de falha
+  verificado em 2026-11-06, no preview do commit `89a5c63`: o agente leu o log a pedido da pessoa, sem aviso nem erro; a raiz `/` mostra "Banco de dados indisponível", e `health.check` responde `unavailable`, sem connection string
+- [x] Fora da numeração · Migration `protect_prisma_migrations_table`: RLS e policy de negação na `_prisma_migrations`
+  atende: nenhum AZ; ADR-001, 2.7 (RLS em todas as tabelas). Pedido direto da pessoa em 2026-11-05, com o DDL aprovado na conversa
+  adiciona dependência: nenhuma
+  depende de: T6 (ordem das migrations); de fora do repo, o Docker
+  por quê: o Prisma cria a tabela sozinho, fora das migrations, e ela nasce sem RLS. Na imagem local, `anon` e `authenticated` liam, apagavam, atualizavam e inseriam linhas
+  o `IF` da migration: sem ele, o `migrate dev` falha com `P3018` no shadow database, que não tem a tabela
+  fora do alcance: a RLS não cobre `TRUNCATE`; hoje nenhum caminho leva `anon` ou `authenticated` a esse comando
+  verifico assim: sem a migration, os casos `adr_001` de `src/server/services/health.test.ts` falham; com ela, `pnpm test` passa; sem o `CREATE POLICY`, só o caso de catálogo falha; `pnpm prisma migrate dev` passa no shadow database e `pnpm prisma migrate deploy` aplica do zero
 
 ## 4. Riscos e pontos a confirmar
 
@@ -158,19 +170,19 @@ Consultei a documentação oficial (out/2026) e confirmei: Next.js — flags do 
 
 - **R1 · tRPC:** a doc atual diz sobre `@trpc/tanstack-react-query`: "recommend using this over the classic client". O ADR 2.2 diz `@trpc/react-query`. O plano segue o ADR; trocar é decisão do time, por ADR novo.
 - **R2 · Nomes que o ADR cita e o scaffold muda:** ADR 2.10 diz `next.config.js`, o scaffold gera `next.config.ts`; ADR 2.3 diz `app/api/trpc/...`, com `src/` vira `src/app/api/trpc/...`. Não muda decisão, mas o ADR aceito não se edita: se o time quiser registrar, é ADR novo, como o ADR-003.
-- **R3 · Cache Components** vem ligado por padrão e não está no ADR. Proposta: desligar, já que as telas são Client Components com dado via tRPC. Decisão do time antes da T1.
+- **R3 · Cache Components** não está no ADR. Proposta: desligar, já que as telas são Client Components com dado via tRPC. Corrigido pela pessoa em 2026-11-09: no Next 16.4.5 o padrão é `cacheComponents: false` (`next/dist/server/config-shared.js`), e o `next.config.ts` não liga a opção. Então a proposta já vale, sem mudança de código. Este item dizia que a opção vinha ligada por padrão, o que não se confirma nesta versão.
 - **R4 · `.env.local` para o Prisma CLI:** decidido pela pessoa em 2026-11-05. O `prisma.config.ts` carrega o `.env.local` com `process.loadEnvFile`, do Node 24, quando o arquivo existir. Não pede dependência nova nem muda os comandos que `rules/restrictions.md` lista.
 - **R5 · Migration sem banco de dev:** superado pelo ADR-004. Com o banco de dev local da T5, a T6 gera e aplica a migration por `migrate dev`, como `rules/migration.md` pede. A alternativa de gerar o SQL sem banco (`prisma migrate diff --from-empty`) não é mais necessária e não entra no plano.
 - **R6 · Policy da tabela técnica:** ADR 2.7 pede deny by default; `rules/migration.md` pede ao menos uma policy explícita. A T4 propõe negar `anon` e `authenticated` (papéis que existem no Supabase e na imagem `supabase/postgres`, não num Postgres puro).
-- **R7 · `.gitignore` libera `.env.test`**, e o AZ-08 diz "exceto `.env.example`". A T11 não escolhe: pergunta.
-- **R8 · Validar env no build × `server-only`:** importar `src/env/server.ts` no `next.config.ts` esbarra no `import 'server-only'`. A T2 mostra como resolve antes de commitar.
+- **R7 · `.gitignore` libera `.env.test`**, e o AZ-08 diz "exceto `.env.example`": decidido pela pessoa em 2026-11-05. A exceção sai do `.gitignore`, porque o arquivo não existe no repositório e nada o usa; só o `.env.example` fica versionado.
+- **R8 · Validar env no build × `server-only`:** resolvido na T2. O schema fica em `src/env/schema.ts`, sem `server-only`; o `src/env/server.ts` e o `next.config.ts` usam esse arquivo.
 - **R9 · Previews passam a compilar:** com `package.json` na branch, o `ignoreCommand` deixa de pular o build; cada push depois da T1 gera preview que falha até as variáveis existirem no painel; no Preview, o `DATABASE_URL` é o valor sem banco do ADR-004.
-- **R10 · Imagem `supabase/postgres` no Testcontainers:** não confirmei que o `PostgreSqlContainer` e a espera de pronto funcionam com ela (usuário, init em duas fases, tamanho do pull), nem que o usuário da conexão consegue `SET ROLE` para `anon` e `authenticated` (precisa ser superusuário ou membro desses papéis; casos `az_03`). A T5 escolhe a tag e confere que a imagem sobe; a T8 usa a mesma tag e confere o resto (`PostgreSqlContainer`, espera de pronto e `SET ROLE`).
-- **R11 · pnpm 11 e Vercel:** o pnpm bloqueia scripts de build de dependências até aprovação, e não confirmei o suporte da Vercel a pnpm 11 e Node 24. A T1 mostra o que foi pedido; a T12 confere no log.
+- **R10 · Imagem `supabase/postgres` no Testcontainers:** resolvido na T8. O contêiner sobe com o usuário `supabase_admin`, o padrão da imagem, e os testes conectam como `postgres`, que consegue `SET ROLE` para `anon` e `authenticated`.
+- **R11 · pnpm 11 e Vercel:** o pnpm bloqueia scripts de build de dependências até aprovação, e não confirmei o suporte da Vercel a pnpm 11 e Node 24. Resolvido na T12 quanto ao pnpm: o build do preview roda com o pnpm 11.5.2, sem aviso nem erro. O Node 24 na Vercel segue sem confirmação: o log não mostra a versão, e o `package.json` não a fixa.
 - **R12 · CSP sem `unsafe-inline`** exige nonce para os scripts inline do próprio Next; não é AZ, mas a página do andar zero não usa `style=` para não criar dívida, e o lint da T1 passa a barrar o atributo.
 - **R13 · Qualidade de código (ADR 2.11):** o ESLint entra na T1, com as regras de lint de lá. Prettier, o pré-commit com lint-staged + husky e o shadcn/ui não estão nos AZ; ficam fora deste plano, salvo pedido da pessoa.
 - **R14 · `prisma.config.ts` lê `process.env`:** decidido pela pessoa em 2026-11-05. O ADR-003, 2.5, exige `datasource.url = process.env.DIRECT_URL`, e `rules/secrets.md` ganha a exceção para esse arquivo na T3.
-- **R15 · Vitest × `server-only`:** `server-only` lança erro quando importado fora da condição `react-server`, e o teste da T8 via `createCaller` importa `db.ts` e `src/env/server.ts`. A T8 resolve por `resolve.conditions` com `react-server` ou por alias para módulo vazio no `vitest.config.ts`, sem dependência nova, e mostra antes de commitar.
+- **R15 · Vitest × `server-only`:** resolvido na T8, com alias para o `empty.js` do pacote no `vitest.config.mts`, sem dependência nova.
 
 ## 5. Depois do andar zero
 
@@ -181,5 +193,66 @@ Não são tarefas deste plano: são os passos da aula 8 que vêm em seguida.
 - **A tag `andar-zero`**, criada pela pessoa no `main`, depois do merge do PR do andar zero. Marca o ponto de partida da primeira funcionalidade.
 - **O workflow do GitHub Actions** com `prisma migrate deploy` e o Deploy Hook (`docs/andar-zero.md`, Fora de escopo). Mexer em `.github/workflows/` pede aprovação explícita (`rules/restrictions.md`, Escopo).
 - **A spec 001**: uma funcionalidade do PRD que atravesse banco, servidor e tela (aula 9). Começa pelo passo 1 de `rules/spec-flow.md`: as perguntas que o PRD não responde sobre ela vão para `docs/perguntas-prd.md`, e PARA.
+
+### 5.1 Ordem e o que aparece em cada etapa
+
+Mapa registrado em 2026-11-05. É proposta: não substitui ADR nem spec, e a pessoa pode mudar a ordem. As etapas 3 e 4 podem correr em paralelo.
+
+| # | Etapa | Quem faz | O que aparece ao terminar |
+|---|---|---|---|
+| 1 | Fechar as tarefas da seção 3 | O agente; a pessoa na T10 e na T12 | Na máquina, a landing com banco ok. No preview, a landing com o estado de falha, que é o esperado (AZ-09) |
+| 2 | Merge do PR do andar zero, tag `andar-zero` e conferência das decisões do agente | A pessoa; o agente na conferência | Nada novo na tela: a URL de produção segue em 404 |
+| 3 | Workflow e produção (5.3) | O agente escreve, com aprovação; a pessoa faz os painéis | https://emprestai-beta.vercel.app sai do 404 e mostra a landing com banco ok |
+| 4 | Decisões de 5.2 | A pessoa | Nenhuma tela; libera a spec 001 |
+| 5 | Specs, na ordem de 5.4 | O agente rascunha; a pessoa aprova | As telas do PRD, uma por vez |
+
+### 5.2 O que trava a spec 001
+
+1. **Pergunta 6 de `docs/perguntas-prd.md`:** Operações é papel global ou por área? Se for global, a multi-tenancy sai inteira e a saída vira ADR novo (ADR-003, seção 5). Vem primeiro porque, enquanto não existir tabela de domínio, mudar custa só documento.
+2. **Pergunta 5:** quem cria as contas, e se existe tela de convite na v1.
+3. **Como o desenvolvimento autentica.** O Supabase Auth não roda no Postgres local, e o ADR-004 (seções 4 a 6) deixou isso para a spec de login. Proposta do agente: Auth em contêiner, já que não há vaga para um projeto remoto de dev. A escolha é da pessoa e vira ADR novo.
+4. **Aprovação do ADR-002.** É ela que confirma o `lucide-react`, usado nas telas.
+
+### 5.3 Produção: o que depende da pessoa
+
+Painel e secret só mudam a pedido da pessoa (`rules/operacao.md`). Comece pelo primeiro item: se ele falhar, o resto espera.
+
+- **Reativar o projeto Supabase `emprestai`.** O limite de dois projetos ativos do plano gratuito, que impediu criar o projeto de dev (ADR-004, seção 1), pode barrar a reativação também. É risco, ainda não verificado.
+- **Resetar a senha do banco**, que nunca foi exposta, para ter as URLs de conexão.
+- **Criar o Deploy Hook na Vercel** e guardar a URL dele e a `DIRECT_URL` nos secrets do Actions.
+- **Cadastrar a `DATABASE_URL`** no ambiente Production da Vercel (pooler, porta 6543).
+- **Conferir a `SUPABASE_SECRET_KEY`:** ela só pode existir em Production.
+- **Decidir o gatilho do workflow**, que o ADR-004 (seção 6) deixou para o PR dele: merge na `main` ou disparo manual. Proposta do agente: merge na `main`, o caminho que o ADR-004, seção 2, já descreve.
+- **Excluir o projeto `emprestai-vazio-pode-excluir`** no painel da Vercel. É limpeza, não trava nada.
+
+### 5.4 Ordem proposta das specs
+
+O número definitivo sai quando cada pasta for criada (`docs/specs/README.md`). O login vem primeiro porque o `tenantProcedure` e o critério de isolamento dependem de sessão. Todas as perguntas de Abertas em `docs/perguntas-prd.md`, na data do mapa, estão nesta tabela; com pergunta aberta, a spec não passa de rascunho (`rules/spec-flow.md`, passo 1).
+
+| Spec | O que aparece | Perguntas abertas |
+|---|---|---|
+| 001 Login | `/login`, sessão, tenant `default` e `memberships` | 5, 6 |
+| 002 Catálogo e detalhe | `/catalog` e `/catalog/[equipmentId]`; a raiz `/` passa a redirecionar para o catálogo e a landing sai | 9b, 11c, 12b; no histórico, 7 e 17 |
+| 003 Cadastro de equipamento | `/operations/equipment/new` | 9b, 12b, 12d, 18, 19 |
+| 004 Solicitar empréstimo | Botão e diálogo no detalhe | 4b, 19 |
+| 005 Devolver e Meus empréstimos | `/my-loans` | 7, 20 |
+| 006 Tela de Operações | `/operations/loans` | 7, 13b, 13c, 17, 21 |
+
+Na 002, o catálogo fica vazio em dev até existir o cadastro, salvo se o seed ganhar equipamentos fictícios. A spec decide.
+
+### 5.5 Decisões do ADR-001 sem tarefa em nenhum plano
+
+A coluna da direita é proposta do agente. Instalar qualquer dependência daqui é pedir antes (`rules/operacao.md`).
+
+| Item | Onde entraria |
+|---|---|
+| Prettier, lint-staged e husky (2.11; R13) | Tarefa própria antes da spec 001, para não misturar reformatação com funcionalidade |
+| CI de PR: lint, teste, build e E2E (2.9; `rules/checks.md`, passo 5) | No PR do workflow: o `rules/checks.md` manda o E2E para o CI, e o workflow previsto só faz migrate e deploy |
+| Cabeçalhos HTTP e CSP (2.10; R12) | Spec 001, a primeira tela com shadcn/ui; a CSP exige nonce |
+| Rate limit (2.10) | Spec 001, porque o login é o primeiro alvo |
+| Log JSON com `request_id` e `tenant_id` (2.9) | Spec 001, junto do novo `createContext` |
+| Playwright e Testing Library (2.8) | Spec 001, porque o login é fluxo crítico (ADR-003, 2.8) |
+| Auditoria (2.10) | Antes da primeira escrita de domínio; exige revisão humana (`rules/restrictions.md`, Bancos e schema) |
+| Sentry (2.9) | Junto da produção ou da spec 001 |
 
 Plano para aprovação. Nenhuma tarefa começa antes de a pessoa aprovar este plano e a proposta de pastas.
