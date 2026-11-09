@@ -26,7 +26,10 @@ vira sub-pergunta, com o número de origem e uma letra: 4b é o que sobrou da 4.
 Em todo o arquivo, "spec 001-telas" é a spec de telas do repositório de
 Guilherme (`guinacarelli2/emprestai`). Nas perguntas 8 a 14 e nas
 sub-perguntas delas, "layout de referência" é o `layout.md` de Leticia
-Nascimento, citado em [`docs/layout.md`](layout.md).
+Nascimento, citado em [`docs/layout.md`](layout.md). Nas respostas 5, 6 e 23,
+"modelo da Leticia" é o `spec/modelo-banco-prd.md`, seção "Decisões
+confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
+(`LeleNascimennto/empresTI`).
 
 ---
 
@@ -42,26 +45,16 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
     colaborador também registra a devolução sozinho, em Meus empréstimos. Sem
     resposta, `docs/layout.md` mostra a data calculada, sem ajuste.
 
-5. Quem cria as contas de login, e existe tela para isso na v1? O PRD pede
-   "Login" sem dizer de onde vêm os usuários, e não cita gestão de usuários
-   nem em "o que precisa existir" nem em "o que NÃO entra nesta versão".
-   tipo: negócio, com consequência técnica
-   por que importa: o ADR-001 já decidiu cadastro fechado por convite de
-   administrador (ver [`docs/adr/001-stack.md`](adr/001-stack.md), seção 2.7) e
-   essa decisão precisa de respaldo no PRD, não só na arquitetura. Se não há
-   tela de convite na v1, isso tem que estar escrito em "o que NÃO entra"; se
-   há, é uma tela a mais que o PRD não listou.
-
-6. Como o sistema distingue Colaborador de Operações — e Operações é um papel
-   global na empresa ou um papel por área?
-   tipo: técnica
-   por que importa: a primeira metade o ADR-001 já respondeu, com tabela de
-   membership e três middlewares de tRPC (ver
-   [`docs/adr/001-stack.md`](adr/001-stack.md), seções 2.6 e 2.7). A segunda
-   metade é o que decide se a multi-tenancy do ADR descreve este produto: se o
-   catálogo é um só para a empresa inteira, o `tenant_id` em toda tabela é
-   custo sem benefício; se cada área tem o próprio estoque, o ADR está certo e
-   a spec precisa dizer quem enxerga o estoque de quem.
+5b. Em produção, onde o seed não roda, como nasce o primeiro administrador? E
+    quem faz os convites no painel do Supabase de produção?
+    tipo: negócio, com consequência técnica
+    por que importa: a resposta da 5 tira o primeiro administrador do seed, e
+    nenhum fluxo roda o seed em produção: lá, o GitHub Actions só aplica as
+    migrations, e o dado vem da aplicação (`AGENTS.md`, seção 6). O mesmo vale
+    para a área `default`, que também nasce no seed (ADR-005). Os convites
+    saem do painel do Supabase de produção, onde o agente nunca mexe em dado
+    (`rules/restrictions.md`, Bancos e schema) e que hoje só a pessoa usa.
+    Liga-se às perguntas 22, 24 e 25.
 
 7. O que acontece quando um item volta danificado ou incompleto? O PRD diz que
    "equipamento em manutenção não aparece como disponível", mas não diz quem
@@ -173,36 +166,26 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
 22. O convite que cria a conta chega à pessoa por e-mail? Se chega, ele conta
     como a "notificação por e-mail" que o PRD tira da v1?
     tipo: negócio, com consequência técnica
-    por que importa: o ADR-001 (seção 2.7) fecha o cadastro, "somente por
-    convite de administrador", sem dizer como o convite chega à pessoa. Se for
-    por e-mail, a v1 manda e-mail, e o PRD põe "Notificação por e-mail" em "O
-    que NÃO entra nesta versão". Se não for, a pessoa recebe o primeiro acesso
-    por outro caminho, que a spec do login precisa descrever. Liga-se à
-    pergunta 5.
-
-23. Quais papéis existem? O PRD tem duas personas, Colaborador e Operações; o
-    ADR-001 fala em administrador, que convida, e em `adminProcedure`, e o
-    glossário do `AGENTS.md` tem `admin`.
-    tipo: negócio
-    por que importa: se o administrador é Operações, a v1 tem dois papéis, e
-    Operações também cuida das contas. Se é uma terceira pessoa, a v1 tem um
-    papel que o PRD não lista, com permissões próprias. Muda os valores de
-    `role` em `memberships`, que a spec do login cria. Liga-se às perguntas 5
-    e 6.
+    por que importa: a resposta da 5 põe o convite no Supabase Auth, fora do
+    emprestai, sem dizer como ele chega à pessoa. Se for por e-mail, a v1
+    manda e-mail, e o PRD põe "Notificação por e-mail" em "O que NÃO entra
+    nesta versão". Se não for, a pessoa recebe o primeiro acesso por outro
+    caminho, que a spec do login precisa descrever. Liga-se à pergunta 5b.
 
 24. O que Operações faz quando alguém esquece a senha?
     tipo: negócio, com consequência técnica
     por que importa: a resposta da pergunta 15 tira a recuperação de senha da
     v1 e manda a pessoa a Operações ("Sem acesso? Fale com Operações."), mas
-    não diz o que Operações consegue fazer por ela. Se Operações redefine a
-    senha, a v1 ganha uma ação sobre a conta de outra pessoa, que o PRD não
-    lista. Se não, a pessoa fica sem acesso até alguém resolver por fora do
-    sistema. Liga-se às perguntas 5 e 23.
+    não diz o que Operações consegue fazer por ela. Pelas respostas da 5 e da
+    23, as contas vivem no Supabase Auth, fora do emprestai, e quem as
+    administra é Operações, sem tela na v1. Redefinir a senha seria então
+    trabalho no painel do Supabase, como o convite (pergunta 5b), ou uma ação
+    nova sobre a conta de outra pessoa, que o PRD não lista. Liga-se à 5b.
 
 25. Quem desativa a conta de quem sai da empresa, e o que acontece com os
     empréstimos em aberto dessa pessoa?
     tipo: negócio
-    por que importa: a pergunta 5 trata de criar contas, não de encerrá-las.
+    por que importa: a resposta da 5 trata de criar contas, não de encerrá-las.
     Sem desativação, quem saiu continua entrando no sistema. Com ela, o
     empréstimo em aberto de uma conta desativada precisa continuar na tela de
     Operações, e alguém registra a devolução por essa pessoa. Liga-se à
@@ -242,8 +225,10 @@ Nascimento, citado em [`docs/layout.md`](layout.md).
     input, e justifica a tabela `memberships` com "a mesma pessoa pode ter
     papel diferente em cada área". Com duas áreas, a sessão precisa saber
     qual vale, e a tela precisa de um jeito de trocar; com nenhuma, a pessoa
-    entra e não tem área para ver. Só importa se a multi-tenancy ficar:
-    liga-se à pergunta 6.
+    entra e não tem área para ver. A resposta da 6 mantém a multi-tenancy,
+    então a pergunta vale. Liga-se também à 23: pela resposta dela, a pessoa
+    ganha o papel de Colaborador na área `default` no primeiro login, o que
+    toca a última parte desta pergunta.
 
 ---
 
@@ -286,7 +271,24 @@ pasta, que só sai quando a spec for criada.
    fica aberto: a 4b, vencimento em dia de balcão fechado.
    vira RN em: solicitar empréstimo.
 
-<!-- A numeração segue a das perguntas e pula de 4 para 8; este comentário
+5. Quem cria as contas de login, e existe tela para isso na v1?
+   resposta: o administrador cria as contas por convite, fora do emprestai,
+   pelo Supabase Auth. A v1 não tem tela de convite nem tabela de convite. O
+   primeiro administrador vem do seed, no banco de dev local.
+   decidido: pela pessoa em 2026-11-09, adotando o modelo da Leticia.
+   fica aberto: a 5b, o primeiro administrador e os convites em produção.
+   vira RN em: login.
+
+6. Como o sistema distingue Colaborador de Operações — e Operações é um papel
+   global na empresa ou um papel por área?
+   resposta: por área. O papel fica no vínculo da pessoa com a área, em
+   `memberships (tenant_id, user_id, role)`. A multi-tenancy do ADR-001 e do
+   ADR-003 continua valendo: o ADR-003 só a tira, com ADR novo, se a resposta
+   for "global" (seção 5).
+   decidido: pela pessoa em 2026-11-09, adotando o modelo da Leticia.
+   vira RN em: login.
+
+<!-- A numeração segue a das perguntas e pula de 6 para 8; este comentário
      separa as listas para o Markdown não renumerar. -->
 
 8. A v1 mostra histórico de empréstimos já encerrados?
@@ -382,8 +384,9 @@ pasta, que só sai quando a spec for criada.
     resposta: não. O login diz "Sem acesso? Fale com Operações."
     decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
     do repositório do Guilherme.
-    ainda liga-se à pergunta 5: a frase manda a pessoa a Operações, e quem
-    cria as contas não está decidido.
+    ainda liga-se à pergunta 24: a frase manda a pessoa a Operações, que pela
+    resposta da 23 é quem administra as contas, mas o que Operações faz por
+    quem esqueceu a senha segue aberto.
     vira RN em: login.
 
 16. Item em manutenção aparece no catálogo? O PRD diz que ele "não aparece
@@ -392,3 +395,19 @@ pasta, que só sai quando a spec for criada.
     desenhava.
     decidido: pela pessoa, diretamente, em 2026-10-26.
     vira RN em: catálogo.
+
+<!-- A numeração pula de 16 para 23; este comentário separa as listas para o
+     Markdown não renumerar. -->
+
+23. Quais papéis existem? O PRD tem duas personas, Colaborador e Operações; o
+    ADR-001 fala em administrador, que convida, e em `adminProcedure`.
+    resposta: administrador e Operações são o mesmo papel, então a v1 tem dois
+    papéis, Colaborador e Operações. No primeiro login, a pessoa ganha o papel
+    de Colaborador na área padrão, que aqui é a `default` (ADR-005; no modelo
+    da Leticia, `suporte_ti`). O papel de Operações é atribuído à parte, por
+    uma operação administrativa no servidor, sem tela na v1.
+    decidido: pela pessoa em 2026-11-09, adotando o modelo da Leticia.
+    fica para a spec do login: a chave de `role`. O glossário do `AGENTS.md`
+    tem `operations` e `admin` para o que agora é um papel só, e `member` para
+    colaborador; o modelo da Leticia usa `ADMIN` e `COLLABORATOR`.
+    vira RN em: login.
