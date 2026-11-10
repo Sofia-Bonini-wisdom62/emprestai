@@ -1,0 +1,41 @@
+# CI: os passos 1, 2 e 6 de rules/checks.md, em todo PR.
+# O production.yml chama este mesmo arquivo antes de migrar: no GitHub Free, repositório
+# privado não tem proteção de branch, então nada garante que o merge passou por aqui.
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, tipos, testes e build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    # Em PR, um push novo cancela a rodada antiga. Chamado pela produção, nunca cancela:
+    # ali o contexto github é o do chamador, e o run_id é único.
+    concurrency:
+      group: ci-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    env:
+      # Sem banco: só para a validação de env do build (src/env/schema.ts).
+      DATABASE_URL: postgresql://127.0.0.1:1/x
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Sem input de versão: lê o packageManager do package.json.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      # Testcontainers: o runner tem Docker.
+      - run: pnpm test
+      - run: pnpm build

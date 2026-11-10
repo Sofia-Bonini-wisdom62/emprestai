@@ -91,7 +91,7 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 
 ## 8. O repositório hoje
 
-Andar zero em andamento, na branch `feat/walking-skeleton`. A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. Pendente: a aprovação do ADR-002 e o workflow do GitHub Actions que roda `prisma migrate deploy` e dispara o deploy.
+Andar zero em andamento, na branch `feat/walking-skeleton`. A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. Pendente: a aprovação do ADR-002 e a primeira rodada do workflow de produção (`.github/workflows/production.yml`), que espera os painéis da seção 5.3 de `docs/plan-andar-zero.md`.
 
 ### Comandos
 

@@ -1,0 +1,57 @@
+# Produção (ADR-004, seção 2): checks, migration e só então o deploy.
+# O vercel.json desliga o deploy por push na main; quem publica é o Deploy Hook.
+name: Produção
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Uma produção por vez, e nenhuma rodada é cancelada: com queue: max, as pendentes
+# esperam em fila, e reexecutar uma rodada antiga não derruba a mais nova.
+concurrency:
+  group: production
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Migration e deploy
+    needs: ci
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Session pooler, porta 5432: o runner só tem IPv4, e o Migrate precisa de sessão
+      # para o advisory lock. O secret só existe neste passo.
+      - name: Aplica as migrations no banco de produção
+        run: pnpm prisma migrate deploy
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      # O hook publica a ponta da main, não o commit desta rodada. Se a main já andou, esta
+      # rodada só migra e deixa o deploy para a do commit mais novo: o schema fica à frente
+      # do código, nunca atrás.
+      - name: Dispara o deploy de produção na Vercel
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          head="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          if [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::warning::A main está em $head, não em $GITHUB_SHA. O deploy fica para a rodada do commit mais novo."
+            exit 0
+          fi
+          curl --fail --silent --show-error --request POST --output /dev/null "$VERCEL_DEPLOY_HOOK_URL"

@@ -36,7 +36,7 @@ O andar zero está em andamento: existe o scaffold do Next.js e uma landing prov
 | Supabase (produção e Auth) | Projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. **Pausado por inatividade**: a reativação é manual, no painel, por uma pessoa — https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
 | Banco de dev | Postgres local em Docker, pelo `compose.yaml` ([ADR-004](docs/adr/004-environments.md)); não há projeto Supabase de dev |
 | Vercel | Projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. URL de produção reservada: https://emprestai-beta.vercel.app |
-| CI | GitHub Actions. `vercel.json` desliga o deploy por push na `main`; o deploy de produção sai de Deploy Hook depois do `prisma migrate deploy`. O workflow ainda não existe |
+| CI | GitHub Actions, em `.github/workflows/`. O `ci.yml` roda lint, typecheck, testes e build em todo PR. O `production.yml`, a cada push na `main`, roda o CI, o `prisma migrate deploy` e o Deploy Hook da Vercel, nessa ordem, porque o `vercel.json` desliga o deploy por push na `main`. Secrets do repositório: `DIRECT_URL` e `VERCEL_DEPLOY_HOOK_URL` |
 
 Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. A lista completa, e onde cada uma vive, está no próprio `.env.example`. Nada com valor real vai para o repositório.
 
