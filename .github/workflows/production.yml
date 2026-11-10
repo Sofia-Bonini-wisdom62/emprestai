@@ -1,5 +1,5 @@
 # Produção (ADR-004, seção 2): checks, migration e só então o deploy.
-# O vercel.json desliga o deploy por push na main; quem publica é o Deploy Hook.
+# O vercel.json desliga o deploy por push na main; quem publica é a CLI da Vercel (ADR-007).
 name: Produção
 
 on:
@@ -41,17 +41,22 @@ jobs:
         run: pnpm prisma migrate deploy
         env:
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
-      # O hook publica a ponta da main, não o commit desta rodada. Se a main já andou, esta
-      # rodada só migra e deixa o deploy para a do commit mais novo: o schema fica à frente
-      # do código, nunca atrás.
-      - name: Dispara o deploy de produção na Vercel
+      # A CLI publica o código deste commit. Se a main já andou, esta rodada só migra e deixa
+      # o deploy para a do commit mais novo: reexecutar uma rodada antiga não publica código
+      # antigo, e o schema fica à frente do código, nunca atrás.
+      # O build roda na Vercel, com as variáveis de Production de lá: a DATABASE_URL de
+      # produção não desce para o runner. O git.deploymentEnabled do vercel.json mira os
+      # deploys da integração com o Git; a primeira rodada confirma que não barra este (ADR-007).
+      - name: Publica a produção na Vercel
         env:
           GH_TOKEN: ${{ github.token }}
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           head="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
           if [ "$head" != "$GITHUB_SHA" ]; then
             echo "::warning::A main está em $head, não em $GITHUB_SHA. O deploy fica para a rodada do commit mais novo."
             exit 0
           fi
-          curl --fail --silent --show-error --request POST --output /dev/null "$VERCEL_DEPLOY_HOOK_URL"
+          pnpm dlx vercel@65.10.0 deploy --prod --yes --token "$VERCEL_TOKEN"
