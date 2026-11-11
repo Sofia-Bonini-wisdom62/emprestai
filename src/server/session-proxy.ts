@@ -7,11 +7,11 @@ import {
 } from "@/server/auth-client";
 
 // Sem sessão, só estas abrem; as outras telas levam a /login (RN-33). A raiz
-// segue pública até a spec do catálogo. O /api não é redirecionado: cada
-// procedimento tRPC confere a própria sessão (ADR-001, 2.7), e o health.check
+// segue pública até a spec do catálogo. O /api/trpc não é redirecionado: cada
+// procedimento confere a própria sessão (ADR-001, 2.7), e o health.check
 // continua público. O /_next/ fica de fora para não travar o próprio Next.
 const PUBLIC_PATHS = new Set(["/", "/login", "/forgot-password", "/auth/confirm"]);
-const PUBLIC_PREFIXES = ["/api/", "/_next/"];
+const PUBLIC_PREFIXES = ["/api/trpc/", "/_next/"];
 
 function isPublic(pathname: string) {
   return (

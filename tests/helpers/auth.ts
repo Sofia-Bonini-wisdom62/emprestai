@@ -1,3 +1,4 @@
+import { generateKeyPairSync, sign } from "node:crypto";
 import {
   createServer,
   type IncomingMessage,
@@ -19,10 +20,25 @@ export const fakeUser = {
 const toBase64url = (value: object) =>
   Buffer.from(JSON.stringify(value)).toString("base64url");
 
-// Sem kid e em HS256: o getClaims() confere o token pelo GET /user, sem JWKS.
+// ES256 com kid, como o Auth do dev e o da produção assinam (ADR-006): o
+// getClaims() confere o token pelo JWKS, sem chamar o GET /user.
+const signingKeys = generateKeyPairSync("ec", { namedCurve: "P-256" });
+const KID = "chave-de-teste";
+
+export const fakeJwks = {
+  keys: [
+    {
+      ...signingKeys.publicKey.export({ format: "jwk" }),
+      kid: KID,
+      alg: "ES256",
+      use: "sig",
+    },
+  ],
+};
+
 function fakeAccessToken(expiresAt: number) {
-  return [
-    toBase64url({ alg: "HS256", typ: "JWT" }),
+  const signed = [
+    toBase64url({ alg: "ES256", typ: "JWT", kid: KID }),
     toBase64url({
       sub: fakeUser.id,
       email: fakeUser.email,
@@ -30,8 +46,13 @@ function fakeAccessToken(expiresAt: number) {
       role: "authenticated",
       exp: expiresAt,
     }),
-    "assinatura-de-teste",
   ].join(".");
+  const signature = sign("sha256", Buffer.from(signed), {
+    key: signingKeys.privateKey,
+    dsaEncoding: "ieee-p1363",
+  });
+
+  return `${signed}.${signature.toString("base64url")}`;
 }
 
 export function fakeSession(refreshToken: string, expiresInSeconds: number) {

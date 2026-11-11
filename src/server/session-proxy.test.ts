@@ -6,7 +6,7 @@ import { handleSession } from "@/server/session-proxy";
 import {
   decodeSessionCookie,
   fakeSession,
-  fakeUser,
+  fakeJwks,
   readBody,
   sendJson,
   sessionCookie,
@@ -64,25 +64,27 @@ describe("handleSession sem sessão", () => {
 describe("handleSession com sessão", () => {
   async function startAuth(onRefresh: (refreshToken: string) => [number, object]) {
     const refreshTokens: string[] = [];
+    const paths: string[] = [];
     const auth = await startFakeAuth(async (req, res) => {
       const url = new URL(req.url ?? "/", "http://auth");
+      paths.push(`${req.method} ${url.pathname}`);
       if (req.method === "POST" && url.pathname === "/auth/v1/token") {
         const { refresh_token: refreshToken } = JSON.parse(await readBody(req));
         refreshTokens.push(refreshToken);
         const [status, body] = onRefresh(refreshToken);
         return sendJson(res, status, body);
       }
-      if (req.method === "GET" && url.pathname === "/auth/v1/user") {
-        return sendJson(res, 200, fakeUser);
+      if (req.method === "GET" && url.pathname === "/auth/v1/.well-known/jwks.json") {
+        return sendJson(res, 200, fakeJwks);
       }
       sendJson(res, 404, {});
     });
     closers.push(auth.close);
-    return { config: { url: auth.url, key: KEY }, refreshTokens };
+    return { config: { url: auth.url, key: KEY }, refreshTokens, paths };
   }
 
   it("ca_17 token de acesso vencido e refresh válido: renova o cookie e segue para /catalog", async () => {
-    const { config, refreshTokens } = await startAuth(() => [
+    const { config, refreshTokens, paths } = await startAuth(() => [
       200,
       fakeSession("refresh-novo", 3600),
     ]);
@@ -92,6 +94,11 @@ describe("handleSession com sessão", () => {
 
     expectPassThrough(response);
     expect(refreshTokens).toEqual(["refresh-antigo"]);
+    // O token renovado foi conferido pelo JWKS, em ES256, como no dev e na produção.
+    expect(paths).toEqual([
+      "POST /auth/v1/token",
+      "GET /auth/v1/.well-known/jwks.json",
+    ]);
     const renewed = response.cookies.get(sessionCookieName(config.url));
     expect(decodeSessionCookie(renewed?.value ?? "")).toMatchObject({
       refresh_token: "refresh-novo",
