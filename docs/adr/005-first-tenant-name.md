@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Aceito em 2026-10-26, por decisão da pessoa, na conversa em que este ADR foi escrito |
+| Status | Aceito em 2026-10-26, por decisão da pessoa, na conversa em que este ADR foi escrito. Trecho substituído pelo [ADR-009](009-production-first-admin.md), em 2026-11-11: a linha "Primeiro tenant" da seção 2.6, no que vale para a produção (lá a `default` nasce do passo do workflow, não do seed) |
 | Data | 2026-10-26 |
 | Turma | B |
 | Vínculo | [`docs/perguntas-prd.md`](../perguntas-prd.md), pergunta 6, e o glossário do [`AGENTS.md`](../../AGENTS.md), seção 7 |

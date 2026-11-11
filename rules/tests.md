@@ -15,7 +15,7 @@ que mexe em policy de RLS.
 1. Procedure tRPC: `createCaller` com o contexto montado à mão (sessão, tenant,
    role), passando pelos middlewares. Sem subir HTTP.
 2. Integração: Postgres real do Testcontainers, imagem `supabase/postgres` —
-   ela traz o schema `auth` e os roles que as policies referenciam. O
+   ela traz os papéis `anon` e `authenticated` que as policies usam. O
    `globalSetup` vai aplicar as migrations reais e entregar a URI do container
    aos testes por `provide`/`inject` do Vitest.
 3. Toda tabela protegida por policy chega com um teste que prova o bloqueio: o
@@ -25,7 +25,7 @@ que mexe em policy de RLS.
    seção 2.8: tenant A não lê nem altera dado de tenant B.
 5. O nome do caso cita o critério que ele prova, no formato `ca_03`, no nome da
    função ou do `it`. O critério vem da spec em `docs/specs/`;
-   nenhuma existe ainda, a primeira nasce por `rules/spec-flow.md`.
+   cada spec nova nasce por `rules/spec-flow.md`.
 6. Teste de endpoint verifica status E corpo. Status sozinho não prova nada.
 
 ## Verificação

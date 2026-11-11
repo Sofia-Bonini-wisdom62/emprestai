@@ -14,7 +14,9 @@ ou Prisma. Os nomes exatos e o que cada um significa estão em `.env.example`.
 ## Procedimento
 1. `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` é pública por design: quem protege o
    dado é a policy de RLS, não a chave. `SUPABASE_SECRET_KEY` bypassa RLS e só
-   aparece em módulo que começa com `import 'server-only'`.
+   aparece em módulo que começa com `import 'server-only'`. Exceção: o seed e
+   o setup do E2E, que rodam fora do Next e usam só chaves locais (ver
+   "Não faça").
 2. Quando o andar zero existir, o schema Zod nasce dividido em três: `src/env/server.ts` (com
    `import 'server-only'`), `src/env/client.ts` (só as `NEXT_PUBLIC_`, cada uma
    mapeada literalmente — `process.env.NEXT_PUBLIC_X`, senão o Next não inlina)
@@ -38,7 +40,11 @@ tem toda chave que o projeto usa, sem nenhum valor real. Enquanto não houver
 ## Não faça
 - Não dê prefixo `NEXT_PUBLIC_` a segredo, nem leia `process.env` fora de `src/env/`.
   Exceções: `prisma.config.ts`, que o ADR-003, 2.5, manda ler `DIRECT_URL` direto;
-  `tests/global-setup.ts`, que repassa o ambiente ao Prisma CLI; e o setup do E2E,
-  que lê só a `SUPABASE_SECRET_KEY` gerada para o Auth da máquina, para convidar
-  as contas de teste (ADR-006).
+  `tests/global-setup.ts`, que repassa o ambiente ao Prisma CLI; e o seed e o
+  setup do E2E, que leem só uma `SUPABASE_SECRET_KEY` local, a gerada para o
+  Auth da máquina ou para a pilha efêmera do E2E, e só para criar, convidar e
+  bloquear contas de teste (ADR-006; decisão da pessoa em 2026-11-11, na spec 001);
+  e o script do primeiro administrador (ADR-009), que roda fora do Next, no
+  workflow de produção, e lê só `FIRST_ADMIN_EMAIL` e a URL do banco que o
+  workflow lhe passa.
 - Proibições sobre `.env.local`, segredo em log ou PR e painel de provedor: `rules/restrictions.md`.

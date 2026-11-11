@@ -156,8 +156,8 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
 
 ## Respondidas, aguardando spec
 
-Nenhuma spec existe ainda. "Vira RN em" diz a funcionalidade, não o número da
-pasta, que só sai quando a spec for criada.
+A primeira spec é a do login, em `docs/specs/001-login/`. "Vira RN em" diz a
+funcionalidade, não o número da pasta, que só sai quando a spec for criada.
 
 1. Um equipamento é uma unidade física individual ou um modelo com quantidade?
    resposta: unidade física individual. Um registro por unidade, identificada
@@ -368,8 +368,10 @@ pasta, que só sai quando a spec for criada.
 24. O que Operações faz quando alguém esquece a senha?
     resposta: Operações dispara a redefinição de senha pelo painel do Supabase
     (Authentication > Users), e a pessoa recebe o link por e-mail, pelo mesmo
-    SMTP próprio da 22. A v1 continua sem tela de recuperação no emprestai
-    (resposta da 15).
+    SMTP próprio da 22. A v1 continua sem "esqueci minha senha" no emprestai
+    (resposta da 15); o link da redefinição cai na tela de definir senha da
+    resposta da 30, que nesse caso pede só a senha.
+    ajustado: pela pessoa em 2026-11-11, junto com a resposta da 30.
     decidido: pela pessoa em 2026-11-11, junto com a 22.
     nota do agente: a redefinição pelo painel aparece em relatos da comunidade
     do Supabase, não na documentação oficial; a spec do login confere no
@@ -421,4 +423,26 @@ pasta, que só sai quando a spec for criada.
     No primeiro login a pessoa vira Colaborador na `default` (resposta da 23),
     então ninguém entra sem área.
     decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    vira RN em: login.
+
+30. O que a pessoa vê quando abre o link do convite? E o link de redefinição
+    que Operações dispara pelo painel leva a alguma tela do emprestai?
+    resposta: uma tela só, na moldura do login. No convite, ela pede a senha e
+    o nome; na redefinição, só a senha. A resposta da 24 foi ajustada para
+    dizer que o link da redefinição cai nessa tela.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    vira RN em: login.
+
+31. O que vê o Colaborador que abre o endereço de uma tela de Operações?
+    resposta: vai para o catálogo. O servidor nega o dado de qualquer jeito.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    vira RN em: login.
+
+32. Por quanto tempo uma conta bloqueada no painel ainda age com a sessão que
+    já estava aberta?
+    resposta: até a chamada seguinte ao servidor. O `proxy.ts` confere a
+    sessão com o `getClaims()`, e o `createContext` de toda chamada tRPC
+    confere com o `getUser()`, que consulta o Auth e vê o bloqueio.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    custo anotado: uma ida ao Auth por chamada tRPC.
     vira RN em: login.

@@ -2,11 +2,11 @@
 
 Cada funcionalidade tem uma **pasta** em `docs/specs/<NNN-nome-curto>/`, com três artefatos dentro, e um quarto
 quando as tarefas fecham. O desenho
-abaixo é o formato alvo: **nenhuma dessas pastas existe ainda, e a próxima spec criada é a 001.**
+abaixo é o formato alvo. A primeira pasta é a `001-login`; as demais do desenho são exemplo.
 
 ```text
 docs/specs/
-  001-auth-login/
+  001-login/
     spec.md     o comportamento combinado: regras e critérios de aceitação
     plan.md     por onde a mudança entra e em que ordem
     tasks.md    as tarefas, cada uma citando um critério
