@@ -4,6 +4,7 @@ import { parseEnv } from "node:util";
 
 const NEXT_CLI = "node_modules/next/dist/bin/next";
 const READY_TIMEOUT_MS = 60_000;
+const STOP_TIMEOUT_MS = 10_000;
 
 export type App = {
   baseURL: string;
@@ -44,11 +45,19 @@ export async function startApp(options: AppOptions): Promise<App> {
 }
 
 // O Next lê o .env.local sozinho, mas não troca o que já está no ambiente, nem string vazia.
-// Toda variável do .env.example começa vazia, então nada do .env.local do dev entra na rodada.
+// Toda variável do .env.example, ativa ou comentada, e as VERCEL_* do runtime começam vazias,
+// então nada do .env.local nem do .env.production.local do dev entra na rodada.
+const RUNTIME_KEYS = ["VERCEL_ENV", "VERCEL_URL"];
+
+function exampleKeys(): string[] {
+  const example = readFileSync(".env.example", "utf8");
+  const active = Object.keys(parseEnv(example));
+  const commented = [...example.matchAll(/^#\s*([A-Z][A-Z0-9_]*)=/gm)].map((match) => match[1] ?? "");
+  return [...active, ...commented, ...RUNTIME_KEYS].filter(Boolean);
+}
+
 function appEnv(overrides: Record<string, string>): NodeJS.ProcessEnv {
-  const blank = Object.fromEntries(
-    Object.keys(parseEnv(readFileSync(".env.example", "utf8"))).map((key) => [key, ""]),
-  );
+  const blank = Object.fromEntries(exampleKeys().map((key) => [key, ""]));
 
   return {
     ...process.env,
@@ -91,7 +100,16 @@ async function stopProcess(child: ChildProcess) {
 
   const exited = new Promise<void>((resolveExit) => child.once("exit", () => resolveExit()));
 
-  if (child.kill("SIGTERM")) {
+  if (!child.kill("SIGTERM")) {
+    return;
+  }
+
+  // Se o next start não sair em 10 s, encerra à força, para o teardown não travar.
+  const timeout = new Promise<"timeout">((resolveTimeout) =>
+    setTimeout(() => resolveTimeout("timeout"), STOP_TIMEOUT_MS).unref(),
+  );
+  if ((await Promise.race([exited, timeout])) === "timeout") {
+    child.kill("SIGKILL");
     await exited;
   }
 }

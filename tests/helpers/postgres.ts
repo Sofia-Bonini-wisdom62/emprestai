@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import type { StartedNetwork } from "testcontainers";
@@ -26,6 +27,8 @@ export async function startPostgres(options: StartPostgresOptions = {}): Promise
   // inicialização dela, que cria os papéis anon, authenticated e postgres.
   let builder = new PostgreSqlContainer(IMAGES.postgres)
     .withUsername("supabase_admin")
+    // Senha nova a cada rodada: ela também vira a do supabase_auth_admin no E2E.
+    .withPassword(randomBytes(18).toString("hex"))
     .withDatabase("postgres");
 
   if (options.network) {

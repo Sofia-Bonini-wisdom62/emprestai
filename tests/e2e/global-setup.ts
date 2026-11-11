@@ -45,7 +45,10 @@ export default async function globalSetup() {
   process.env.E2E_SEED_PASSWORD = seedTarget.password;
 
   return async () => {
-    await app.stop();
-    await stack.stop();
+    try {
+      await app.stop();
+    } finally {
+      await stack.stop();
+    }
   };
 }
