@@ -1,26 +1,47 @@
 import "server-only";
 
-import { createServerClient } from "@supabase/ssr";
+import type { CookieMethodsServer } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-import { clientEnv } from "@/env/client";
+import {
+  type AuthConfig,
+  authConfigFromEnv,
+  createAuthClient,
+  withAuthTimeout,
+} from "@/server/auth-client";
 
 export type SessionUser = { id: string; email: string | null };
 
-// Um cliente novo por request, como o @supabase/ssr exige. Sem as duas
-// variáveis, como no Preview (RN-34), não há cliente e a chamada segue sem sessão.
-async function createSupabaseServerClient(responseHeaders?: Headers) {
-  const url = clientEnv.NEXT_PUBLIC_SUPABASE_URL;
-  const key = clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
+// getUser(), e não getClaims(): pergunta ao Auth a cada chamada, e a conta
+// bloqueada perde o acesso já na seguinte (RN-31, RN-32). Qualquer falha do
+// Auth ou do gateway, e o limite de AUTH_TIMEOUT_MS estourado, viram chamada
+// sem sessão, sem repassar o erro.
+export async function getUserFromCookies(
+  config: AuthConfig,
+  cookieMethods: CookieMethodsServer,
+): Promise<SessionUser | null> {
+  try {
+    const result = await withAuthTimeout(
+      createAuthClient(config, cookieMethods).auth.getUser(),
+    );
+    if (!result || result.error || !result.data.user) return null;
 
-  const cookieStore = await cookies();
+    return { id: result.data.user.id, email: result.data.user.email ?? null };
+  } catch {
+    return null;
+  }
+}
 
-  return createServerClient(url, key, {
-    // O navegador não tem cliente Supabase (RN-07): o cookie de sessão não
-    // precisa ser legível por JavaScript (RN-08).
-    cookieOptions: { httpOnly: true },
-    cookies: {
+export async function getSessionUser(
+  responseHeaders?: Headers,
+): Promise<SessionUser | null> {
+  const config = authConfigFromEnv();
+  if (!config) return null;
+
+  try {
+    const cookieStore = await cookies();
+
+    return await getUserFromCookies(config, {
       getAll: () => cookieStore.getAll(),
       setAll: (cookiesToSet, headers) => {
         try {
@@ -37,24 +58,7 @@ async function createSupabaseServerClient(responseHeaders?: Headers) {
           responseHeaders?.set(header, value);
         }
       },
-    },
-  });
-}
-
-// getUser(), e não getClaims(): pergunta ao Auth a cada chamada, e a conta
-// bloqueada perde o acesso já na seguinte (RN-31, RN-32). Qualquer falha do
-// Auth ou do gateway vira chamada sem sessão, sem repassar o erro.
-export async function getSessionUser(
-  responseHeaders?: Headers,
-): Promise<SessionUser | null> {
-  try {
-    const supabase = await createSupabaseServerClient(responseHeaders);
-    if (!supabase) return null;
-
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) return null;
-
-    return { id: data.user.id, email: data.user.email ?? null };
+    });
   } catch {
     return null;
   }
