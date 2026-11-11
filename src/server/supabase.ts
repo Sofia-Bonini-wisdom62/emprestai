@@ -1,11 +1,31 @@
 import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { clientEnv } from "@/env/client";
 
 export type SessionUser = { id: string; email: string | null };
+
+// Só para o pedido de redefinição de senha. O cliente do @supabase/ssr usa PKCE e
+// grava o code verifier num cookie quando o Auth aceita o pedido, e o apaga quando o
+// Auth recusa. Pelos cabeçalhos, a resposta revelaria se a conta existe (RN-42). O
+// link volta por token_hash (RN-44), sem verifier, e este cliente não grava cookie.
+export function createSupabaseRecoveryClient() {
+  const url = clientEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const key = clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return null;
+
+  return createClient(url, key, {
+    auth: {
+      flowType: "implicit",
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
 
 // Um cliente novo por request, como o @supabase/ssr exige. Sem as duas
 // variáveis, como no Preview (RN-34), não há cliente e a chamada segue sem sessão.

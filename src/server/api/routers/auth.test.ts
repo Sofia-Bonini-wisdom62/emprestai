@@ -17,7 +17,7 @@ import {
   createCallerFactory,
   envRateLimitRules,
 } from "@/server/api/trpc";
-import type { AuthPort } from "@/server/services/auth";
+import type { AuthPort, PasswordResetPort } from "@/server/services/auth";
 import {
   rateLimitRulesFrom,
   type RateLimitRules,
@@ -39,12 +39,12 @@ const createCaller = createCallerFactory(appRouter);
 const denise = "denise.araujo@example.com";
 
 function caller(
-  auth: AuthPort | null,
+  auth: (AuthPort & PasswordResetPort) | null,
   ip: string,
   rateLimitRules: RateLimitRules = generousRules,
   session: Context["session"] = null,
 ) {
-  return createCaller({ db, auth, ip, rateLimitRules, session });
+  return createCaller({ db, auth, passwordReset: auth, ip, rateLimitRules, session });
 }
 
 const tooManyAttempts = {
@@ -161,8 +161,8 @@ describe("limite de tentativas", () => {
     expect(calls.reset).toHaveLength(1);
   });
 
-  it("ca_22 maiúsculas e espaços no e-mail contam no mesmo contador", async () => {
-    const { auth } = fakeAuth();
+  it("ca_22 maiúsculas e espaços no e-mail contam no mesmo contador, e o Auth recebe o e-mail que o contador contou", async () => {
+    const { auth, calls } = fakeAuth();
     const variants = [denise, " Denise.Araujo@Example.com", "DENISE.ARAUJO@EXAMPLE.COM "];
 
     for (const [n, email] of variants.entries()) {
@@ -173,6 +173,7 @@ describe("limite de tentativas", () => {
         }),
       ).rejects.toMatchObject(invalidCredentials);
     }
+    expect(calls.signIn).toEqual([denise, denise, denise]);
     await expect(
       caller(auth, "192.0.2.39", byEmail).auth.signIn({
         email: denise,

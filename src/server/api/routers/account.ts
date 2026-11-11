@@ -14,9 +14,14 @@ const name = z
   .max(80, authMessages.nameTooLong);
 
 export const accountRouter = createTRPCRouter({
-  me: protectedProcedure
-    .input(z.void())
-    .query(({ ctx }) => getAccount(ctx.db, ctx.session, ctx.role ?? null)),
+  // Sem repassar o erro do banco: a mensagem do driver pode trazer host e usuário.
+  me: protectedProcedure.input(z.void()).query(async ({ ctx }) => {
+    try {
+      return await getAccount(ctx.db, ctx.session, ctx.role ?? null);
+    } catch {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
 
   // A senha no convite e na redefinição; o nome quando falta (RN-21). A entrada
   // pelo link do convite cria o vínculo pela mesma regra do auth.signIn (RN-13).

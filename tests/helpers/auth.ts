@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { PrismaClient } from "@/generated/prisma/client";
-import type { AuthPort } from "@/server/services/auth";
+import type { AuthPort, PasswordResetPort } from "@/server/services/auth";
 import { FIRST_ENTRY_TENANT_SLUG } from "@/server/services/account";
 import { rateLimitRulesFrom } from "@/server/services/rate-limit";
 
@@ -16,7 +16,7 @@ export function fakeAuth(users: Record<string, string> = {}) {
     updateUser: [] as string[],
   };
 
-  const auth: AuthPort = {
+  const auth: AuthPort & PasswordResetPort = {
     async signInWithPassword({ email }) {
       calls.signIn.push(email);
       const id = users[email];

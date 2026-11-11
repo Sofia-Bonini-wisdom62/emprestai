@@ -20,7 +20,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [x] T-06 — Rate limit: migration de `rate_limits`, com RLS e policy, e o service que conta por IP e por e-mail
       CA: CA-14, CA-22
       Verifica: o DDL aprovado na resposta antes de gerar; `pnpm test` com `ca_22` no service e `ca_14` na policy de `rate_limits`
-- [ ] T-07 — Routers `auth` (`signIn`, `signOut`, `requestPasswordReset`) e `account` (`me`, `setup`), e o Route Handler `/auth/confirm`
+- [x] T-07 — Routers `auth` (`signIn`, `signOut`, `requestPasswordReset`) e `account` (`me`, `setup`), e o Route Handler `/auth/confirm`
       CA: CA-05, CA-06, CA-09, CA-14, CA-21, CA-22, CA-28
       Verifica: `pnpm test` com `ca_05` no service da primeira entrada (duas chamadas, um vínculo), `ca_06` (nome vazio, só com espaços e com 81 caracteres recusados), `ca_09` e `ca_14` em `account.me` e `account.setup` via `createCaller` (duas áreas; `tenantId` no input recusado); `pnpm test:e2e` com `ca_05` e `ca_14` no `auth.signIn` e no `auth.signOut`, `ca_09` pela rota HTTP, `ca_21` (bloqueio no Auth com sessão aberta), `ca_22` no `auth.signIn` e no `auth.requestPasswordReset`, e `ca_28` (a mesma resposta para e-mail com e sem conta)
 - [ ] T-08 — `proxy.ts` com `getClaims()`: renova a sessão e manda a `/login` quem abre tela do produto sem sessão, sem ler o banco; e o limite de 3 s do RN-48 nas chamadas ao Auth, no `proxy.ts` e em `src/server/supabase.ts`

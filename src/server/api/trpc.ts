@@ -5,13 +5,14 @@ import superjson from "superjson";
 import { serverEnv } from "@/env/server";
 import type { MembershipRole, PrismaClient } from "@/generated/prisma/client";
 import { db } from "@/server/db";
-import type { AuthPort } from "@/server/services/auth";
+import type { AuthPort, PasswordResetPort } from "@/server/services/auth";
 import { findSessionMembership } from "@/server/services/membership";
 import {
   rateLimitRulesFrom,
   type RateLimitRules,
 } from "@/server/services/rate-limit";
 import {
+  createSupabaseRecoveryClient,
   createSupabaseServerClient,
   getSessionUser,
   type SessionUser,
@@ -29,6 +30,7 @@ export type Context = {
   tenantId?: string | null;
   role?: MembershipRole | null;
   auth?: AuthPort | null;
+  passwordReset?: PasswordResetPort | null;
   ip?: string | null;
   rateLimitRules?: RateLimitRules;
 };
@@ -76,6 +78,7 @@ export async function createContext(
   return {
     ...context,
     auth: supabase?.auth ?? null,
+    passwordReset: createSupabaseRecoveryClient()?.auth ?? null,
     ip: opts?.req ? clientIp(opts.req.headers) : null,
     rateLimitRules: envRateLimitRules,
   };

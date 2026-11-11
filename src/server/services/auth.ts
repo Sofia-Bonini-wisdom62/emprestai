@@ -1,6 +1,10 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { enterAccount, type Destination } from "@/server/services/account";
-import { consumeAttempt, type RateLimitRules } from "@/server/services/rate-limit";
+import {
+  consumeAttempt,
+  normalizeEmail,
+  type RateLimitRules,
+} from "@/server/services/rate-limit";
 
 // Só o que esta spec usa do supabase.auth do servidor. O cliente real satisfaz
 // este tipo; o teste por createCaller passa um objeto que só registra a chamada,
@@ -11,21 +15,20 @@ export type AuthPort = {
     password: string;
   }): Promise<{ data: { user: { id: string } | null }; error: unknown }>;
   signOut(options: { scope: "local" }): Promise<{ error: unknown }>;
-  resetPasswordForEmail(
-    email: string,
-    options: { redirectTo: string },
-  ): Promise<{ error: unknown }>;
   updateUser(attributes: {
     password: string;
   }): Promise<{ error: { code?: string } | null }>;
 };
 
-export type AttemptDeps = {
-  db: PrismaClient;
-  auth: AuthPort | null;
-  ip: string;
-  rules: RateLimitRules;
+// O pedido de redefinição sai por um cliente que não grava cookie (src/server/supabase.ts).
+export type PasswordResetPort = {
+  resetPasswordForEmail(
+    email: string,
+    options: { redirectTo: string },
+  ): Promise<{ error: unknown }>;
 };
+
+export type LimitDeps = { db: PrismaClient; ip: string; rules: RateLimitRules };
 
 export type SignInResult =
   | { ok: true; destination: Destination }
@@ -34,7 +37,7 @@ export type SignInResult =
 // O limite vem antes do Auth (RN-09; CA-22: a tentativa a mais não chega ao
 // Auth). Se o contador falha, a tentativa também não chega ao Auth.
 async function checkLimit(
-  deps: AttemptDeps,
+  deps: LimitDeps,
   email: string,
 ): Promise<"allowed" | "too_many_attempts" | "failed"> {
   try {
@@ -51,11 +54,14 @@ async function checkLimit(
 
 // Qualquer falha que não seja o limite vira a mesma resposta de senha errada
 // (RN-25), inclusive conta bloqueada, Auth fora do ar e o Preview sem Auth (RN-34).
+// O e-mail que o Auth recebe é o mesmo que o contador contou: com normalizações
+// diferentes, uma variante do e-mail abriria um contador novo para a mesma conta.
 export async function signIn(
-  deps: AttemptDeps,
+  deps: LimitDeps & { auth: AuthPort | null },
   credentials: { email: string; password: string },
 ): Promise<SignInResult> {
-  const limit = await checkLimit(deps, credentials.email);
+  const email = normalizeEmail(credentials.email);
+  const limit = await checkLimit(deps, email);
   if (limit === "too_many_attempts") {
     return { ok: false, reason: "too_many_attempts" };
   }
@@ -65,7 +71,10 @@ export async function signIn(
 
   let userId: string;
   try {
-    const { data, error } = await deps.auth.signInWithPassword(credentials);
+    const { data, error } = await deps.auth.signInWithPassword({
+      email,
+      password: credentials.password,
+    });
     if (error || !data.user) return { ok: false, reason: "invalid_credentials" };
     userId = data.user.id;
   } catch {
@@ -81,8 +90,9 @@ export async function signIn(
   }
 }
 
-// O escopo local apaga a sessão deste navegador antes de ir à rede, então o
-// cookie sai mesmo com o Auth fora do ar (CA-11).
+// O escopo local apaga a sessão deste navegador antes de ir à rede. Só chega aqui
+// quem o createContext reconheceu: com o Auth fora do ar, o getUser() falha antes,
+// o auth.signOut responde UNAUTHORIZED, e o cookie fica.
 export async function signOut(auth: AuthPort | null) {
   await auth?.signOut({ scope: "local" }).catch(() => undefined);
 }
@@ -90,16 +100,20 @@ export async function signOut(auth: AuthPort | null) {
 // A mesma resposta exista ou não a conta, e mesmo se o Auth ou o contador
 // falharem (RN-42). Só o limite muda a resposta (RN-43).
 export async function requestPasswordReset(
-  deps: AttemptDeps & { confirmUrl: string },
-  email: string,
+  deps: LimitDeps & {
+    passwordReset: PasswordResetPort | null;
+    confirmUrl: string;
+  },
+  rawEmail: string,
 ): Promise<{ ok: true } | { ok: false; reason: "too_many_attempts" }> {
+  const email = normalizeEmail(rawEmail);
   const limit = await checkLimit(deps, email);
   if (limit === "too_many_attempts") {
     return { ok: false, reason: "too_many_attempts" };
   }
   if (limit === "failed") return { ok: true };
 
-  await deps.auth
+  await deps.passwordReset
     ?.resetPasswordForEmail(email, { redirectTo: deps.confirmUrl })
     .catch(() => undefined);
 

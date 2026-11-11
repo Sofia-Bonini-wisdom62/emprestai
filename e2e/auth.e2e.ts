@@ -187,15 +187,32 @@ test("ca_28 e-mail com e sem conta recebem a mesma resposta ao pedir a redefini�
   request,
 }) => {
   const withAccount = uniqueEmail("beatriz.fontes");
+  const withoutAccount = uniqueEmail("ninguem");
   await createAccount(withAccount, password);
 
-  const first = await mutation(request, "auth.requestPasswordReset", { email: withAccount });
-  const second = await mutation(request, "auth.requestPasswordReset", {
-    email: uniqueEmail("ninguem"),
-  });
+  // Status, corpo e cabeçalhos de cookie. O segundo pedido seguido com a conta que existe
+  // esbarra no intervalo mínimo de envio do Auth, e mesmo assim a resposta não muda.
+  async function reset(email: string) {
+    const response = await request.post("/api/trpc/auth.requestPasswordReset", {
+      data: { json: { email } },
+    });
+    return {
+      status: response.status(),
+      body: await response.json(),
+      setCookie: response
+        .headersArray()
+        .filter((header) => header.name.toLowerCase() === "set-cookie"),
+    };
+  }
 
-  expect(first).toEqual({ status: 200, body: data({ message: authMessages.resetRequested }) });
-  expect(second).toEqual(first);
+  const expected = {
+    status: 200,
+    body: data({ message: authMessages.resetRequested }),
+    setCookie: [],
+  };
+  for (const email of [withAccount, withAccount, withoutAccount, withoutAccount]) {
+    await expect(reset(email)).resolves.toEqual(expected);
+  }
 });
 
 test("ca_05 a entrada pelo link do convite grava a sessão, e o account.setup cria o vínculo member na default", async ({

@@ -40,10 +40,29 @@ describe("sem sessão", () => {
     });
   });
 
-  it("ca_09 account.setup falha com UNAUTHORIZED, sem gravar nome", async () => {
+  it("ca_09 account.setup falha com UNAUTHORIZED", async () => {
     await expect(
       caller(null).account.setup({ name: "Enzo Paiva" }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("banco fora do ar", () => {
+  const unreachableDb = createTestDb("postgresql://127.0.0.1:1/x");
+
+  afterAll(async () => {
+    await unreachableDb.$disconnect();
+  });
+
+  it("az_04 com sessão e banco fora do ar, account.me falha sem repassar o erro do driver", async () => {
+    const session = { userId: randomUUID(), email: "beatriz.fontes@example.com" };
+    const me = createCaller({ db: unreachableDb, session }).account.me();
+
+    await expect(me).rejects.toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "INTERNAL_SERVER_ERROR",
+    });
+    await expect(me).rejects.not.toHaveProperty("cause.message");
   });
 });
 
@@ -130,7 +149,7 @@ describe("nome no primeiro acesso", () => {
 });
 
 describe("senha", () => {
-  it("ca_06 senha recusada pelo Auth mostra a mensagem do RN-39", async () => {
+  it("ca_26 senha \"12345\" recusada pelo Auth mostra a mensagem do RN-39, sem definir a senha", async () => {
     const session = { userId: randomUUID(), email: "enzo.paiva@example.com" };
 
     await expect(
