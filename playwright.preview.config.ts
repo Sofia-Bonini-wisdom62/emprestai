@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: "e2e/preview",
   testMatch: "**/*.e2e.ts",
   globalSetup: "./tests/e2e/preview-setup.ts",
+  // Pasta própria: a rodada principal, que vem antes, guarda as capturas em test-results/.
+  outputDir: "test-results/preview",
   workers: 1,
   fullyParallel: false,
   forbidOnly: true,

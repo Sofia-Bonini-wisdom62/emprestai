@@ -172,10 +172,10 @@ test.describe("ca_12 a tela /login", () => {
       }));
       expect(scroll.page).toBeLessThanOrEqual(scroll.viewport);
 
-      await testInfo.attach(`login-${width}px.png`, {
-        body: await page.screenshot({ fullPage: true }),
-        contentType: "image/png",
-      });
+      // A captura do CA-12 fica em test-results/, fora do git, a cada rodada.
+      const path = testInfo.outputPath(`login-${width}px.png`);
+      await page.screenshot({ path, fullPage: true });
+      await testInfo.attach(`login-${width}px.png`, { path, contentType: "image/png" });
     });
   }
 });
