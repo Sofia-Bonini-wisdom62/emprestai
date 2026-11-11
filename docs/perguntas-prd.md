@@ -152,37 +152,6 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
     resposta, `docs/layout.md` desenha a busca como filtro da tabela de
     empréstimos em aberto.
 
-22. O convite que cria a conta chega à pessoa por e-mail? Se chega, ele conta
-    como a "notificação por e-mail" que o PRD tira da v1?
-    tipo: negócio, com consequência técnica
-    por que importa: a resposta da 5 põe o convite no Supabase Auth, fora do
-    emprestai, sem dizer como ele chega à pessoa. Se for por e-mail, a v1
-    manda e-mail, e o PRD põe "Notificação por e-mail" em "O que NÃO entra
-    nesta versão". Se não for, a pessoa recebe o primeiro acesso por outro
-    caminho, que a spec do login precisa descrever. Liga-se à pergunta 5b.
-    conferido pelo agente em 2026-11-11, na documentação do Supabase (guia de
-    SMTP do Auth): sem SMTP próprio, o painel e as APIs de admin só entregam
-    e-mail a quem é da equipe do projeto no Supabase, até 2 por hora, e o
-    convite do painel sai por e-mail, sem opção documentada de copiar o link.
-    O link sem e-mail só sai de `auth.admin.generateLink`, uma chamada de
-    admin no servidor, e a v1 não tem tela de admin (resposta da 5). A
-    proposta que a pessoa aceitou em 2026-11-11, Operações entrega o link por
-    um canal interno, não cabe no painel como ele está; por isso a pergunta
-    continua aberta.
-
-24. O que Operações faz quando alguém esquece a senha?
-    tipo: negócio, com consequência técnica
-    por que importa: a resposta da pergunta 15 tira a recuperação de senha da
-    v1 e manda a pessoa a Operações ("Sem acesso? Fale com Operações."), mas
-    não diz o que Operações consegue fazer por ela. Pelas respostas da 5 e da
-    23, as contas vivem no Supabase Auth, fora do emprestai, e quem as
-    administra é Operações, sem tela na v1. Redefinir a senha seria então
-    trabalho no painel do Supabase, como o convite (pergunta 5b), ou uma ação
-    nova sobre a conta de outra pessoa, que o PRD não lista. Liga-se à 5b.
-    conferido pelo agente em 2026-11-11: a redefinição pelo painel também sai
-    por e-mail, com a mesma restrição da pergunta 22, e a documentação não
-    mostra opção de copiar o link. A resposta depende da 22.
-
 ---
 
 ## Respondidas, aguardando spec
@@ -229,8 +198,8 @@ pasta, que só sai quando a spec for criada.
    pelo Supabase Auth. A v1 não tem tela de convite nem tabela de convite. O
    primeiro administrador vem do seed, no banco de dev local.
    decidido: pela pessoa em 2026-11-09, adotando o modelo da Leticia.
-   fica aberto: a 22, como o convite chega a quem não é da equipe do
-   projeto no Supabase.
+   ainda liga-se à pergunta 22: o convite chega por e-mail, por um SMTP
+   próprio.
    vira RN em: login.
 
 5b. Em produção, onde o seed não roda, como nasce o primeiro administrador? E
@@ -352,9 +321,8 @@ pasta, que só sai quando a spec for criada.
     resposta: não. O login diz "Sem acesso? Fale com Operações."
     decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
     do repositório do Guilherme.
-    ainda liga-se à pergunta 24: a frase manda a pessoa a Operações, que pela
-    resposta da 23 é quem administra as contas, mas o que Operações faz por
-    quem esqueceu a senha segue aberto.
+    ainda liga-se à pergunta 24: a frase manda a pessoa a Operações, que
+    dispara a redefinição pelo painel do Supabase.
     vira RN em: login.
 
 16. Item em manutenção aparece no catálogo? O PRD diz que ele "não aparece
@@ -364,8 +332,25 @@ pasta, que só sai quando a spec for criada.
     decidido: pela pessoa, diretamente, em 2026-10-26.
     vira RN em: catálogo.
 
-<!-- A numeração pula de 16 para 23; este comentário separa as listas para o
+<!-- A numeração pula de 16 para 22; este comentário separa as listas para o
      Markdown não renumerar. -->
+
+22. O convite que cria a conta chega à pessoa por e-mail? Se chega, ele conta
+    como a "notificação por e-mail" que o PRD tira da v1?
+    resposta: chega por e-mail. Operações convida pelo painel do Supabase de
+    produção, e o Supabase envia o convite por um SMTP próprio, configurado
+    no painel. Não conta como a "notificação por e-mail" do PRD: é o acesso à
+    conta, não um aviso sobre empréstimo.
+    decidido: pela pessoa em 2026-11-11, entre as duas saídas que o agente
+    levou: SMTP próprio, ou o link gerado no servidor por
+    `auth.admin.generateLink`, que pediria uma ação de administrador e
+    contrariaria a resposta da 5.
+    nota do agente: conferido em 2026-11-11 na documentação do Supabase (guia
+    de SMTP do Auth): sem SMTP próprio, o painel só entrega e-mail a quem é
+    da equipe do projeto no Supabase, até 2 por hora. Escolher o provedor de
+    e-mail transacional é decisão técnica que o ADR-001 deixou de fora (seção
+    6) e vira ADR novo; configurar o painel é com a pessoa.
+    vira RN em: login.
 
 23. Quais papéis existem? O PRD tem duas personas, Colaborador e Operações; o
     ADR-001 fala em administrador, que convida, e em `adminProcedure`.
@@ -380,8 +365,16 @@ pasta, que só sai quando a spec for criada.
     colaborador; o modelo da Leticia usa `ADMIN` e `COLLABORATOR`.
     vira RN em: login.
 
-<!-- A numeração pula de 23 para 25; este comentário separa as listas para o
-     Markdown não renumerar. -->
+24. O que Operações faz quando alguém esquece a senha?
+    resposta: Operações dispara a redefinição de senha pelo painel do Supabase
+    (Authentication > Users), e a pessoa recebe o link por e-mail, pelo mesmo
+    SMTP próprio da 22. A v1 continua sem tela de recuperação no emprestai
+    (resposta da 15).
+    decidido: pela pessoa em 2026-11-11, junto com a 22.
+    nota do agente: a redefinição pelo painel aparece em relatos da comunidade
+    do Supabase, não na documentação oficial; a spec do login confere no
+    painel antes de virar RN.
+    vira RN em: login.
 
 25. Quem desativa a conta de quem sai da empresa, e o que acontece com os
     empréstimos em aberto dessa pessoa?
@@ -399,8 +392,8 @@ pasta, que só sai quando a spec for criada.
     resposta: o nome, além de e-mail e senha. A própria pessoa preenche no
     primeiro acesso, num campo só.
     decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
-    nota do agente: a proposta partiu de o convite do painel não levar nome;
-    se a resposta da 22 mudar o caminho do convite, vale rever.
+    nota do agente: a proposta partiu de o convite do painel não levar nome,
+    e a resposta da 22 manteve o convite no painel.
     vira RN em: login.
 
 27. Quanto tempo a pessoa fica logada, e a sessão termina sozinha quando o
