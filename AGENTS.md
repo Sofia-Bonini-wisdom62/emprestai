@@ -92,7 +92,7 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 
 ## 8. O repositório hoje
 
-Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. A spec 001, de login, já pode ser rascunhada: as perguntas dela estão respondidas e o ADR-006 foi aceito. O `compose.yaml` sobe o Auth e o gateway desde a T-01 da spec 001; o app ainda não fala com eles.
+Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. A spec 001, de login, já pode ser rascunhada: as perguntas dela estão respondidas e o ADR-006 foi aceito. O `compose.yaml` sobe o Auth e o gateway desde a T-01 da spec 001, e o `pnpm test:e2e` sobe uma pilha igual, efêmera, desde a T-02; o app ainda não fala com eles.
 
 ### Comandos
 
@@ -113,6 +113,7 @@ Depois, quando precisar:
 |---|---|
 | `pnpm lint` e `pnpm typecheck` | ESLint e `tsc --noEmit` |
 | `pnpm test` | Suíte no Testcontainers; exige o Docker de pé |
+| `pnpm test:e2e` | E2E no Playwright contra a pilha efêmera, com build de produção; exige o Docker de pé e, uma vez por máquina, `pnpm exec playwright install --only-shell chromium` |
 | `pnpm build` | Build de produção; exige `DATABASE_URL` |
 | `pnpm prisma migrate dev --name <nome>` | Cria migration nova (`rules/migration.md`) |
 | `docker compose --env-file .env.local down` | Derruba os três; o dado fica no volume |
@@ -131,8 +132,9 @@ O Prisma avisa que há versão nova e sugere `npm i prisma@latest`: ignore. O pr
 | `src/trpc/` | Lado cliente do tRPC |
 | `src/generated/prisma/` | Client gerado, fora do git e do lint |
 | `prisma/` | `schema.prisma` e migrations |
-| `docker/` | Configuração do Envoy e script de senha do Auth, montados pelo `compose.yaml` (ADR-006) |
-| `tests/` | Só infraestrutura de teste: globalSetup e helpers |
+| `docker/` | Configuração do Envoy, do Auth (`*.env`) e o script de senha do Auth, que o `compose.yaml` e o E2E usam (ADR-006) |
+| `tests/` | Só infraestrutura de teste: globalSetup e helpers do Vitest e, em `tests/e2e/`, a pilha efêmera e o app do E2E |
+| `e2e/` | Casos do Playwright (`*.e2e.ts`) |
 
 Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `routers/`, `services/` e `src/app/<rota>/`, mais `prisma/` se tiver tabela nova.
 
@@ -143,7 +145,7 @@ Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `rout
 - Sem `.env.local`, passe uma URL fictícia na linha de comando: `DATABASE_URL=postgresql://127.0.0.1:1/x pnpm build`.
 - O `build` roda `prisma generate`: o client fica fora do git, e o cache da Vercel pula o `postinstall` quando o lockfile não muda.
 - `agentRules: false` no `next.config.ts` não sai: sem ele, o `next dev` escreve no nosso `AGENTS.md`.
-- A tag da imagem é a mesma em `compose.yaml` e `tests/global-setup.ts`; mudou numa, muda na outra.
+- As tags das imagens ficam em `tests/images.ts` e são as mesmas do `compose.yaml`; o `tests/images.test.ts` reprova se divergirem.
 - O contêiner dos testes sobe como `supabase_admin` e os testes conectam como `postgres`, dono das tabelas. A imagem dá `SELECT` a `anon` e `authenticated`, então quem bloqueia é a RLS.
 - O agente não roda `pnpm prisma migrate reset`: a ferramenta exige consentimento da pessoa. Para provar do zero, use um Postgres novo com `pnpm prisma migrate deploy`.
 - Service não repassa erro do driver, que pode trazer host e usuário do banco.
