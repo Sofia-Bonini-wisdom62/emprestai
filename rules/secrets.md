@@ -43,5 +43,8 @@ tem toda chave que o projeto usa, sem nenhum valor real. Enquanto não houver
   `tests/global-setup.ts`, que repassa o ambiente ao Prisma CLI; e o seed e o
   setup do E2E, que leem só uma `SUPABASE_SECRET_KEY` local, a gerada para o
   Auth da máquina ou para a pilha efêmera do E2E, e só para criar, convidar e
-  bloquear contas de teste (ADR-006; decisão da pessoa em 2026-11-11, na spec 001).
+  bloquear contas de teste (ADR-006; decisão da pessoa em 2026-11-11, na spec 001);
+  e o script do primeiro administrador (ADR-009), que roda fora do Next, no
+  workflow de produção, e lê só `FIRST_ADMIN_EMAIL` e a URL do banco que o
+  workflow lhe passa.
 - Proibições sobre `.env.local`, segredo em log ou PR e painel de provedor: `rules/restrictions.md`.

@@ -62,7 +62,7 @@ As decisões e o porquê estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.
 
 | Banco | Onde | Quem escreve nele |
 |---|---|---|
-| Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | schema: GitHub Actions, via `prisma migrate deploy`; dado: a aplicação na Vercel |
+| Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | schema: GitHub Actions, via `prisma migrate deploy`; dado: a aplicação na Vercel e, só a área `default` e o vínculo do primeiro administrador, o passo do workflow (ADR-009) |
 | Desenvolvimento | Postgres local em Docker, imagem `supabase/postgres`, subido por `docker compose` a partir do `compose.yaml`, com o Supabase Auth e o gateway Envoy ao lado (ADR-006), e apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md`, a aplicação e, só no schema `auth`, o servidor de Auth |
 | Testes | Postgres efêmero do Testcontainers, a mesma imagem `supabase/postgres` (traz os papéis `anon` e `authenticated` que as policies usam) | o globalSetup do Vitest |
 

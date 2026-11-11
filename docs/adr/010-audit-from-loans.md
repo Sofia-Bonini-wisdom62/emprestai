@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto em 2026-11-11. Quem aceita é o time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade) |
+| Status | Aceito em 2026-11-11, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), na revisão da spec 001 |
 | Data | 2026-11-11 |
 | Turma | B |
 | Vínculo | [`docs/specs/001-login/spec.md`](../specs/001-login/spec.md), "Fora de escopo"; [`docs/plan-andar-zero.md`](../plan-andar-zero.md), seção 5.5 |

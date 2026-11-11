@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto em 2026-11-11. Quem aceita é o time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade) |
+| Status | Aceito em 2026-11-11, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), na revisão da spec 001 |
 | Data | 2026-11-11 |
 | Turma | B |
 | Vínculo | [`docs/perguntas-prd.md`](../perguntas-prd.md), resposta 5b; [`docs/specs/001-login/spec.md`](../specs/001-login/spec.md), RN-04 e CA-24; [ADR-007](007-production-deploy-cli.md) |
@@ -15,7 +15,7 @@
 
 Na produção, o seed não roda. A conta do primeiro administrador nasce do convite que a pessoa faz no painel do Supabase para o próprio e-mail, mas a área `default` e o papel de Operações dessa conta não têm de onde nascer. A resposta 5b põe um passo idempotente do workflow de produção para gravá-los, sem SQL à mão.
 
-O ADR-004, seção 2, diz que, na produção, o GitHub Actions só muda o schema, por `prisma migrate deploy`, e que dado só a aplicação na Vercel grava. A resposta 5b contraria esse trecho, e por isso o passo pede este ADR. Na revisão da spec 001, em 2026-11-11, a pessoa aceitou levar a proposta a este ADR, que ainda espera o aceite do time.
+O ADR-004, seção 2, diz que, na produção, o GitHub Actions só muda o schema, por `prisma migrate deploy`, e que dado só a aplicação na Vercel grava. A resposta 5b contraria esse trecho, e por isso o passo pede este ADR. Na revisão da spec 001, em 2026-11-11, a pessoa aceitou a proposta e, na mesma revisão, este ADR.
 
 ---
 
@@ -26,6 +26,7 @@ O ADR-004, seção 2, diz que, na produção, o GitHub Actions só muda o schema
 | Onde roda | No workflow de produção, depois do `prisma migrate deploy` e antes do deploy (ADR-007) |
 | O que roda | Um script versionado no repositório, com o Prisma Client, que faz `upsert` da área `default` e do vínculo `operations` da conta |
 | De onde vem a conta | Do secret `FIRST_ADMIN_EMAIL` do Actions. O script acha a conta em `auth.users` pelo e-mail, numa consulta parametrizada |
+| Ambiente | O script roda fora do Next e lê `FIRST_ADMIN_EMAIL` e a URL do banco direto do ambiente do workflow, pela exceção de `rules/secrets.md` |
 | Conta inexistente | O script cria a `default`, como a resposta 5b pede, avisa no log, termina com sucesso e não grava vínculo. A rodada seguinte completa |
 | Escopo | Só a área `default` e o vínculo dessa conta. Nenhum outro dado, nenhuma outra conta |
 
@@ -79,4 +80,3 @@ A coluna "Quem escreve nele" da linha Produção do ADR-004, seção 2, passa a 
 
 - Como outra conta, além do primeiro administrador, recebe o papel de Operações. A resposta 23 não diz como.
 - O nome e o caminho do script, que ficam com a tarefa que implementa.
-- Como o script lê `FIRST_ADMIN_EMAIL` e a URL do banco fora do Next. É o item 6 de "Não decidido" da spec 001.

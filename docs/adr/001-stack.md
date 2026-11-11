@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Aceito em 2026-10-02, junto com as correções que hoje estão no [ADR-003](003-stack-corrections.md). Partes substituídas pelo ADR-003: seção 1 inteira e trechos de 2.2, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3 e 4, além de um gatilho novo na 5; onde os dois tratam do mesmo ponto, vale o ADR-003. Trecho substituído pelo [ADR-006](006-dev-auth.md), em 2026-11-11: a linha "Dono do schema" da seção 2.5 (o Prisma Migrate é dono único do `public`; o `auth` é do Supabase Auth). Fora a linha de Status, este é o texto de 2026-09-14 |
+| Status | Aceito em 2026-10-02, junto com as correções que hoje estão no [ADR-003](003-stack-corrections.md). Partes substituídas pelo ADR-003: seção 1 inteira e trechos de 2.2, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3 e 4, além de um gatilho novo na 5; onde os dois tratam do mesmo ponto, vale o ADR-003. Trecho substituído pelo [ADR-006](006-dev-auth.md), em 2026-11-11: a linha "Dono do schema" da seção 2.5 (o Prisma Migrate é dono único do `public`; o `auth` é do Supabase Auth). Trecho substituído pelo [ADR-010](010-audit-from-loans.md), em 2026-11-11: o item "Auditoria desde o início" da seção 2.10 (a auditoria começa com a spec de solicitar empréstimo). Fora a linha de Status, este é o texto de 2026-09-14 |
 | Data | 2026-09-14 |
 | Turma | B |
 | Insumo | `stacks_H.md` (documento de trabalho) |
