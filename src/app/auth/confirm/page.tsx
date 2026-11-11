@@ -10,7 +10,7 @@ type ConfirmPageProps = {
 
 // O link do e-mail abre esta página, que não chama o Auth: o link só vale no
 // clique em "Continuar", pelo POST de /auth/confirm/verify. Assim um leitor de
-// e-mail que abra o link sozinho não o gasta (RN-54). A moldura do login chega
+// e-mail que abra o link sozinho não o gasta (RN-55). A moldura do login chega
 // com a T-10.
 export default async function ConfirmPage({ searchParams }: ConfirmPageProps) {
   const link = linkSchema.safeParse(await searchParams);

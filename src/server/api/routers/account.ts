@@ -67,7 +67,7 @@ export const accountRouter = createTRPCRouter({
         });
       }
 
-      // Vínculo em mais de uma área: sem destino, e sem dizer o motivo (RN-51).
+      // Vínculo em mais de uma área: sem destino, e sem dizer o motivo (RN-52).
       if (!destination) {
         throw new TRPCError({
           code: "FORBIDDEN",

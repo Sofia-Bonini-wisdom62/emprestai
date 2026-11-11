@@ -12,8 +12,8 @@ import {
   type RateLimitRules,
 } from "@/server/services/rate-limit";
 import {
-  createSupabaseRecoveryClient,
-  createSupabaseServerClient,
+  createPasswordResetAuth,
+  createRouterAuth,
   getSessionUser,
   type SessionUser,
 } from "@/server/supabase";
@@ -75,12 +75,13 @@ export async function createContext(
     db,
     await getSessionUser(opts?.resHeaders),
   );
-  const supabase = await createSupabaseServerClient(opts?.resHeaders);
+  // As chamadas ao Auth das procedures, com o limite de 3 s do RN-48.
+  const auth = await createRouterAuth(opts?.resHeaders).catch(() => null);
 
   return {
     ...context,
-    auth: supabase?.auth ?? null,
-    passwordReset: createSupabaseRecoveryClient()?.auth ?? null,
+    auth,
+    passwordReset: createPasswordResetAuth(),
     ip: opts?.req ? clientIp(opts.req.headers) : null,
     rateLimitRules: envRateLimitRules,
   };

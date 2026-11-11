@@ -7,7 +7,7 @@ import {
   enterAccount,
   FIRST_ENTRY_TENANT_SLUG,
 } from "@/server/services/account";
-import { createFirstEntryTenant } from "../../../tests/helpers/auth";
+import { createFirstEntryTenant } from "../../../tests/helpers/accounts";
 import { createTestDb } from "../../../tests/helpers/db";
 
 const db = createTestDb(inject("databaseUrl"));

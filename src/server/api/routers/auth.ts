@@ -65,7 +65,7 @@ export const authRouter = createTRPCRouter({
     }),
 
   // Público: com o Auth fora do ar, o getUser() do contexto falha e a chamada
-  // chega sem sessão, mas o cookie deste navegador sai mesmo assim (RN-53).
+  // chega sem sessão, mas o cookie deste navegador sai mesmo assim (RN-54).
   signOut: publicProcedure.input(z.void()).mutation(async ({ ctx }) => {
     await signOut(ctx.auth ?? null);
     return { redirectTo: "/login" as const };

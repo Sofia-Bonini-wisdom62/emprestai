@@ -11,7 +11,7 @@ import {
   createFirstEntryTenant,
   createTwoAreas,
   fakeAuth,
-} from "../../../../tests/helpers/auth";
+} from "../../../../tests/helpers/accounts";
 import { createTestDb } from "../../../../tests/helpers/db";
 
 const db = createTestDb(inject("databaseUrl"));
@@ -174,7 +174,7 @@ describe("senha", () => {
     ).resolves.toBe(0);
   });
 
-  it("ca_33 senha igual à atual, recusada pelo Auth, mostra a mensagem do RN-55, sem salvar o nome", async () => {
+  it("ca_33 senha igual à atual, recusada pelo Auth, mostra a mensagem do RN-56, sem salvar o nome", async () => {
     const session = { userId: randomUUID(), email: "enzo.paiva@example.com" };
 
     await expect(

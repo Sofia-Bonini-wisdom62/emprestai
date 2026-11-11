@@ -5,19 +5,19 @@ export const authMessages = {
   invalidCredentials: "E-mail ou senha incorretos.",
   // RN-26 e RN-43.
   tooManyAttempts: "Muitas tentativas. Tente de novo em alguns minutos.",
-  // RN-27 e RN-50.
+  // RN-27 e RN-51.
   nameRequired: "Informe seu nome.",
   nameTooLong: "Use até 80 caracteres.",
   // RN-38.
   linkExpired: "Este link venceu ou já foi usado. Fale com Operações.",
   // RN-39.
   weakPassword: "Use pelo menos 6 caracteres.",
-  // RN-55.
+  // RN-56.
   samePassword: "Escolha uma senha diferente da atual.",
   // RN-42: a mesma resposta, exista ou não a conta.
   resetRequested:
     "Se houver uma conta com esse e-mail, enviamos um link para redefinir a senha.",
-  // RN-50.
+  // RN-51.
   setupFailed: "Não foi possível salvar. Tente de novo.",
 } as const;
 

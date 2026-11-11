@@ -18,6 +18,7 @@ import {
   trackUser,
   uniqueEmail,
 } from "../tests/e2e/accounts";
+import { setAuthRelayMode } from "../tests/e2e/auth-relay";
 
 // As rotas do servidor da T-07 contra o Auth de verdade da pilha efêmera, onde o seed do
 // globalSetup criou a default. As telas chegam nas T-09 a T-11; aqui a prova é a resposta HTTP
@@ -288,5 +289,46 @@ test("ca_32 sair encerra a sessão só deste navegador", async ({ playwright, re
     await expect(query(elsewhere, "account.me")).resolves.toMatchObject({ status: 200 });
   } finally {
     await elsewhere.dispose();
+  }
+});
+
+test("ca_32 com o Auth fora do ar, sair apaga o cookie e devolve /login", async ({ request }) => {
+  const email = uniqueEmail("caio.moreira");
+  await createAccount(email, password);
+  await expect(signIn(request, email)).resolves.toMatchObject({ status: 200 });
+  expect(await sessionCookies(request)).not.toEqual([]);
+
+  // O repasse aceita a conexão e não responde: cada chamada ao Auth espera o limite do RN-48.
+  await setAuthRelayMode("silent");
+  try {
+    await expect(mutation(request, "auth.signOut")).resolves.toEqual({
+      status: 200,
+      body: data({ redirectTo: "/login" }),
+    });
+    expect(await sessionCookies(request)).toEqual([]);
+  } finally {
+    await setAuthRelayMode("primary");
+  }
+});
+
+test("ca_29 com o Auth fora do ar, entrar responde em menos de 4 s com a mensagem do RN-25", async ({
+  request,
+}) => {
+  const email = uniqueEmail("denise.araujo");
+  await createAccount(email, password);
+
+  for (const mode of ["refuse", "silent"] as const) {
+    await setAuthRelayMode(mode);
+    try {
+      const started = performance.now();
+      await expect(signIn(request, email)).resolves.toMatchObject({
+        status: 401,
+        body: failure("UNAUTHORIZED", 401, authMessages.invalidCredentials),
+      });
+      expect(performance.now() - started).toBeLessThan(4_000);
+      expect(await sessionCookies(request)).toEqual([]);
+    } finally {
+      await setAuthRelayMode("primary");
+    }
   }
 });

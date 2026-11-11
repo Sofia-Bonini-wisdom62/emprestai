@@ -32,7 +32,7 @@ async function ensureFirstMembership(
 
 // Sem nome, a pessoa vai antes a /account/setup (CA-06). Com vínculo em mais de
 // uma área, a sessão fica sem área (RN-46), e não há destino: quem chama recusa
-// a entrada sem dizer o motivo (RN-51).
+// a entrada sem dizer o motivo (RN-52).
 async function destinationFor(
   db: PrismaClient,
   userId: string,

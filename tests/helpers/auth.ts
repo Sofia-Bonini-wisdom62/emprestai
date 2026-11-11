@@ -1,118 +1,116 @@
-import { randomUUID } from "node:crypto";
+import { generateKeyPairSync, sign } from "node:crypto";
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from "node:http";
+import type { AddressInfo, Socket } from "node:net";
 
-import type { PrismaClient } from "@/generated/prisma/client";
-import type { AuthPort, PasswordResetPort } from "@/server/services/auth";
-import { rateLimitRulesFrom } from "@/server/services/rate-limit";
+// Auth de mentira, para os testes do Vitest sem a pilha do E2E: responde só o
+// que o supabase-js pede para renovar e conferir a sessão. Dados fictícios de
+// docs/layout.md, seção 10.
 
-// A senha que o Auth de mentira trata como a atual da conta (RN-55).
-export const CURRENT_PASSWORD = "senha-atual";
+export const fakeUser = {
+  id: "00000000-0000-4000-8000-0000000000b1",
+  email: "beatriz.fontes@example.com",
+  aud: "authenticated",
+  role: "authenticated",
+};
 
-// Auth de mentira para o createCaller: registra cada chamada e responde como o
-// Auth responderia. Entrar só aceita os e-mails de `users`, com qualquer senha.
-// O caminho real até o Auth se prova no E2E (ADR-006, seção 2).
-export function fakeAuth(users: Record<string, string> = {}) {
-  const calls = {
-    signIn: [] as string[],
-    signOut: [] as string[],
-    reset: [] as { email: string; redirectTo: string }[],
-    updateUser: [] as string[],
-  };
+const toBase64url = (value: object) =>
+  Buffer.from(JSON.stringify(value)).toString("base64url");
 
-  const auth: AuthPort & PasswordResetPort = {
-    async signInWithPassword({ email }) {
-      calls.signIn.push(email);
-      const id = users[email];
-      return id
-        ? { data: { user: { id } }, error: null }
-        : { data: { user: null }, error: { code: "invalid_credentials" } };
+// ES256 com kid, como o Auth do dev e o da produção assinam (ADR-006): o
+// getClaims() confere o token pelo JWKS, sem chamar o GET /user.
+const signingKeys = generateKeyPairSync("ec", { namedCurve: "P-256" });
+const KID = "chave-de-teste";
+
+export const fakeJwks = {
+  keys: [
+    {
+      ...signingKeys.publicKey.export({ format: "jwk" }),
+      kid: KID,
+      alg: "ES256",
+      use: "sig",
     },
-    async signOut({ scope }) {
-      calls.signOut.push(scope);
-      return { error: null };
-    },
-    async resetPasswordForEmail(email, { redirectTo }) {
-      calls.reset.push({ email, redirectTo });
-      return users[email] ? { error: null } : { error: { code: "user_not_found" } };
-    },
-    async updateUser({ password }) {
-      calls.updateUser.push(password);
-      if (password.length < 6) return { error: { code: "weak_password" } };
-      if (password === CURRENT_PASSWORD) {
-        return { error: { code: "same_password" } };
-      }
-      return { error: null };
-    },
-  };
+  ],
+};
 
-  return { auth, calls };
+function fakeAccessToken(expiresAt: number) {
+  const signed = [
+    toBase64url({ alg: "ES256", typ: "JWT", kid: KID }),
+    toBase64url({
+      sub: fakeUser.id,
+      email: fakeUser.email,
+      aud: "authenticated",
+      role: "authenticated",
+      exp: expiresAt,
+    }),
+  ].join(".");
+  const signature = sign("sha256", Buffer.from(signed), {
+    key: signingKeys.privateKey,
+    dsaEncoding: "ieee-p1363",
+  });
+
+  return `${signed}.${signature.toString("base64url")}`;
 }
 
-// Limites altos o bastante para os testes que não são do CA-22.
-export const generousRules = rateLimitRulesFrom({
-  RATE_LIMIT_IP_MAX: 1000,
-  RATE_LIMIT_IP_WINDOW_SECONDS: 60,
-  RATE_LIMIT_USER_MAX: 1000,
-  RATE_LIMIT_USER_WINDOW_SECONDS: 60,
-});
+export function fakeSession(refreshToken: string, expiresInSeconds: number) {
+  const expiresAt = Math.floor(Date.now() / 1000) + expiresInSeconds;
 
-// A área da primeira entrada deste arquivo de teste, no lugar da default: o
-// first-admin.test.ts cria e apaga a default no mesmo banco, ao mesmo tempo. A
-// default de verdade se prova no E2E, onde o seed a cria.
-export async function createFirstEntryTenant(db: PrismaClient) {
-  const tenant = await db.tenant.create({
-    data: { slug: `primeira-entrada-${randomUUID()}`, name: "Área de teste" },
-  });
-
-  async function cleanup() {
-    await db.membership.deleteMany({ where: { tenantId: tenant.id } });
-    await db.tenant.delete({ where: { id: tenant.id } });
-  }
-
-  return { tenant, slug: tenant.slug, cleanup };
+  return {
+    access_token: fakeAccessToken(expiresAt),
+    refresh_token: refreshToken,
+    token_type: "bearer",
+    expires_in: Math.max(expiresInSeconds, 0),
+    expires_at: expiresAt,
+    user: fakeUser,
+  };
 }
 
-// Duas áreas, Beatriz como Colaborador só na A e Flávia como Operações só na B,
-// cada uma com nome (CA-14).
-export async function createTwoAreas(db: PrismaClient) {
-  const tenantA = await db.tenant.create({
-    data: { slug: `a-${randomUUID()}`, name: "Área A" },
-  });
-  const tenantB = await db.tenant.create({
-    data: { slug: `b-${randomUUID()}`, name: "Área B" },
-  });
-  const inA = { userId: randomUUID(), email: "beatriz.fontes@example.com" };
-  const inB = { userId: randomUUID(), email: "flavia.rocha@example.com" };
+// O cookie que o @supabase/ssr grava: sb-<primeiro rótulo do host>-auth-token,
+// com a sessão em JSON e base64url.
+export function sessionCookieName(authUrl: string) {
+  return `sb-${new URL(authUrl).hostname.split(".")[0]}-auth-token`;
+}
 
-  await db.membership.createMany({
-    data: [
-      { tenantId: tenantA.id, userId: inA.userId, role: "member" },
-      { tenantId: tenantB.id, userId: inB.userId, role: "operations" },
-    ],
+export function sessionCookie(authUrl: string, session: object) {
+  return `${sessionCookieName(authUrl)}=base64-${toBase64url(session)}`;
+}
+
+export function decodeSessionCookie(value: string) {
+  return JSON.parse(
+    Buffer.from(value.replace(/^base64-/, ""), "base64url").toString("utf8"),
+  ) as { refresh_token: string };
+}
+
+export async function startFakeAuth(
+  handler: (request: IncomingMessage, response: ServerResponse) => void,
+) {
+  const sockets: Socket[] = [];
+  const server = createServer(handler);
+  server.on("connection", (socket) => sockets.push(socket));
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address() as AddressInfo;
+
+  return {
+    url: `http://127.0.0.1:${port}`,
+    close: () => {
+      sockets.forEach((socket) => socket.destroy());
+      return new Promise<void>((resolve) => server.close(() => resolve()));
+    },
+  };
+}
+
+export function readBody(request: IncomingMessage) {
+  return new Promise<string>((resolve) => {
+    let body = "";
+    request.on("data", (chunk) => (body += chunk));
+    request.on("end", () => resolve(body));
   });
-  await db.profile.createMany({
-    data: [
-      { id: inA.userId, name: "Beatriz Fontes" },
-      { id: inB.userId, name: "Flávia Rocha" },
-    ],
-  });
+}
 
-  // O que a área B tem de vínculo, papel e nome, para comparar antes e depois.
-  async function snapshotB() {
-    return {
-      memberships: await db.membership.findMany({
-        where: { OR: [{ tenantId: tenantB.id }, { userId: inB.userId }] },
-        orderBy: { id: "asc" },
-      }),
-      profile: await db.profile.findUnique({ where: { id: inB.userId } }),
-    };
-  }
-
-  async function cleanup() {
-    const userIds = [inA.userId, inB.userId];
-    await db.membership.deleteMany({ where: { userId: { in: userIds } } });
-    await db.profile.deleteMany({ where: { id: { in: userIds } } });
-    await db.tenant.deleteMany({ where: { id: { in: [tenantA.id, tenantB.id] } } });
-  }
-
-  return { tenantA, tenantB, inA, inB, snapshotB, cleanup };
+export function sendJson(response: ServerResponse, status: number, body: object) {
+  response.writeHead(status, { "content-type": "application/json" });
+  response.end(JSON.stringify(body));
 }

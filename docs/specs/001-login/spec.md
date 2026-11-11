@@ -65,14 +65,15 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 - RN-46 — Quem tem vínculo em mais de uma área fica sem área na sessão: os procedimentos de área recusam com `FORBIDDEN`, e o código não escolhe uma das áreas. Na v1 o caso não acontece, porque só existe a `default`. Origem: resposta 29; revisão da T-05.
 - RN-47 — Se o banco não responde na leitura do vínculo, a sessão fica sem área, em vez de a chamada falhar: o `health.check` continua respondendo `{ status: "unavailable", message }`, como no AZ-04, também para quem tem sessão, e os procedimentos de área respondem `FORBIDDEN`. Origem: revisão da T-05.
 - RN-48 — Toda chamada do servidor ao Supabase Auth tem limite de 3 s, contadas as novas tentativas que o cliente faz sozinho, como a conexão com o banco tem limite de 2 s. Estourado o limite, a chamada conta como falha do Auth, e o `createContext` e o `proxy.ts` seguem sem sessão. Origem: revisão da T-05.
-- RN-49 — O limite do RN-09 é de 5 tentativas por e-mail a cada 15 min e de 30 por IP a cada 60 s, e entrar e pedir a redefinição somam no mesmo contador (RN-43). As variáveis `RATE_LIMIT_*` trocam os números, e vazias valem estes. Origem: revisão da T-07.
-- RN-50 — Nome com mais de 80 caracteres mostra "Use até 80 caracteres.", e uma falha ao salvar em `/account/setup` que não tenha mensagem própria mostra "Não foi possível salvar. Tente de novo.". Origem: revisão da T-07.
-- RN-51 — Quem tem vínculo em mais de uma área não entra: o login mostra a mensagem do RN-25, sem dizer o motivo, e a sessão aberta pelo Auth sai; em `/account/setup`, vale a mensagem genérica do RN-50. Origem: RN-46; revisão da T-07.
-- RN-52 — "Sair" encerra só a sessão deste navegador; as outras sessões da pessoa continuam abertas. Origem: revisão da T-07.
-- RN-53 — "Sair" apaga o cookie de sessão e leva a `/login` mesmo com o Auth fora do ar. Origem: revisão da T-07.
-- RN-54 — O link do e-mail abre `/auth/confirm`, uma página com o botão "Continuar" que não chama o Auth; só o envio desse botão, por POST da mesma origem, valida o link. Um leitor de e-mail que abra o link sozinho não gasta o convite nem a redefinição. Origem: revisão da T-07.
-- RN-55 — A senha igual à atual, recusada pelo Auth, mostra "Escolha uma senha diferente da atual.". Origem: revisão da T-07.
-- RN-56 — Se o contador de tentativas não responde, a entrada é recusada com a mensagem do RN-25, sem consultar o Auth; o pedido de redefinição devolve a resposta do RN-42 sem pedir o link. Origem: revisão da T-07.
+- RN-49 — Sem sessão, o `proxy.ts` leva a `/login` toda rota fora da lista pública, e não só as telas do produto do RN-33: também `/account/setup` e rota que não existe. A lista pública é `/`, `/login`, `/forgot-password`, `/auth/confirm` e o envio dela, `/auth/confirm/verify` (RN-55), o `/api/trpc/` e o que o Next serve em `/_next/`. Origem: revisão da T-08; revisão da T-07.
+- RN-50 — O limite do RN-09 é de 5 tentativas por e-mail a cada 15 min e de 30 por IP a cada 60 s, e entrar e pedir a redefinição somam no mesmo contador (RN-43). As variáveis `RATE_LIMIT_*` trocam os números, e vazias valem estes. Origem: revisão da T-07.
+- RN-51 — Nome com mais de 80 caracteres mostra "Use até 80 caracteres.", e uma falha ao salvar em `/account/setup` que não tenha mensagem própria mostra "Não foi possível salvar. Tente de novo.". Origem: revisão da T-07.
+- RN-52 — Quem tem vínculo em mais de uma área não entra: o login mostra a mensagem do RN-25, sem dizer o motivo, e a sessão aberta pelo Auth sai; em `/account/setup`, vale a mensagem genérica do RN-51. Origem: RN-46; revisão da T-07.
+- RN-53 — "Sair" encerra só a sessão deste navegador; as outras sessões da pessoa continuam abertas. Origem: revisão da T-07.
+- RN-54 — "Sair" apaga o cookie de sessão e leva a `/login` mesmo com o Auth fora do ar. Origem: revisão da T-07.
+- RN-55 — O link do e-mail abre `/auth/confirm`, uma página com o botão "Continuar" que não chama o Auth; só o envio desse botão, por POST da mesma origem a `/auth/confirm/verify`, valida o link. Um leitor de e-mail que abra o link sozinho não gasta o convite nem a redefinição. Origem: revisão da T-07.
+- RN-56 — A senha igual à atual, recusada pelo Auth, mostra "Escolha uma senha diferente da atual.". Origem: revisão da T-07.
+- RN-57 — Se o contador de tentativas não responde, a entrada é recusada com a mensagem do RN-25, sem consultar o Auth; o pedido de redefinição devolve a resposta do RN-42 sem pedir o link. Origem: revisão da T-07.
 
 ## Critérios de aceitação
 
@@ -128,15 +129,15 @@ Pessoas e e-mails fictícios de `docs/layout.md`, seção 10.
 ## Contrato afetado
 
 - Endpoint: `auth.signIn` — novo, mutação pública. Input `{ email, password }`. Confere o limite (RN-09), entra no Auth pelo servidor, grava o cookie, cria o vínculo da primeira entrada (RN-13) e devolve o destino: `/catalog`, `/operations/loans` ou `/account/setup`.
-- Endpoint: `auth.signOut` — novo, mutação pública, sem input. Apaga o cookie deste navegador, mesmo sem sessão conferida (RN-52, RN-53), e devolve `/login`.
+- Endpoint: `auth.signOut` — novo, mutação pública, sem input. Apaga o cookie deste navegador, mesmo sem sessão conferida (RN-53, RN-54), e devolve `/login`.
 - Endpoint: `auth.requestPasswordReset` — novo, mutação pública. Input `{ email }`. Confere o limite (RN-43), pede ao Auth o link de redefinição com destino `/auth/confirm` e devolve sempre a mesma resposta (RN-42).
 - Endpoint: `account.setup` — novo, mutação protegida. Input `{ password?, name? }`: a senha no convite e na redefinição, o nome quando falta, sem espaços nas pontas e com até 80 caracteres. Cria o vínculo da primeira entrada pela mesma regra do `auth.signIn` (RN-13) e devolve o destino do papel.
 - Endpoint: `account.me` — novo, consulta, sem input. Devolve nome, e-mail e papel da sessão, para o header.
-- Rota: `GET /auth/confirm` — nova página. Recebe `token_hash` e `type` (`invite` ou `recovery`) do link do e-mail e mostra o botão "Continuar", sem chamar o Auth (RN-54).
+- Rota: `GET /auth/confirm` — nova página. Recebe `token_hash` e `type` (`invite` ou `recovery`) do link do e-mail e mostra o botão "Continuar", sem chamar o Auth (RN-55).
 - Rota: `POST /auth/confirm/verify` — novo Route Handler, o envio do botão. Confere a origem, valida o link no Auth, grava o cookie e leva a `/account/setup`; link que não vale leva a `/login` com o aviso do RN-38.
 - Contexto: o `createContext` passa a montar `{ db, session, tenantId, role }`, conferindo o cookie com `getUser()` (RN-31), com `protectedProcedure`, `tenantProcedure` e `adminProcedure` (ADR-001, 2.7). A sessão fica sem área quando há vínculo em mais de uma área ou o banco não responde (RN-46 e RN-47), e a conferência no Auth tem o limite de 3 s do RN-48.
 - Tela: `/login`, `/account/setup` e `/forgot-password`, novas; `/catalog` e `/operations/loans`, provisórias, só com o header, até as specs do catálogo e da tela de Operações; o header com o nome e o menu "Sair", novo.
-- Sessão: `proxy.ts`, novo, renova a sessão em toda rota, menos os estáticos, confere com `getClaims()`, com o limite de 3 s do RN-48, e manda a `/login` quem abre uma tela do produto sem sessão (ADR-003, 2.7).
+- Sessão: `proxy.ts`, novo, renova a sessão em toda rota, menos os estáticos, confere com `getClaims()`, com o limite de 3 s do RN-48, e manda a `/login` quem abre sem sessão uma rota fora da lista pública do RN-49 (ADR-003, 2.7).
 - Tabela: `tenants (id, slug, name)`, com a linha `default`; `memberships (id, tenant_id, user_id, role, created_at)`, única por `(tenant_id, user_id)`, com `role` em `member` ou `operations`; `profiles (id, name)`, com `id` igual ao id do Auth; `rate_limits`, o contador do RN-09. Sem FK para `auth.users`. Todas com RLS e policy explícita na mesma migration (ADR-001, 2.7; `rules/migration.md`).
 - Ambiente: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` passam a ser usadas no servidor, e as linhas `onde:` do `.env.example` mudam (ADR-006; RN-34). A aplicação não usa a `SUPABASE_SECRET_KEY` nesta spec: só o seed e o setup do E2E, com chaves locais. `RATE_LIMIT_*` deixam de ser só reserva; `FIRST_ADMIN_EMAIL` vive só nos secrets do Actions (ADR-009).
 - **Não pode mudar:** a raiz `/` pública e o `health.check` público, com o contrato do AZ-04, do AZ-05 e do AZ-09; os casos `az_03`, `az_04` e `adr_001` dos testes; e a regra de que área e papel vêm da sessão, nunca do input.

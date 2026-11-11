@@ -27,7 +27,7 @@ import {
   createTwoAreas,
   fakeAuth,
   generousRules,
-} from "../../../../tests/helpers/auth";
+} from "../../../../tests/helpers/accounts";
 import { createTestDb } from "../../../../tests/helpers/db";
 
 const db = createTestDb(inject("databaseUrl"));
@@ -379,7 +379,7 @@ describe("isolamento entre áreas", () => {
 
 describe("auth.signOut", () => {
   // Com o Auth fora do ar, o getUser() do contexto falha e a chamada chega sem
-  // sessão. O Sair apaga o cookie deste navegador mesmo assim (RN-52, RN-53).
+  // sessão. O Sair apaga o cookie deste navegador mesmo assim (RN-53, RN-54).
   it("ca_32 sem sessão conferida, sair apaga a sessão só deste navegador e leva a /login", async () => {
     const { auth, calls } = fakeAuth();
 

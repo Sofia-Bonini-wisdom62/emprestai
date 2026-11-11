@@ -35,7 +35,7 @@ export type SignInResult =
   | { ok: false; reason: "too_many_attempts" | "invalid_credentials" };
 
 // O limite vem antes do Auth (RN-09; CA-22: a tentativa a mais não chega ao
-// Auth). Se o contador falha, a tentativa também não chega ao Auth (RN-56).
+// Auth). Se o contador falha, a tentativa também não chega ao Auth (RN-57).
 async function checkLimit(
   deps: LimitDeps,
   email: string,
@@ -81,7 +81,7 @@ export async function signIn(
     return { ok: false, reason: "invalid_credentials" };
   }
 
-  // Sem vínculo gravado, ou com vínculo em mais de uma área (RN-51), a entrada
+  // Sem vínculo gravado, ou com vínculo em mais de uma área (RN-52), a entrada
   // não se completa: o cookie recém-gravado sai, e a resposta é a do RN-25.
   const destination = await enterAccount(
     deps.db,
@@ -96,8 +96,8 @@ export async function signIn(
   return { ok: true, destination };
 }
 
-// Só este navegador (RN-52). O escopo local apaga a sessão guardada no cookie
-// antes de ir à rede, então o cookie sai mesmo com o Auth fora do ar (RN-53).
+// Só este navegador (RN-53). O escopo local apaga a sessão guardada no cookie
+// antes de ir à rede, então o cookie sai mesmo com o Auth fora do ar (RN-54).
 export async function signOut(auth: AuthPort | null) {
   await auth?.signOut({ scope: "local" }).catch(() => undefined);
 }
@@ -130,7 +130,7 @@ export type SetPasswordResult =
   | { ok: false; reason: "weak_password" | "same_password" | "failed" };
 
 // A senha nova no convite e na redefinição. O mínimo é o do Auth (RN-39), e a
-// senha igual à atual também é ele quem recusa (RN-55).
+// senha igual à atual também é ele quem recusa (RN-56).
 export async function setPassword(
   auth: AuthPort | null,
   password: string,
