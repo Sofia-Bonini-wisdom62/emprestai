@@ -8,7 +8,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [ ] T-02 — Base do E2E: Playwright contra a pilha efêmera do Testcontainers (Postgres, Auth e gateway) e o script `test:e2e`. Instala `@playwright/test` e `testcontainers`
       CA: CA-08
       Verifica: `pnpm test:e2e` com o caso `ca_08` na parte que já existe (landing e `health.check` sem sessão); `docker ps` sem contêiner da pilha depois da rodada
-- [ ] T-03 — Migration de `tenants`, `memberships` e `profiles`, sem FK para `auth.users`, com RLS, policy e teste de bloqueio
+- [x] T-03 — Migration de `tenants`, `memberships` e `profiles`, sem FK para `auth.users`, com RLS, policy e teste de bloqueio
       CA: CA-14
       Verifica: o DDL aprovado na resposta antes de gerar; `pnpm test` com os casos `ca_14` de policy (`SET LOCAL ROLE`, controle sem RLS, `pg_policies`); `pnpm prisma migrate dev` sem erro
 - [ ] T-04 — Seed com a `default` e a conta de Flávia Rocha, com nome, pela API de admin do Auth
