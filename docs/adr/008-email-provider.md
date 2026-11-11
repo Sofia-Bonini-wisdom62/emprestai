@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto em 2026-11-11. Falta a pessoa escolher entre as duas saídas da seção 2 e cumprir a seção 7 |
+| Status | Proposto em 2026-11-11. No mesmo dia, a pessoa escolheu a saída B, o SMTP do Gmail (seção 2). Falta a conferência da seção 7 para virar Aceito |
 | Data | 2026-11-11 |
 | Turma | B |
 | Vínculo | [`docs/perguntas-prd.md`](../perguntas-prd.md), respostas da 22 e da 24; [ADR-001](001-stack.md), seção 6 ("Provedor de e-mail transacional e demais integrações") |
@@ -35,11 +35,11 @@ O que decide é outra coisa: **o projeto não tem domínio próprio**. A produç
 
 ---
 
-## 2. Decisão (proposta)
+## 2. Decisão
 
-São duas saídas. A pessoa escolhe uma antes de aceitar este ADR.
+**Escolha da pessoa, em 2026-11-11: a saída B**, o SMTP do Gmail, para não pagar um domínio. Ela contraria a recomendação do agente, e a pessoa a fez sabendo do risco descrito na saída B. A saída A fica registrada como o caminho do gatilho "o time compra um domínio" (seção 5).
 
-O agente recomenda a saída A. Na precedência do `AGENTS.md`, segurança vem antes de custo:
+O agente tinha recomendado a saída A. Na precedência do `AGENTS.md`, segurança vem antes de custo:
 
 - **na saída A,** o Supabase guarda uma credencial que só envia;
 - **na saída B,** guarda uma que lê tudo o que o Auth já mandou e deixa tomar contas da produção.
@@ -82,6 +82,11 @@ O Supabase Auth envia pelo SMTP do Gmail, com uma conta Google criada só para o
   - além disso, pode gerar um link novo para qualquer e-mail, porque a rota de recuperação do Auth é aberta com a chave publicável.
 - **Proteção possível da conta.** Com senha de app, a conta não pode usar a Proteção Avançada do Google nem verificação em duas etapas só por chave de segurança.
 - **Por que uma conta só do projeto** — o vazamento não alcança dado pessoal de ninguém, e a conta não some quando alguém sai do time.
+- **Cuidados com a conta.** Como ela vale um acesso de Operações:
+  - a senha é forte e não se repete em nenhum outro lugar;
+  - a verificação em duas etapas usa aplicativo autenticador ou telefone, porque só chave de segurança impede a senha de app;
+  - a recuperação vai para contato da pessoa;
+  - a conta não serve para mais nada além do envio do Auth.
 - **O que não está confirmado** — nenhuma fonte oficial lida diz que o envio por `smtp.gmail.com` sai assinado com DKIM de gmail.com, e portanto alinhado no DMARC. É o comportamento esperado, e o primeiro convite confere (seção 7).
 
 ### Nas duas saídas
@@ -161,7 +166,7 @@ O Supabase Auth envia pelo SMTP do Gmail, com uma conta Google criada só para o
 
 ## 7. Antes de aceitar
 
-1. A pessoa escolhe a saída A ou a B.
+1. A pessoa escolhe a saída A ou a B. Feito em 2026-11-11: saída B.
 2. Saída A:
    1. comprar o domínio;
    2. verificar o subdomínio no Resend e publicar o DMARC;
