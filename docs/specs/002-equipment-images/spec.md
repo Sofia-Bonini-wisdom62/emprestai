@@ -1,6 +1,6 @@
 # 002 — Imagens dos equipamentos
 
-Status: rascunho
+Status: aprovada
 Atualizada em: 2026-11-11
 
 ## Objetivo
@@ -100,7 +100,7 @@ Só o que o `pnpm test` prova, sem rede e sem a chave. Ficam fora dele, e por is
   - `.claude/settings.json` ganha o `permissions.deny` e o hook PreToolUse do Bash e do PowerShell;
   - `.claude/hooks/` ganha o script do hook do RN-07;
   - `.gitignore` ganha `.skill-output/`;
-  - `tsconfig.json` passa a incluir `.claude/skills/**/*.ts`;
+  - `tsconfig.json` passa a incluir `.claude/**/*.ts`, que cobre os scripts da skill e os testes do deny e do hook;
   - `eslint.config.mjs` ganha um bloco para a skill;
   - `.env.example` ganha `PEXELS_API_KEY=`.
 - Rules:

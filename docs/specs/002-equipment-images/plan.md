@@ -22,7 +22,7 @@ O critério de separação:
    - as duas rules que hoje deixam o agente editar workflow com aprovação, `rules/restrictions.md` (Escopo) e `rules/operacao.md`, passando a dizer que `.github/workflows/`, `.claude/hooks/` e `.claude/settings.json` são editados pela pessoa, à mão, a partir do texto que o agente prepara; o `vercel.json` continua "pedir antes";
    - a exceção da `PEXELS_API_KEY` em `rules/secrets.md` e o placeholder no `.env.example`;
    - `.skill-output/` no `.gitignore`;
-   - `.claude/skills/**/*.ts` no `tsconfig.json`;
+   - `.claude/**/*.ts` no `tsconfig.json`, porque o `**/*.ts` de hoje não casa pasta com ponto;
    - o bloco da skill no `eslint.config.mjs`, que só deixa o módulo de rede usar `fetch` e só o módulo de entrada ler a chave.
 2. **Leitura do JPEG** (`scripts/lib/jpeg.ts`): o SOI, a largura e a altura no SOF0, SOF1 ou SOF2 e a orientação EXIF, sem decodificar a imagem. Vem antes do download, que depende dela para recusar o arquivo.
 3. **Manifesto e conferência** (`scripts/lib/manifest.ts` e `scripts/check.ts`): o formato, as regras do RN-04 ao RN-06 e as listas de objetos a enviar e a apagar. Vem antes da busca, que lê o manifesto aprovado para não repetir trabalho.
