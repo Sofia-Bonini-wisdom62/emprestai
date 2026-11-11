@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-// A parte do CA-08 que já existe: a raiz e o health.check continuam públicos, sem sessão.
-// O redirecionamento de /catalog e /operations/loans para /login chega com o proxy.ts (T-08).
+// A metade do CA-08 que continua pública: a raiz e o health.check, sem sessão, passando pelo
+// proxy.ts. O redirecionamento de /catalog e /operations/loans para /login está em proxy.e2e.ts.
 
 test("ca_08 sem sessão, a raiz abre a landing e mostra o banco ok", async ({ page }) => {
   const response = await page.goto("/");
