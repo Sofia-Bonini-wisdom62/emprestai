@@ -13,7 +13,7 @@ import {
 
 import { IMAGES } from "../images";
 import { startPostgres } from "../helpers/postgres";
-import { generateAuthKeys } from "./auth-keys";
+import { type AuthKeys, generateAuthKeys } from "./auth-keys";
 
 // Caminhos a partir da raiz do repositório, de onde o pnpm roda o Playwright.
 const fromRoot = (path: string) => resolve(process.cwd(), path);
@@ -36,12 +36,15 @@ type AuthStackOptions = {
   siteUrl: string;
   // Troca valores do docker/auth/auth.env, como a validade do token numa suíte própria.
   authEnv?: Record<string, string>;
+  // Chaves de outra pilha da mesma rodada, para o app trocar de pilha pelo repasse do Auth sem
+  // trocar a chave publishable (tests/e2e/auth-relay.ts). Sem elas, chaves novas.
+  keys?: AuthKeys;
 };
 
 // A pilha efêmera do E2E (ADR-006, seção 2): o Postgres, o Auth e o gateway do dev, na mesma rede,
 // com a configuração de docker/ e chaves novas. Nunca o banco de dev.
 export async function startAuthStack(options: AuthStackOptions): Promise<AuthStack> {
-  const keys = generateAuthKeys();
+  const keys = options.keys ?? generateAuthKeys();
   const started: { stop: () => Promise<unknown> }[] = [];
   const stopAll = async () => {
     for (const item of started.reverse()) {
