@@ -318,11 +318,14 @@ funcionalidade, não o número da pasta, que só sai quando a spec for criada.
     vira RN em: catálogo.
 
 15. Existe recuperação de senha na v1?
-    resposta: não. O login diz "Sem acesso? Fale com Operações."
-    decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
-    do repositório do Guilherme.
-    ainda liga-se à pergunta 24: a frase manda a pessoa a Operações, que
-    dispara a redefinição pelo painel do Supabase.
+    resposta: sim, iniciada pela própria pessoa. O login tem o link "Esqueci
+    minha senha": a pessoa informa o e-mail e recebe o link de redefinição
+    pelo SMTP do ADR-008. A tela não diz se o e-mail tem conta. O login
+    continua dizendo "Sem acesso? Fale com Operações.", para quem não tem
+    conta, que só nasce por convite.
+    decidido: pela pessoa em 2026-10-26 ("não"), adotando a resposta da spec
+    001-telas do repositório do Guilherme; mudado pela pessoa em 2026-11-11,
+    depois da conferência negativa do painel registrada na pergunta 24.
     vira RN em: login.
 
 16. Item em manutenção aparece no catálogo? O PRD diz que ele "não aparece
@@ -366,16 +369,16 @@ funcionalidade, não o número da pasta, que só sai quando a spec for criada.
     vira RN em: login.
 
 24. O que Operações faz quando alguém esquece a senha?
-    resposta: Operações dispara a redefinição de senha pelo painel do Supabase
-    (Authentication > Users), e a pessoa recebe o link por e-mail, pelo mesmo
-    SMTP próprio da 22. A v1 continua sem "esqueci minha senha" no emprestai
-    (resposta da 15); o link da redefinição cai na tela de definir senha da
-    resposta da 30, que nesse caso pede só a senha.
-    ajustado: pela pessoa em 2026-11-11, junto com a resposta da 30.
-    decidido: pela pessoa em 2026-11-11, junto com a 22.
-    nota do agente: a redefinição pelo painel aparece em relatos da comunidade
-    do Supabase, não na documentação oficial; a spec do login confere no
-    painel antes de virar RN.
+    resposta: Operações não redefine senha. A pessoa usa o "Esqueci minha
+    senha" do login (resposta da 15) e recebe o link por e-mail, pelo mesmo
+    SMTP próprio da 22. O link cai na tela de definir senha da resposta da
+    30, que nesse caso pede só a senha.
+    decidido: pela pessoa em 2026-11-11, junto com a 22; mudado pela pessoa no
+    mesmo dia, depois da conferência no painel.
+    conferência: em 2026-11-11, a pessoa abriu o menu do usuário em
+    Authentication > Users, no painel de produção, e a opção de redefinir a
+    senha não aparece. A resposta anterior, de Operações disparar a
+    redefinição pelo painel, deixou de valer por isso.
     vira RN em: login.
 
 25. Quem desativa a conta de quem sai da empresa, e o que acontece com os
