@@ -5,7 +5,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [ ] T-01 — Auth e gateway no `compose.yaml`, como no ADR-006, mais as variáveis novas no `.env.example` e a correção das linhas `onde:` que o ADR-006 e o RN-34 desatualizaram
       CA: CA-15
       Verifica: `docker compose --env-file .env.local up -d --wait` sobe os três serviços saudáveis; pelo gateway, `/auth/v1/health` responde 200 com a chave publishable e 401 sem chave
-- [ ] T-02 — Base do E2E: Playwright contra a pilha efêmera do Testcontainers (Postgres, Auth e gateway) e o script `test:e2e`. Instala `@playwright/test` e `testcontainers`
+- [x] T-02 — Base do E2E: Playwright contra a pilha efêmera do Testcontainers (Postgres, Auth e gateway) e o script `test:e2e`. Instala `@playwright/test` e `testcontainers`
       CA: CA-08
       Verifica: `pnpm test:e2e` com o caso `ca_08` na parte que já existe (landing e `health.check` sem sessão); `docker ps` sem contêiner da pilha depois da rodada
 - [x] T-03 — Migration de `tenants`, `memberships` e `profiles`, sem FK para `auth.users`, com RLS, policy e teste de bloqueio

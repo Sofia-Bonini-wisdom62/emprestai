@@ -27,6 +27,11 @@ que mexe em policy de RLS.
    função ou do `it`. O critério vem da spec em `docs/specs/`;
    cada spec nova nasce por `rules/spec-flow.md`.
 6. Teste de endpoint verifica status E corpo. Status sozinho não prova nada.
+7. E2E: Playwright, em `e2e/*.e2e.ts`. O `globalSetup` de `tests/e2e/` sobe
+   a pilha efêmera do ADR-006 (Postgres, Auth e gateway, com a configuração de
+   `docker/` e chaves novas a cada rodada), aplica as migrations e roda o build
+   de produção com `next start` contra ela; o teardown derruba tudo. Conta de
+   teste nasce nessa pilha, nunca no banco de dev.
 
 ## Verificação
 `pnpm test` passa com o Docker de pé: sobe um Postgres efêmero, aplica as
