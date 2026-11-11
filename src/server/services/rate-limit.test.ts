@@ -7,12 +7,16 @@ import { consumeAttempt, type RateLimitRules } from "./rate-limit";
 const db = createTestDb(inject("databaseUrl"));
 const rollback = new Error("desfaz a transação do teste");
 
-// Nada deste arquivo fica no banco: toda transação termina em rollback.
+// Nada deste arquivo fica no banco: toda transação termina em rollback. O
+// auth.test.ts grava contadores no mesmo banco, ao mesmo tempo: a transação trava
+// a tabela contra escrita de fora e começa sem as linhas que já estavam lá.
 async function inRolledBackTransaction(
   run: (tx: Prisma.TransactionClient) => Promise<void>,
 ) {
   await db
     .$transaction(async (tx) => {
+      await tx.$executeRaw`LOCK TABLE "rate_limits" IN SHARE ROW EXCLUSIVE MODE`;
+      await tx.rateLimit.deleteMany();
       await run(tx);
       throw rollback;
     })

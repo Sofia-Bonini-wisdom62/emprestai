@@ -2,7 +2,7 @@ import { cn } from "cn";
 import { Package } from "lucide-react";
 
 // O painel da marca, à esquerda do login, de Definir senha e de Esqueci minha senha
-// (docs/layout.md, seção 6, telas 1, 7 e 8). Os textos são os do RN-50 da spec 001.
+// (docs/layout.md, seção 6, telas 1, 7 e 8). Os textos são os do RN-58 da spec 001.
 export function BrandPanel({ className }: { className?: string }) {
   return (
     <aside

@@ -53,7 +53,14 @@ describe("handleSession sem sessão", () => {
     },
   );
 
-  it.each(["/", "/api/trpc/health.check", "/login", "/forgot-password", "/auth/confirm"])(
+  it.each([
+    "/",
+    "/api/trpc/health.check",
+    "/login",
+    "/forgot-password",
+    "/auth/confirm",
+    "/auth/confirm/verify",
+  ])(
     "ca_08 %s continua abrindo",
     async (path) => {
       expectPassThrough(await handleSession(request(path), unreachableAuth));
