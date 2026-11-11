@@ -127,10 +127,15 @@ describe("handleSession com sessão", () => {
 });
 
 describe("handleSession com o Auth fora do ar", () => {
-  const limit = AUTH_TIMEOUT_MS + 1_000;
+  // CA-29: só o proxy vai ao Auth, uma vez, com o limite do RN-48.
+  const limit = 4_000;
+
+  it("ca_29 o limite do RN-48 é de 3 s", () => {
+    expect(AUTH_TIMEOUT_MS).toBe(3_000);
+  });
 
   it(
-    "ca_08 cookie vencido e Auth recusando a conexão: /catalog leva a /login dentro do limite",
+    "ca_29 cookie vencido e Auth recusando a conexão: /catalog leva a /login em menos de 4 s",
     { timeout: 15_000 },
     async () => {
       const expired = sessionCookie(unreachableAuth.url, fakeSession("refresh", -60));
@@ -144,7 +149,7 @@ describe("handleSession com o Auth fora do ar", () => {
   );
 
   it(
-    "ca_08 cookie vencido e Auth que aceita a conexão e não responde: /catalog leva a /login dentro do limite",
+    "ca_29 cookie vencido e Auth que aceita a conexão e não responde: /catalog leva a /login em menos de 4 s",
     { timeout: 15_000 },
     async () => {
       const silent = await startFakeAuth(() => undefined);
