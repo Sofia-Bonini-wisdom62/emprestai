@@ -11,8 +11,8 @@ import {
 } from "../tests/e2e/accounts";
 import { seedTargetFromEnv } from "../tests/e2e/seed";
 
-// A tela /login da T-09 contra o Auth de verdade da pilha efêmera. As telas /catalog e
-// /operations/loans chegam na T-11: aqui o destino se confere pela URL (CA-01, CA-02).
+// A tela /login da T-09 contra o Auth de verdade da pilha efêmera. O CA-01 e o CA-02 conferem
+// também o header da T-11, com o nome; o resto do header está em header.e2e.ts.
 
 const password = "senha-certa-123";
 
@@ -52,12 +52,18 @@ test("ca_01 Beatriz Fontes, com senha, nome e papel member, entra e chega em /ca
   await page.waitForURL("**/catalog");
   const [cookie] = await sessionCookies(page.context());
   expect(cookie).toMatchObject({ httpOnly: true });
+
+  // O header da T-11: o nome e o menu do usuário com "Sair".
+  await page.getByRole("banner").getByRole("button", { name: "Beatriz Fontes" }).click();
+  await expect(page.getByRole("menuitem", { name: "Sair" })).toBeVisible();
 });
 
 test("ca_02 Flávia Rocha, a conta do seed, entra e chega em /operations/loans", async ({ page }) => {
   await signInOnScreen(page, "flavia.rocha@example.com", seedTargetFromEnv().password);
 
   await page.waitForURL("**/operations/loans");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Empréstimos em aberto");
+  await expect(page.getByRole("banner").getByRole("button", { name: "Flávia Rocha" })).toBeVisible();
 });
 
 test("ca_03 senha errada fica em /login com a mensagem do RN-25 e sem cookie de sessão", async ({
