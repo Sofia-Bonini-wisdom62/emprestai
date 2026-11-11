@@ -102,12 +102,25 @@ function closeHttp(server: HttpServer) {
   return new Promise<void>((resolveClose) => server.close(() => resolveClose()));
 }
 
-// Os casos trocam o modo pelo endereço de controle que o globalSetup grava no ambiente.
-export async function setAuthRelayMode(mode: RelayMode) {
-  const controlUrl = process.env.E2E_AUTH_RELAY_CONTROL_URL;
-  if (!controlUrl) {
-    throw new Error("Falta E2E_AUTH_RELAY_CONTROL_URL: o globalSetup do E2E não rodou");
+// Os casos leem o repasse pelo ambiente que o globalSetup grava antes de os workers subirem.
+function readEnv(name: string) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Falta ${name}: o globalSetup do E2E não rodou`);
   }
+  return value;
+}
+
+// O endereço do Auth que o app usa (o repasse) e a chave publishable, que vale nas duas pilhas.
+export function authRelayFromEnv() {
+  return {
+    url: readEnv("E2E_AUTH_RELAY_URL"),
+    publishableKey: readEnv("E2E_SUPABASE_PUBLISHABLE_KEY"),
+  };
+}
+
+export async function setAuthRelayMode(mode: RelayMode) {
+  const controlUrl = readEnv("E2E_AUTH_RELAY_CONTROL_URL");
 
   const response = await fetch(`${controlUrl}/mode`, { method: "PUT", body: mode });
   if (response.status !== 204) {

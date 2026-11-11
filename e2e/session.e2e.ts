@@ -4,7 +4,8 @@ import { expect, test } from "@playwright/test";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
-import { setAuthRelayMode } from "../tests/e2e/auth-relay";
+import { authRelayFromEnv, setAuthRelayMode } from "../tests/e2e/auth-relay";
+import { seedTargetFromEnv } from "../tests/e2e/seed";
 
 // O proxy.ts com uma sessão de verdade: a renovação do token vencido (CA-17) e o Auth fora do ar
 // (CA-29, RN-48). A conta de Beatriz Fontes nasce na pilha de token curto, pelo repasse do Auth
@@ -14,14 +15,6 @@ import { setAuthRelayMode } from "../tests/e2e/auth-relay";
 type Cookie = { name: string; value: string };
 
 const EMAIL = "beatriz.fontes@example.com";
-
-function fromEnv(name: string) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Falta ${name}: o globalSetup do E2E não rodou`);
-  }
-  return value;
-}
 
 // O cookie da sessão, gravado pelo @supabase/ssr em um pedaço ou em vários (.0, .1, ...).
 function readSession(cookies: Cookie[]) {
@@ -42,13 +35,14 @@ test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
   test.setTimeout(60_000);
-  const relayUrl = fromEnv("E2E_AUTH_RELAY_URL");
+  const relay = authRelayFromEnv();
   const password = randomBytes(18).toString("base64url");
 
   await setAuthRelayMode("short-token");
   try {
-    // A chave secreta da pilha do E2E, só para criar a conta de teste (rules/secrets.md).
-    const admin = createClient(relayUrl, fromEnv("E2E_SUPABASE_SECRET_KEY"), {
+    // A chave secreta da pilha do E2E, lida pelo helper do seed, só para criar a conta de teste
+    // (rules/secrets.md). As duas pilhas têm as mesmas chaves, e o repasse leva à de token curto.
+    const admin = createClient(relay.url, seedTargetFromEnv().secretKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const created = await admin.auth.admin.createUser({ email: EMAIL, password, email_confirm: true });
@@ -58,7 +52,7 @@ test.beforeAll(async () => {
 
     // Entra como o servidor entra, para o cookie sair no formato que o app grava.
     let jar: Cookie[] = [];
-    const client = createServerClient(relayUrl, fromEnv("E2E_SUPABASE_PUBLISHABLE_KEY"), {
+    const client = createServerClient(relay.url, relay.publishableKey, {
       cookies: {
         getAll: () => jar,
         setAll: (cookiesToSet) => {
