@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto em 2026-11-09. Quem aceita é o time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), depois de responder aos itens de "Antes de aceitar", na seção 2 |
+| Status | Aceito em 2026-11-11, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), depois de responder aos oito itens de "Antes de aceitar" e da prova descartável do item 7 (seção 2, "Respostas e prova") |
 | Data | 2026-11-09 |
 | Turma | B |
 | Vínculo | [`docs/plan-andar-zero.md`](../plan-andar-zero.md), seção 5.2, item 3; [ADR-004](004-environments.md), seções 4 a 6. Escrito sobre a branch `feat/walking-skeleton` (PR #11), que traz o `compose.yaml`, os testes e a seção 5.2 do plano citados aqui |
@@ -41,7 +41,7 @@ O que a pesquisa achou na documentação oficial e no código dos repositórios 
 | Banco dos testes (Testcontainers) | Continua sem Auth. A imagem já traz `auth.users`; o que uma migration pode referenciar em `auth` decide a spec 001 (seção 4) |
 | E2E de login (Playwright) | Numa pilha efêmera (Postgres, Auth e gateway), que sobe com o teste e some depois. Nunca no banco de dev |
 
-- **Auth em contêiner** — é o único caminho que traz o Auth para a máquina sem CLI, sem vaga nova no plano gratuito e sem custo. É o servidor que a produção roda, então convite, senha, cookie e renovação de sessão rodam de verdade no dev e no E2E. Versão e tipo de chave conferem depois do item 8 de "Antes de aceitar".
+- **Auth em contêiner** — é o único caminho que traz o Auth para a máquina sem CLI, sem vaga nova no plano gratuito e sem custo. É o servidor que a produção roda, então convite, senha, cookie e renovação de sessão rodam de verdade no dev e no E2E. Tipo de chave e assinatura conferem com a produção (item 8 de "Antes de aceitar"); a versão do Auth da produção segue sem conferir.
 - **Envoy, e não rewrite do Next** — o cliente sempre chama `/auth/v1`, e o gateway é o caminho documentado para servir esse prefixo. Ele também valida a `apikey` e traduz as chaves novas. Sem ele, não há checagem de `apikey`, e o servidor chamaria o admin com um JWT de `service_role`, não com a `sb_secret_`.
 - **Chaves novas e ES256** — são o formato que o ADR-003 e o `.env.example` fixam, as legadas saem da plataforma, e com ES256 o `getClaims()` do `proxy.ts` segue no dev o caminho da produção.
 - **Um dono por schema** — o ADR-001 fixa o Prisma Migrate como dono único e diz que dois donos de schema no mesmo banco se sobrescrevem. Este ADR lê "único" por schema: o Prisma não toca `auth`, e o `postgres` nem tem permissão para criar objetos lá. Na produção, o Auth hospedado já é dono de `auth`, no mesmo banco das nossas tabelas.
@@ -82,6 +82,25 @@ Esta decisão esbarra em regras e depende de verificações que só a pessoa faz
 7. **Prova antes ou depois de aceitar.** O self-hosting oficial testa o Auth com `supabase/postgres:17.6.1.136`, e o projeto usa `17.11.0.018`. A configuração do Envoy reduzida à rota do Auth também não foi testada. O time escolhe: autorizar uma prova descartável antes de aceitar, com as duas imagens aprovadas só para ela; ou aceitar com o gatilho da seção 5, e, se a prova falhar depois, a correção vira ADR novo.
 8. **Conferir a produção.** No painel, se o projeto `emprestai` assina com chave assimétrica e tem as chaves novas; por `GET /auth/v1/health`, a versão do Auth. Só a pessoa faz isso. O projeto está pausado e, ao ser restaurado, já não terá as chaves legadas. Se mesmo assim a produção estiver em HS256 com chaves legadas, a linha "Chaves e assinatura" volta para decisão, porque o modo legado contraria o ADR-003, 2.10.
 
+### Respostas e prova (2026-11-11)
+
+A pessoa aceitou a proposta de cada item.
+
+1. **Um dono por schema:** sim. O Prisma Migrate é dono do `public`; o Supabase Auth, do `auth`.
+2. **Quem escreve no banco de dev:** o servidor de Auth entra na lista, só no schema `auth`. As migrations do próprio Auth dispensam a revisão humana que `rules/restrictions.md` pede para policy, trigger e função SQL, que são o schema do fornecedor, o mesmo da produção. `rules/restrictions.md` e o `AGENTS.md`, seção 6, passam a dizer isso.
+3. **SQL de inicialização:** aceito como exceção escrita em `rules/restrictions.md`. O script só define a senha de `supabase_auth_admin`, é versionado e roda sozinho na criação do volume.
+4. **Chave secreta local:** a proibição passa a valer para a chave *de produção*. O `.env.local` recebe só a chave gerada para o Auth da máquina, e o setup do E2E vira a terceira exceção de `rules/secrets.md`, só com essa chave.
+5. **Pilha do E2E:** Testcontainers. O pacote `testcontainers` entra como dependência direta, aprovado junto com este ADR; a instalação acontece na tarefa que escreve o E2E.
+6. **Imagens novas:** `supabase/gotrue:v2.197.0` e `envoyproxy/envoy:v1.39.6`, aprovadas.
+7. **Prova antes de aceitar:** feita em 2026-11-11, numa pilha descartável fora do repositório, com o `supabase/postgres:17.11.0.018` do projeto e as duas imagens acima. Resultado:
+   - O Auth aplicou as 75 migrations dele no schema `auth`, com `supabase_auth_admin` como dono, e criou `auth.jwt()`, `auth.identities` e `auth.sessions`.
+   - O Envoy subiu com a configuração oficial reduzida a: as rotas de `/auth/v1`; os filtros `cors` e `basic_auth`, o Lua que devolve 401 para chave ausente ou inválida, o Lua que traduz a `apikey` em JWT interno, o Lua que monta o `Authorization` a partir da `apikey`, `rbac` e `router`; e só o cluster `auth`.
+   - Pelo gateway, com HTTP direto, 22 de 22 checagens passaram: 401 sem chave e com chave `sb_` inválida; admin negado à chave publicável; cadastro aberto desligado; convite por `generateLink`, sem e-mail; aceite do convite, senha e nome; login por senha; token em ES256, com o `kid` da chave gerada e assinatura conferida pelo JWKS público, que não expõe a parte privada; renovação, `GET /user` e saída; link de recuperação pelo admin; conta banida não entra.
+   - Com o `@supabase/supabase-js` 2.119.0, instalado só na pasta da prova, 8 de 8 passaram, inclusive o `getClaims()`, que verificou o ES256 pelo JWKS sem chamar o Auth.
+   - As migrations do Prisma entraram no mesmo banco, uma FK de `public` para `auth.users` funcionou, `auth.uid()`, `auth.role()` e `auth.jwt()` leram `request.jwt.claims`, e o Auth reiniciado não aplicou nada de novo.
+   - Para a spec 001: com chave errada, o gateway responde `Unauthorized` em texto puro, e o cliente mostra um erro de JSON em vez de mensagem legível. O Envoy avisa que opções da configuração oficial (`dns_refresh_rate`, `cors` no virtual host, `inline_code` do Lua) vão sair em versões futuras.
+8. **Produção:** conferido no painel em 2026-11-11, só pelo tipo das chaves. A chave de assinatura atual é ECC (P-256), o HS256 aparece só em "Previously used keys", e as chaves `sb_publishable_` e `sb_secret_` existem. A versão do Auth não foi conferida: o painel não a mostra, e a outra forma seria usar uma chave de produção.
+
 ---
 
 ## 3. Alternativas consideradas
@@ -104,7 +123,7 @@ Esta decisão esbarra em regras e depende de verificações que só a pessoa faz
 ### Fica mais fácil
 
 - O login roda inteiro na máquina e no E2E: convite, senha, cookie, renovação no `proxy.ts` e saída.
-- O dev roda o servidor de Auth que a produção roda; versão, chave e assinatura conferem depois do item 8 de "Antes de aceitar".
+- O dev roda o servidor de Auth que a produção roda; tipo de chave e assinatura conferem com a produção (item 8 de "Antes de aceitar"), e a versão segue sem conferir.
 - O teste de procedimento continua rápido e sem rede: a sessão entra no contexto como dado.
 
 ### Fica mais difícil

@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Aceito em 2026-10-26, por decisão da pessoa nesta conversa, entre as opções da seção 3. O texto entra no repositório com o PR que cria este arquivo; depois do merge, só a linha de Status muda. Trecho substituído pelo [ADR-007](007-production-deploy-cli.md), em 2026-11-11: na seção 2, quem publica a produção depois do `prisma migrate deploy` passa a ser a CLI da Vercel, não o Deploy Hook; a ordem e o `vercel.json` continuam |
+| Status | Aceito em 2026-10-26, por decisão da pessoa nesta conversa, entre as opções da seção 3. O texto entra no repositório com o PR que cria este arquivo; depois do merge, só a linha de Status muda. Trecho substituído pelo [ADR-007](007-production-deploy-cli.md), em 2026-11-11: na seção 2, quem publica a produção depois do `prisma migrate deploy` passa a ser a CLI da Vercel, não o Deploy Hook; a ordem e o `vercel.json` continuam. Trechos substituídos pelo [ADR-006](006-dev-auth.md), em 2026-11-11: na seção 2, a linha Desenvolvimento e os itens "Dev local no Docker" e "Sem Supabase CLI"; na seção 4, o item "Dev e testes usam a mesma imagem" |
 | Data | 2026-10-26 |
 | Turma | B |
 | Vínculo | [`docs/andar-zero.md`](../andar-zero.md) (AZ-01, AZ-06 e AZ-09) |
