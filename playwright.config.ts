@@ -4,6 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "e2e",
   testMatch: "**/*.e2e.ts",
+  // Os casos do app como no Preview rodam no playwright.preview.config.ts, com outro build.
+  testIgnore: "preview/**",
   globalSetup: "./tests/e2e/global-setup.ts",
   // Uma pilha e um app para a rodada inteira: os casos rodam em fila, sem disputar o mesmo banco.
   workers: 1,
