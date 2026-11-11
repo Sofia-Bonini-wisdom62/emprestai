@@ -2,21 +2,45 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import superjson from "superjson";
 
+import { serverEnv } from "@/env/server";
 import type { MembershipRole, PrismaClient } from "@/generated/prisma/client";
 import { db } from "@/server/db";
+import type { AuthPort } from "@/server/services/auth";
 import { findSessionMembership } from "@/server/services/membership";
-import { getSessionUser, type SessionUser } from "@/server/supabase";
+import {
+  rateLimitRulesFrom,
+  type RateLimitRules,
+} from "@/server/services/rate-limit";
+import {
+  createSupabaseServerClient,
+  getSessionUser,
+  type SessionUser,
+} from "@/server/supabase";
 
 export type Session = { userId: string; email: string | null };
 
 // Sessão, área e papel ausentes ou nulos: chamada sem sessão. O teste monta o
-// contexto à mão, sem Auth (ADR-006, seção 2).
+// contexto à mão, sem Auth (ADR-006, seção 2). Sem auth, como no Preview
+// (RN-34), entrar falha com a mensagem genérica. Sem regras, valem as do
+// ambiente.
 export type Context = {
   db: PrismaClient;
   session?: Session | null;
   tenantId?: string | null;
   role?: MembershipRole | null;
+  auth?: AuthPort | null;
+  ip?: string | null;
+  rateLimitRules?: RateLimitRules;
 };
+
+export const envRateLimitRules = rateLimitRulesFrom(serverEnv);
+
+// Na Vercel, o x-forwarded-for chega reescrito pela plataforma, com o IP de
+// quem fez o request primeiro.
+export function clientIp(headers: Headers): string | null {
+  const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || headers.get("x-real-ip")?.trim() || null;
+}
 
 // A área e o papel saem do vínculo da sessão, nunca do input (ADR-001, 2.6;
 // RN-15). Se o banco falha nessa leitura, a sessão fica sem área: o
@@ -41,9 +65,20 @@ export async function createContextForUser(
 }
 
 export async function createContext(
-  opts?: Pick<FetchCreateContextFnOptions, "resHeaders">,
+  opts?: Pick<FetchCreateContextFnOptions, "req" | "resHeaders">,
 ): Promise<Context> {
-  return createContextForUser(db, await getSessionUser(opts?.resHeaders));
+  const context = await createContextForUser(
+    db,
+    await getSessionUser(opts?.resHeaders),
+  );
+  const supabase = await createSupabaseServerClient(opts?.resHeaders);
+
+  return {
+    ...context,
+    auth: supabase?.auth ?? null,
+    ip: opts?.req ? clientIp(opts.req.headers) : null,
+    rateLimitRules: envRateLimitRules,
+  };
 }
 
 const t = initTRPC.context<Context>().create({ transformer: superjson });

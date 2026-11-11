@@ -9,7 +9,7 @@ export type SessionUser = { id: string; email: string | null };
 
 // Um cliente novo por request, como o @supabase/ssr exige. Sem as duas
 // variáveis, como no Preview (RN-34), não há cliente e a chamada segue sem sessão.
-async function createSupabaseServerClient(responseHeaders?: Headers) {
+export async function createSupabaseServerClient(responseHeaders?: Headers) {
   const url = clientEnv.NEXT_PUBLIC_SUPABASE_URL;
   const key = clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return null;

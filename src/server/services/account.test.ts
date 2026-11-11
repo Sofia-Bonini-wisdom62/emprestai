@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, inject, it } from "vitest";
 
 import type { Prisma } from "@/generated/prisma/client";
+import { enterAccount } from "@/server/services/account";
+import { ensureFirstEntryTenant } from "../../../tests/helpers/auth";
 import { createTestDb } from "../../../tests/helpers/db";
 
 const db = createTestDb(inject("databaseUrl"));
@@ -106,6 +108,56 @@ it("ca_14 as policies explícitas negam tudo a anon e authenticated", async () =
       with_check: "false",
     })),
   );
+});
+
+describe("enterAccount", () => {
+  const userIds: string[] = [];
+
+  afterAll(async () => {
+    await db.membership.deleteMany({ where: { userId: { in: userIds } } });
+  });
+
+  // A regra é explícita, e não um destino implícito: quem já tem vínculo em
+  // outra área não ganha o da default (RN-13; ADR-005, seção 4).
+  it("ca_05 quem já tem vínculo em outra área não ganha o da default", async () => {
+    const userId = randomUUID();
+    userIds.push(userId);
+    const other = await db.tenant.create({
+      data: { slug: `outra-${randomUUID()}`, name: "Outra área" },
+    });
+
+    try {
+      await db.membership.create({
+        data: { tenantId: other.id, userId, role: "operations" },
+      });
+      await enterAccount(db, userId);
+
+      await expect(
+        db.membership.findMany({
+          where: { userId },
+          select: { tenantId: true, role: true },
+        }),
+      ).resolves.toEqual([{ tenantId: other.id, role: "operations" }]);
+    } finally {
+      await db.membership.deleteMany({ where: { userId } });
+      await db.tenant.delete({ where: { id: other.id } });
+    }
+  });
+
+  it("ca_05 duas primeiras entradas ao mesmo tempo gravam um vínculo só", async () => {
+    const userId = randomUUID();
+    userIds.push(userId);
+    const tenant = await ensureFirstEntryTenant(db);
+
+    await Promise.all([enterAccount(db, userId), enterAccount(db, userId)]);
+
+    await expect(
+      db.membership.findMany({
+        where: { userId },
+        select: { tenantId: true, role: true },
+      }),
+    ).resolves.toEqual([{ tenantId: tenant.id, role: "member" }]);
+  });
 });
 
 afterAll(async () => {
