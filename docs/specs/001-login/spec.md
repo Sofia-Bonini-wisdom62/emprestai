@@ -66,6 +66,7 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 - RN-47 — Se o banco não responde na leitura do vínculo, a sessão fica sem área, em vez de a chamada falhar: o `health.check` continua respondendo `{ status: "unavailable", message }`, como no AZ-04, também para quem tem sessão, e os procedimentos de área respondem `FORBIDDEN`. Origem: revisão da T-05.
 - RN-48 — Toda chamada do servidor ao Supabase Auth tem limite de 3 s, contadas as novas tentativas que o cliente faz sozinho, como a conexão com o banco tem limite de 2 s. Estourado o limite, a chamada conta como falha do Auth, e o `createContext` e o `proxy.ts` seguem sem sessão. Origem: revisão da T-05.
 - RN-49 — Sem sessão, o `proxy.ts` leva a `/login` toda rota fora da lista pública, e não só as telas do produto do RN-33: também `/account/setup` e rota que não existe. A lista pública é `/`, `/login`, `/forgot-password`, `/auth/confirm`, o `/api/trpc/` e o que o Next serve em `/_next/`. Origem: revisão da T-08.
+- RN-50 — O painel da marca, à esquerda do `/login`, de `/account/setup` e de `/forgot-password`, mostra a frase "Saiba o que está disponível e com quem está cada item.", a mesma da landing, e os números "3 itens por pessoa" e "14 dias de prazo". Origem: `docs/layout.md`, seção 6, telas 1, 7 e 8; decisão de 2026-11-11, na T-09.
 
 ## Critérios de aceitação
 
