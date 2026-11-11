@@ -92,18 +92,18 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 
 ## 8. O repositório hoje
 
-Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. A spec 001, de login, já pode ser rascunhada: as perguntas dela estão respondidas e o ADR-006 foi aceito. O Auth ainda não está no `compose.yaml`; entra numa tarefa da spec.
+Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. A spec 001, de login, já pode ser rascunhada: as perguntas dela estão respondidas e o ADR-006 foi aceito. O `compose.yaml` sobe o Auth e o gateway desde a T-01 da spec 001; o app ainda não fala com eles.
 
 ### Comandos
 
-Só o que já rodou. Antes de tudo: `.env.local` preenchido a partir do `.env.example` e Docker Desktop aberto.
+Só o que já rodou. Antes de tudo: `.env.local` preenchido a partir do `.env.example`, com as chaves do Auth local geradas como ele explica, e Docker Desktop aberto.
 
 Primeira subida, nesta ordem:
 
 | Passo | Comando | O que faz |
 |---|---|---|
 | 1 | `pnpm install` | Instala e gera o client do Prisma |
-| 2 | `docker compose --env-file .env.local up -d --wait` | Sobe o Postgres de dev e espera ele ficar saudável |
+| 2 | `docker compose --env-file .env.local up -d --wait` | Sobe o Postgres, o Auth e o gateway de dev e espera os três ficarem saudáveis |
 | 3 | `pnpm prisma migrate deploy` | Aplica as migrations no banco de dev |
 | 4 | `pnpm dev` | Roda em http://localhost:3000; a landing mostra "Banco de dados ok" |
 
@@ -115,7 +115,7 @@ Depois, quando precisar:
 | `pnpm test` | Suíte no Testcontainers; exige o Docker de pé |
 | `pnpm build` | Build de produção; exige `DATABASE_URL` |
 | `pnpm prisma migrate dev --name <nome>` | Cria migration nova (`rules/migration.md`) |
-| `docker compose --env-file .env.local down` | Derruba o banco; o dado fica no volume |
+| `docker compose --env-file .env.local down` | Derruba os três; o dado fica no volume |
 
 O Prisma avisa que há versão nova e sugere `npm i prisma@latest`: ignore. O projeto usa pnpm e fixa o Prisma na versão exata do `package.json`, porque o `latest` é o 8.0.0-rc.
 
@@ -131,6 +131,7 @@ O Prisma avisa que há versão nova e sugere `npm i prisma@latest`: ignore. O pr
 | `src/trpc/` | Lado cliente do tRPC |
 | `src/generated/prisma/` | Client gerado, fora do git e do lint |
 | `prisma/` | `schema.prisma` e migrations |
+| `docker/` | Configuração do Envoy e script de senha do Auth, montados pelo `compose.yaml` (ADR-006) |
 | `tests/` | Só infraestrutura de teste: globalSetup e helpers |
 
 Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `routers/`, `services/` e `src/app/<rota>/`, mais `prisma/` se tiver tabela nova.
