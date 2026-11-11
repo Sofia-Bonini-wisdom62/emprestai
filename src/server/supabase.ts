@@ -92,6 +92,33 @@ export async function createServerAuthClient(responseHeaders?: Headers) {
   };
 }
 
+// Se esta sessão entrou pelo link do e-mail, pelo método mais recente nos claims do token (amr).
+// O link do convite e o da redefinição, validados em /auth/confirm/verify (RN-55), entram como
+// "otp", os dois, conferido no Auth v2.197.0 da pilha do E2E; entrar com senha entra como
+// "password". O app não tem outra entrada por código. Qualquer falha, e o limite do RN-48, viram
+// false.
+export async function sessionFromEmailLink(): Promise<boolean> {
+  try {
+    const server = await createServerAuthClient();
+    if (!server) return false;
+
+    const result = await withAuthTimeout(server.client.auth.getClaims());
+    const amr = result?.data?.claims.amr;
+    if (!Array.isArray(amr) || amr.length === 0) return false;
+
+    // O amr pode trazer só o nome do método (RFC 8176), sem horário.
+    const entries = amr.map((entry) =>
+      typeof entry === "string" ? { method: entry, timestamp: 0 } : entry,
+    );
+    const latest = entries.reduce((last, entry) =>
+      entry.timestamp > last.timestamp ? entry : last,
+    );
+    return latest.method === "otp";
+  } catch {
+    return false;
+  }
+}
+
 // O cookie de sessão do @supabase/ssr, inteiro ou em pedaços, e os do PKCE.
 const SESSION_COOKIE = /^sb-.+-auth-token/;
 

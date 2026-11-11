@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import type { Prisma } from "@/generated/prisma/client";
 import {
   destinationOf,
+  setupFields,
   enterAccount,
   FIRST_ENTRY_TENANT_SLUG,
 } from "@/server/services/account";
@@ -195,5 +196,30 @@ describe("destinationOf", () => {
 
   it("ca_31 sem papel, como no vínculo em mais de uma área (RN-46, RN-52), não há destino", () => {
     expect(destinationOf({ name: "Beatriz Fontes", role: null })).toBeNull();
+  });
+});
+
+// O que /account/setup pede em cada entrada (RN-21; docs/layout.md, tela 7).
+describe("setupFields", () => {
+  it("ca_07 pelo link do convite, sem nome, pede a senha e o nome", () => {
+    expect(setupFields({ name: null }, true)).toEqual({ password: true, name: true });
+  });
+
+  it("ca_20 pelo link da redefinição, com nome, pede só a senha", () => {
+    expect(setupFields({ name: "Beatriz Fontes" }, true)).toEqual({
+      password: true,
+      name: false,
+    });
+  });
+
+  it("ca_06 entrando com senha e sem nome, pede só o nome", () => {
+    expect(setupFields({ name: null }, false)).toEqual({ password: false, name: true });
+  });
+
+  it("ca_06 entrando com senha e com nome, não pede nada", () => {
+    expect(setupFields({ name: "Beatriz Fontes" }, false)).toEqual({
+      password: false,
+      name: false,
+    });
   });
 });

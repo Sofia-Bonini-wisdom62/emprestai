@@ -44,6 +44,19 @@ export function destinationOf(account: {
   return account.role === "operations" ? "/operations/loans" : "/catalog";
 }
 
+export type SetupFields = { password: boolean; name: boolean };
+
+// O que /account/setup pede (RN-21; docs/layout.md, tela 7): a senha quando a sessão
+// veio do link do e-mail, o do convite ou o da redefinição, e o nome quando ele falta
+// (RN-20, CA-06). Assim o convite pede os dois, e a redefinição de quem tem nome, só a
+// senha. Sem nenhum dos dois, a tela não tem o que pedir.
+export function setupFields(
+  account: { name: string | null },
+  fromEmailLink: boolean,
+): SetupFields {
+  return { password: fromEmailLink, name: !account.name };
+}
+
 async function destinationFor(
   db: PrismaClient,
   userId: string,
