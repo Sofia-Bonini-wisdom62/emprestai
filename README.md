@@ -22,6 +22,7 @@ O andar zero está em andamento: existe o scaffold do Next.js e uma landing prov
 - [ADR-005 — Nome do primeiro tenant](docs/adr/005-first-tenant-name.md) — aceito: `default`, no lugar de `operations`, que é o nome do papel.
 - [ADR-006 — Auth no desenvolvimento](docs/adr/006-dev-auth.md) — aceito em 2026-11-11: Supabase Auth em contêiner, com o gateway Envoy, no `compose.yaml`.
 - [ADR-007 — Deploy de produção pela CLI](docs/adr/007-production-deploy-cli.md) — aceito em 2026-11-11: a CLI da Vercel publica depois da migration, no lugar do Deploy Hook do ADR-004.
+- [ADR-008 — Provedor de e-mail do Supabase Auth](docs/adr/008-email-provider.md) — proposto em 2026-11-11: domínio próprio com o Resend, recomendado, ou SMTP do Gmail numa conta só do projeto. Falta a escolha da pessoa.
 - [ADR-003 — Correções do ADR-001](docs/adr/003-stack-corrections.md) — aceito: produto do PRD, motivo da multi-tenancy, nomes do Prisma 7, do Supabase e do Next 16, e o fim da menção a Figma. Nenhuma escolha de stack muda.
 - [Insumo do ADR](stacks_H.md) — documento de trabalho, congelado antes de o PRD entrar. Não copie nada dele.
 
