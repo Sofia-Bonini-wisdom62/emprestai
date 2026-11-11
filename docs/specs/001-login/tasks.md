@@ -11,7 +11,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [x] T-03 — Migration de `tenants`, `memberships` e `profiles`, sem FK para `auth.users`, com RLS, policy e teste de bloqueio
       CA: CA-14
       Verifica: o DDL aprovado na resposta antes de gerar; `pnpm test` com os casos `ca_14` de policy (`SET LOCAL ROLE`, controle sem RLS, `pg_policies`); `pnpm prisma migrate dev` sem erro
-- [ ] T-04 — Seed com a `default` e a conta de Flávia Rocha, com nome, pela API de admin do Auth
+- [x] T-04 — Seed com a `default` e a conta de Flávia Rocha, com nome, pela API de admin do Auth
       CA: CA-13
       Verifica: o caso `ca_13` roda o seed duas vezes na pilha efêmera e conta as linhas pelo Prisma
 - [x] T-05 — Cliente de servidor do `@supabase/ssr`, sessão no `createContext` com `getUser()` e os middlewares `protectedProcedure`, `tenantProcedure` e `adminProcedure`. Instala `@supabase/ssr` e `@supabase/supabase-js`
