@@ -32,37 +32,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+    # O que não muda entre o dev e a pilha do E2E: cadastro fechado, validade dos tokens, e-mail.
+    env_file: ./docker/auth/auth.env
     environment:
-      GOTRUE_API_HOST: 0.0.0.0
-      GOTRUE_API_PORT: 9999
       # O endereço do gateway na máquina, o mesmo da NEXT_PUBLIC_SUPABASE_URL.
       API_EXTERNAL_URL: http://127.0.0.1:54321
-      GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:?preencha POSTGRES_PASSWORD no .env.local}@db:5432/postgres
       GOTRUE_SITE_URL: http://localhost:3000
       GOTRUE_URI_ALLOW_LIST: http://localhost:3000/**
-      # Cadastro fechado: conta só por convite (ADR-001, 2.7).
-      GOTRUE_DISABLE_SIGNUP: "true"
-      GOTRUE_JWT_ADMIN_ROLES: service_role
-      GOTRUE_JWT_AUD: authenticated
-      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-      GOTRUE_JWT_EXP: 3600
       # O Auth exige o segredo HS256 mesmo assinando em ES256, com a chave do JWT_KEYS.
       GOTRUE_JWT_SECRET: ${JWT_SECRET:?preencha JWT_SECRET no .env.local (ADR-006, seção 4)}
       GOTRUE_JWT_KEYS: ${JWT_KEYS:?preencha JWT_KEYS no .env.local (ADR-006, seção 4)}
       GOTRUE_JWT_ISSUER: http://127.0.0.1:54321/auth/v1
-      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
-      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
-      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
-      GOTRUE_MAILER_AUTOCONFIRM: "false"
-      # O link do e-mail vale 24 horas, como na produção (RN-36 da spec 001).
-      GOTRUE_MAILER_OTP_EXP: 86400
-      # Sem SMTP_HOST, o Auth descarta o e-mail; o convite sai por auth.admin.generateLink (ADR-006).
-      GOTRUE_SMTP_ADMIN_EMAIL: auth@example.test
-      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
-      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
-      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
-      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
 
   # Serve /auth/v1, confere a apikey e troca as chaves sb_ pelos JWTs internos antes de chamar o Auth.
   api-gw:
@@ -83,19 +64,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+    # O que não muda entre o dev e a pilha do E2E: chaves legadas vazias e o painel inexistente.
+    env_file: ./docker/envoy/envoy.env
     environment:
       SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?preencha NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no .env.local (ADR-006, seção 4)}
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:?preencha SUPABASE_SECRET_KEY no .env.local com a chave local (ADR-006, seção 4)}
       ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:?preencha ANON_KEY_ASYMMETRIC no .env.local (ADR-006, seção 4)}
       SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:?preencha SERVICE_ROLE_KEY_ASYMMETRIC no .env.local (ADR-006, seção 4)}
-      # Vazias de propósito: sem as chaves legadas, o gateway só aceita as sb_ (ADR-006).
-      ANON_KEY: ""
-      SERVICE_ROLE_KEY: ""
       SUPABASE_PUBLIC_URL: http://127.0.0.1:54321
-      # O filtro basic_auth da configuração oficial protege o painel, que aqui não existe, e fica
-      # desligado em todas as rotas. Os dois valores só existem porque o entrypoint oficial os lê.
-      DASHBOARD_USERNAME: sem-painel
-      DASHBOARD_PASSWORD: sem-painel
     entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
 
 volumes:
