@@ -50,6 +50,15 @@ describe("primeiro administrador (ADR-009)", () => {
     expect(await defaultMemberships()).toEqual([]);
   });
 
+  // Escolha da pessoa em 2026-11-11: o deploy não trava enquanto o secret não existe.
+  it("adr_009 sem o secret FIRST_ADMIN_EMAIL, garante a default, avisa e não falha", async () => {
+    const output = runFirstAdmin("");
+
+    expect(output).toContain("::warning::Sem FIRST_ADMIN_EMAIL");
+    expect(await findDefault()).toHaveLength(1);
+    expect(await defaultMemberships()).toEqual([]);
+  });
+
   it("ca_24 com a conta no Auth, grava o vínculo operations dela na default", async () => {
     await db.$executeRaw`
       INSERT INTO auth.users (id, email) VALUES (${account.id}::uuid, ${account.email})`;
