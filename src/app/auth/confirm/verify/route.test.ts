@@ -25,8 +25,9 @@ function expectLinkExpired(response: Response) {
   expect(response.headers.get("cache-control")).toBe("private, no-store");
 }
 
-// O link de verdade, gerado pelo Auth, se prova no E2E (CA-30). Aqui ficam os
-// caminhos que não dependem do Auth.
+// O link de verdade, gerado pelo Auth, e a recusa do envio de outra origem ou
+// sem Origin se provam no E2E (CA-30): só com o Auth de verdade dá para ver que
+// o link recusado continua valendo. Aqui ficam os caminhos sem Auth.
 describe("POST /auth/confirm/verify", () => {
   it.each([
     ["sem token_hash", { type: "invite" }],
@@ -34,14 +35,5 @@ describe("POST /auth/confirm/verify", () => {
     ["sem Auth, como no Preview", { token_hash: "abc", type: "recovery" }],
   ])("ca_25 %s, leva a /login com o aviso do link vencido e sem cookie", async (_, fields) => {
     expectLinkExpired(await verify(fields));
-  });
-
-  it.each([
-    ["de outra origem", "https://outro-site.example"],
-    ["sem cabeçalho Origin", null],
-  ])("ca_30 o envio %s é recusado sem chamar o Auth", async (_, from) => {
-    expectLinkExpired(
-      await verify({ token_hash: "abc", type: "invite" }, from),
-    );
   });
 });

@@ -231,10 +231,27 @@ test("ca_30 o link do convite aberto sem clique não se gasta; o clique em Conti
   const confirmPath = `/auth/confirm?token_hash=${link.properties?.hashed_token}&type=invite`;
 
   // Um leitor de e-mail abre o link sozinho: a página responde sem chamar o Auth e sem cookie.
+  // Outro site manda o mesmo envio do botão, e um cliente o manda sem Origin: os dois voltam a
+  // /login sem chegar ao Auth, porque o link continua valendo para o clique legítimo abaixo.
   const scanner = await newRequest(playwright);
   try {
     const opened = await scanner.get(confirmPath, { maxRedirects: 0 });
     expect(opened.status()).toBe(200);
+
+    const form = {
+      token_hash: link.properties?.hashed_token ?? "",
+      type: "invite",
+    };
+    const senders: Record<string, string>[] = [{ origin: "https://outro-site.example" }, {}];
+    for (const headers of senders) {
+      const sent = await scanner.post("/auth/confirm/verify", {
+        form,
+        headers,
+        maxRedirects: 0,
+      });
+      expect(sent.status()).toBe(303);
+      expect(sent.headers().location).toBe("/login?error=expired-link");
+    }
     expect(await sessionCookies(scanner)).toEqual([]);
   } finally {
     await scanner.dispose();

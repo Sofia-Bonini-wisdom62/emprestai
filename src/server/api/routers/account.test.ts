@@ -127,10 +127,10 @@ describe("nome no primeiro acesso", () => {
     await expect(db.profile.count({ where: { id: userId } })).resolves.toBe(0);
   });
 
-  it("ca_06 nome de 81 caracteres é recusado, e o de 80 é salvo sem os espaços das pontas", async () => {
-    await expect(
-      caller(session).account.setup({ name: "a".repeat(81) }),
-    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  it("ca_06 nome de 81 caracteres é recusado com a mensagem do RN-51, e o de 80 é salvo sem os espaços das pontas", async () => {
+    const tooLong = caller(session).account.setup({ name: "a".repeat(81) });
+    await expect(tooLong).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(tooLong).rejects.toThrow(authMessages.nameTooLong);
     await expect(db.profile.count({ where: { id: userId } })).resolves.toBe(0);
 
     const name = "b".repeat(80);

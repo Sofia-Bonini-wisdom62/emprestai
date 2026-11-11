@@ -421,4 +421,20 @@ describe("auth.requestPasswordReset", () => {
       }),
     ).resolves.toEqual({ message: authMessages.resetRequested });
   });
+
+  it("ca_31 com o contador fora do ar, o pedido de redefinição devolve a resposta do RN-42 sem pedir o link", async () => {
+    const unreachableDb = createTestDb("postgresql://127.0.0.1:1/x");
+    const { auth, calls } = fakeAuth({ [denise]: randomUUID() });
+
+    try {
+      await expect(
+        caller(auth, "192.0.2.73", generousRules, null, unreachableDb).auth.requestPasswordReset({
+          email: denise,
+        }),
+      ).resolves.toEqual({ message: authMessages.resetRequested });
+      expect(calls.reset).toEqual([]);
+    } finally {
+      await unreachableDb.$disconnect();
+    }
+  });
 });
