@@ -1,7 +1,8 @@
-# Banco de dev local (ADR-004): só o Postgres, sem Supabase CLI.
-# A senha vem de fora do arquivo. Todo subcomando precisa da flag, porque o Compose sozinho só lê .env:
-# docker compose --env-file .env.local up -d (vale também para ps, logs, port e down)
-# A tag é a mesma do Testcontainers, para o dev e os testes rodarem a mesma imagem.
+# Dev local: Postgres, Supabase Auth e o gateway Envoy, sem Supabase CLI (ADR-004 e ADR-006).
+# Os valores vêm de fora do arquivo. Todo subcomando precisa da flag, porque o Compose sozinho só lê .env:
+# docker compose --env-file .env.local up -d --wait (vale também para ps, logs, port e down)
+# A tag do db é a mesma do Testcontainers, para o dev e os testes rodarem a mesma imagem.
+# As tags do Auth e do gateway são as do self-hosting oficial (ADR-006); a pasta docker/ traz a configuração.
 services:
   db:
     image: supabase/postgres:17.11.0.018
@@ -11,12 +12,91 @@ services:
       - "127.0.0.1:54322:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+      # Só roda com o volume vazio: com um volume antigo, recrie com down -v e migre de novo.
+      - ./docker/db/auth-password.sql:/docker-entrypoint-initdb.d/init-scripts/99-auth-password.sql:ro
     healthcheck:
       # -h localhost usa TCP: o servidor temporário da inicialização só escuta no socket.
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 12
+
+  # Sem porta publicada: só o gateway fala com ele.
+  auth:
+    image: supabase/gotrue:v2.197.0
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      # O endereço do gateway na máquina, o mesmo da NEXT_PUBLIC_SUPABASE_URL.
+      API_EXTERNAL_URL: http://127.0.0.1:54321
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:?preencha POSTGRES_PASSWORD no .env.local}@db:5432/postgres
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_URI_ALLOW_LIST: http://localhost:3000/**
+      # Cadastro fechado: conta só por convite (ADR-001, 2.7).
+      GOTRUE_DISABLE_SIGNUP: "true"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      # O Auth exige o segredo HS256 mesmo assinando em ES256, com a chave do JWT_KEYS.
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:?preencha JWT_SECRET no .env.local (ADR-006, seção 4)}
+      GOTRUE_JWT_KEYS: ${JWT_KEYS:?preencha JWT_KEYS no .env.local (ADR-006, seção 4)}
+      GOTRUE_JWT_ISSUER: http://127.0.0.1:54321/auth/v1
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      # O link do e-mail vale 24 horas, como na produção (RN-36 da spec 001).
+      GOTRUE_MAILER_OTP_EXP: 86400
+      # Sem SMTP_HOST, o Auth descarta o e-mail; o convite sai por auth.admin.generateLink (ADR-006).
+      GOTRUE_SMTP_ADMIN_EMAIL: auth@example.test
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+
+  # Serve /auth/v1, confere a apikey e troca as chaves sb_ pelos JWTs internos antes de chamar o Auth.
+  api-gw:
+    image: envoyproxy/envoy:v1.39.6
+    depends_on:
+      auth:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:54321:8000"
+    volumes:
+      - ./docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./docker/envoy/cds.yaml:/etc/envoy/cds.yaml:ro
+      - ./docker/envoy/lds.template.yaml:/etc/envoy/lds.template.yaml:ro
+      - ./docker/envoy/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+    healthcheck:
+      # A imagem não traz curl nem wget; o self-hosting oficial confere a porta pelo bash.
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/127.0.0.1/8000'"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    environment:
+      SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?preencha NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no .env.local (ADR-006, seção 4)}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:?preencha SUPABASE_SECRET_KEY no .env.local com a chave local (ADR-006, seção 4)}
+      ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:?preencha ANON_KEY_ASYMMETRIC no .env.local (ADR-006, seção 4)}
+      SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:?preencha SERVICE_ROLE_KEY_ASYMMETRIC no .env.local (ADR-006, seção 4)}
+      # Vazias de propósito: sem as chaves legadas, o gateway só aceita as sb_ (ADR-006).
+      ANON_KEY: ""
+      SERVICE_ROLE_KEY: ""
+      SUPABASE_PUBLIC_URL: http://127.0.0.1:54321
+      # O filtro basic_auth da configuração oficial protege o painel, que aqui não existe, e fica
+      # desligado em todas as rotas. Os dois valores só existem porque o entrypoint oficial os lê.
+      DASHBOARD_USERNAME: sem-painel
+      DASHBOARD_PASSWORD: sem-painel
+    entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
 
 volumes:
   db-data:
