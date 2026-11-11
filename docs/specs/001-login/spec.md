@@ -10,7 +10,7 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 ## Vínculo
 
 - PRD: `docs/PRD.md`, seção "O que precisa existir na primeira versão", item 1, com as respostas 5, 5b, 6, 15 e 22 a 32 de `docs/perguntas-prd.md`.
-- Restringe: `docs/adr/001-stack.md`, seções 2.6, 2.7, 2.8 e 2.10, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/002-design-system.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/006-dev-auth.md`; `docs/adr/007-production-deploy-cli.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/010-audit-from-loans.md`; e o ADR-008 (PR #20), ainda Proposto até a conferência da seção 7 dele, que a pessoa decidiu não esperar para aprovar esta spec. Aparência: `docs/layout.md`, seções 5, 6 (telas 1 e 7), 8, 9 e 11.
+- Restringe: `docs/adr/001-stack.md`, seções 2.6, 2.7, 2.8 e 2.10, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/002-design-system.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/006-dev-auth.md`; `docs/adr/007-production-deploy-cli.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/010-audit-from-loans.md`; e o `docs/adr/008-email-provider.md`, ainda Proposto até a conferência da seção 7 dele, que a pessoa decidiu não esperar para aprovar esta spec. Aparência: `docs/layout.md`, seções 5, 6 (telas 1 e 7), 8, 9 e 11.
 - Assume pronto: nada. O andar zero e o ADR-006 aceito já estão na `main`.
 
 ## Regras

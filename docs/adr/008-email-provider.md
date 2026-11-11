@@ -13,7 +13,7 @@
 
 ## 1. Contexto
 
-As respostas da 22 e da 24 decidiram que Operações convida e dispara a redefinição de senha pelo painel do Supabase de produção, e que o Supabase manda os dois e-mails por um SMTP próprio. Sem SMTP próprio, o Supabase só entrega a quem é da equipe do projeto, até 2 e-mails por hora: o convite não chegaria a nenhum colaborador. Com SMTP próprio, entrega a qualquer endereço, começando em 30 por hora, limite que se ajusta no painel.
+As respostas da 22 e da 24 decidiram que Operações convida pelo painel do Supabase de produção, que a própria pessoa pede a redefinição de senha pelo "Esqueci minha senha" do login (a resposta da 24 mudou em 2026-11-11, porque o painel não tem a opção de redefinir), e que o Supabase manda os dois e-mails por um SMTP próprio. Sem SMTP próprio, o Supabase só entrega a quem é da equipe do projeto, até 2 e-mails por hora: o convite não chegaria a nenhum colaborador. Com SMTP próprio, entrega a qualquer endereço, começando em 30 por hora, limite que se ajusta no painel.
 
 O volume é pequeno: poucas dezenas de pessoas, menos de 100 e-mails por mês. Quase todo provedor tem plano gratuito que cobre isso.
 
