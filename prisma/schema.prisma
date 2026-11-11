@@ -53,3 +53,12 @@ model Profile {
 
   @@map("profiles")
 }
+
+model RateLimit {
+  // SHA-256 de "ip:<ip>" ou "email:<e-mail>": a tabela não guarda IP nem e-mail em claro.
+  key             String   @id
+  count           Int
+  windowStartedAt DateTime @map("window_started_at") @db.Timestamptz(3)
+
+  @@map("rate_limits")
+}
