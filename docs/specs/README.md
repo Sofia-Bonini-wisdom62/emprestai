@@ -1,6 +1,7 @@
 # Specs
 
-Cada funcionalidade tem uma **pasta** em `docs/specs/<NNN-nome-curto>/`, com três artefatos dentro. O desenho
+Cada funcionalidade tem uma **pasta** em `docs/specs/<NNN-nome-curto>/`, com três artefatos dentro, e um quarto
+quando as tarefas fecham. O desenho
 abaixo é o formato alvo: **nenhuma dessas pastas existe ainda, e a próxima spec criada é a 001.**
 
 ```text
@@ -9,6 +10,7 @@ docs/specs/
     spec.md     o comportamento combinado: regras e critérios de aceitação
     plan.md     por onde a mudança entra e em que ordem
     tasks.md    as tarefas, cada uma citando um critério
+    verificacao.md   as rodadas do verificador-spec, quando as tarefas fecham
   002-equipment-catalog/
   003-loan-create/
 ```
@@ -100,9 +102,22 @@ Cada tarefa cita um CA, cabe em um commit e diz como se verifica. Tarefa que nã
 - [ ] T-02 — ...
 ```
 
+## `verificacao.md`
+
+Nasce quando `tasks.md` fecha todo em `[x]`. Cada rodada é a resposta do `verificador-spec` colada sem
+edição, a mais nova embaixo; o formato da resposta está no arquivo do agente. O hook do `spec.md` lê só a
+última rodada: o `HEAD` e o `Veredito`.
+
+```markdown
+# <NNN> — Verificação
+
+## Rodada 1 — AAAA-MM-DD
+<resposta do verificador-spec, inteira>
+```
+
 ## O que o formato exige
 
-- O status vive no cabeçalho de `spec.md`, e só ali. `plan.md` e `tasks.md` não têm status próprio.
+- O status vive no cabeçalho de `spec.md`, e só ali. `plan.md`, `tasks.md` e `verificacao.md` não têm status próprio.
 - Sem o CA de isolamento, uma spec que toca dado de domínio está incompleta.
 
 ## Onde está o resto

@@ -27,13 +27,20 @@ Ao iniciar uma funcionalidade que ainda não tem pasta em `docs/specs/`.
 ## Antes de declarar uma spec pronta
 Quando `tasks.md` fechar todo em `[x]`, e antes de o status da spec
 passar a `implementada`:
-1. Delegue ao subagente `verificador-spec`
+1. Commite tudo. O verificador confere o código do HEAD.
+2. Delegue ao subagente `verificador-spec`
    (`.claude/agents/verificador-spec.md`), passando as duas entradas que
    o arquivo dele pede: o caminho da spec e o que verificar.
-2. A spec só passa a `implementada` com `Veredito: PRONTA`. Qualquer
-   outro resultado volta para as tarefas: quem corrige é o agente
-   principal, nunca o verificador, e depois delega a verificação de
-   novo, com janela limpa.
+3. Cole a resposta dele inteira, sem editar, como uma nova
+   `## Rodada <n> — AAAA-MM-DD` no fim de `verificacao.md`, na pasta da
+   spec. É o registro que deixa comparar uma rodada com a outra.
+4. A spec só passa a `implementada` com `Veredito: PRONTA` na última
+   rodada, sobre o código que está no disco. O hook
+   `.claude/hooks/require-verification.mjs` nega a edição do status em
+   qualquer outro caso, para isso não depender de alguém lembrar.
+5. Qualquer outro resultado volta para as tarefas: quem corrige é o
+   agente principal, nunca o verificador, nem quando a única falha é um
+   teste quebrado. Depois, rodada nova, com janela limpa.
 
 ## Ciclo de vida
 `tasks.md` fecha todo em `[x]` e para de mudar; `plan.md` fica preservado como
@@ -43,6 +50,7 @@ spec (nova RN, novo CA) e só depois no código, nunca ao contrário.
 
 ## Verificação
 `docs/specs/<NNN-nome-curto>/` com os três arquivos; cada `[x]` cita um CA-xx.
+Spec `implementada` tem também o `verificacao.md`, com a última rodada PRONTA.
 
 ## Não faça
 - Não crie spec como arquivo plano, nem pasta fora de `<NNN-nome-curto>`, nem
