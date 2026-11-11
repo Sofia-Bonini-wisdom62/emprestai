@@ -208,7 +208,7 @@ Mapa registrado em 2026-11-05. É proposta: não substitui ADR nem spec, e a pes
 
 ### 5.2 O que trava a spec 001
 
-Situação em 2026-11-11: os itens 1 e 2 foram respondidos em 2026-11-09 (perguntas 5 e 6 de `docs/perguntas-prd.md`), e o item 4 em 2026-11-11, com o ADR-002 aceito. O item 3 virou o ADR-006, ainda Proposto: falta a prova descartável que ele pede antes de aceitar. As perguntas que a spec 001 levantou depois (5b e 22 a 29) foram respondidas em 2026-11-11. A 22 pede um ADR novo, do provedor de e-mail transacional.
+Situação em 2026-11-11: os itens 1 e 2 foram respondidos em 2026-11-09 (perguntas 5 e 6 de `docs/perguntas-prd.md`), e o item 4 em 2026-11-11, com o ADR-002 aceito. O item 3 virou o ADR-006, aceito em 2026-11-11 depois da prova descartável. As perguntas que a spec 001 levantou depois (5b e 22 a 29) foram respondidas em 2026-11-11. A 22 pede um ADR novo, do provedor de e-mail transacional.
 
 1. **Pergunta 6 de `docs/perguntas-prd.md`:** Operações é papel global ou por área? Se for global, a multi-tenancy sai inteira e a saída vira ADR novo (ADR-003, seção 5). Vem primeiro porque, enquanto não existir tabela de domínio, mudar custa só documento.
 2. **Pergunta 5:** quem cria as contas, e se existe tela de convite na v1.

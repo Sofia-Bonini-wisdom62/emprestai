@@ -20,7 +20,7 @@ O andar zero está em andamento: existe o scaffold do Next.js e uma landing prov
 - [ADR-002 — Sistema de design](docs/adr/002-design-system.md) — aceito em 2026-11-11: só escuro, índigo, Geist, densidade arejada.
 - [ADR-004 — Ambientes e bancos](docs/adr/004-environments.md) — aceito: dev em Postgres local no Docker, testes no Testcontainers, preview sem banco, produção no Supabase só pelo CI.
 - [ADR-005 — Nome do primeiro tenant](docs/adr/005-first-tenant-name.md) — aceito: `default`, no lugar de `operations`, que é o nome do papel.
-- [ADR-006 — Auth no desenvolvimento](docs/adr/006-dev-auth.md) — proposto: Supabase Auth em contêiner, com gateway, no `compose.yaml`.
+- [ADR-006 — Auth no desenvolvimento](docs/adr/006-dev-auth.md) — aceito em 2026-11-11: Supabase Auth em contêiner, com o gateway Envoy, no `compose.yaml`.
 - [ADR-007 — Deploy de produção pela CLI](docs/adr/007-production-deploy-cli.md) — aceito em 2026-11-11: a CLI da Vercel publica depois da migration, no lugar do Deploy Hook do ADR-004.
 - [ADR-003 — Correções do ADR-001](docs/adr/003-stack-corrections.md) — aceito: produto do PRD, motivo da multi-tenancy, nomes do Prisma 7, do Supabase e do Next 16, e o fim da menção a Figma. Nenhuma escolha de stack muda.
 - [Insumo do ADR](stacks_H.md) — documento de trabalho, congelado antes de o PRD entrar. Não copie nada dele.
