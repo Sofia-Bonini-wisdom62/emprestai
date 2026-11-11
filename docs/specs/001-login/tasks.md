@@ -14,7 +14,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [ ] T-04 — Seed com a `default` e a conta de Flávia Rocha, com nome, pela API de admin do Auth
       CA: CA-13
       Verifica: o caso `ca_13` roda o seed duas vezes na pilha efêmera e conta as linhas pelo Prisma
-- [ ] T-05 — Cliente de servidor do `@supabase/ssr`, sessão no `createContext` com `getUser()` e os middlewares `protectedProcedure`, `tenantProcedure` e `adminProcedure`. Instala `@supabase/ssr` e `@supabase/supabase-js`
+- [x] T-05 — Cliente de servidor do `@supabase/ssr`, sessão no `createContext` com `getUser()` e os middlewares `protectedProcedure`, `tenantProcedure` e `adminProcedure`. Instala `@supabase/ssr` e `@supabase/supabase-js`
       CA: CA-10
       Verifica: `pnpm test` com `ca_10` via `createCaller`, com um procedimento de teste montado com `adminProcedure`; os casos `az_04` continuam passando com o novo `createContext`
 - [ ] T-06 — Rate limit: migration de `rate_limits`, com RLS e policy, e o service que conta por IP e por e-mail
