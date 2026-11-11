@@ -152,12 +152,45 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
     resposta, `docs/layout.md` desenha a busca como filtro da tabela de
     empréstimos em aberto.
 
+<!-- A numeração pula de 21 para 30; este comentário separa as listas para o
+     Markdown não renumerar. -->
+
+30. O que a pessoa vê quando abre o link do convite? E o link de redefinição
+    que Operações dispara pelo painel leva a alguma tela do emprestai?
+    tipo: negócio
+    por que importa: o convite chega por e-mail (pergunta 22) e traz a pessoa
+    ao emprestai, que precisa deixá-la definir a senha, e o nome entra no
+    primeiro acesso (pergunta 26). A redefinição também manda um link por
+    e-mail (pergunta 24), e a resposta da 24 diz que a v1 continua sem tela de
+    recuperação no emprestai. Sem resposta, `docs/layout.md` não desenha a
+    tela do convite, e não se sabe onde o link de redefinição cai.
+
+31. O que vê o Colaborador que abre o endereço de uma tela de Operações?
+    tipo: negócio
+    por que importa: `docs/layout.md`, seção 6, restringe Empréstimos em
+    aberto e Cadastrar equipamento ao papel Operações, sem dizer o que
+    acontece com quem não tem o papel. O servidor nega o dado de qualquer
+    jeito; a dúvida é a tela. Sem resposta, a spec 001 propõe levar ao
+    catálogo.
+
+32. Por quanto tempo uma conta bloqueada no painel ainda age com a sessão que
+    já estava aberta?
+    tipo: negócio
+    por que importa: pela resposta da 25, Operações bloqueia a conta de quem
+    sai da empresa. A conferência de sessão que a Supabase recomenda no
+    servidor (`getClaims()`) valida o token sem consultar o Auth, então só
+    percebe o bloqueio quando o token vence: 3600 segundos no padrão do Auth
+    (`JWT_EXPIRY` do self-hosting, conferido em 2026-11-09); o valor da
+    produção não foi conferido. Conferir no Auth a cada chamada (`getUser()`)
+    fecha essa janela, ao custo de uma ida ao Auth por chamada. Sem resposta,
+    a spec 001 não escolhe.
+
 ---
 
 ## Respondidas, aguardando spec
 
-Nenhuma spec existe ainda. "Vira RN em" diz a funcionalidade, não o número da
-pasta, que só sai quando a spec for criada.
+A primeira spec é a do login, em `docs/specs/001-login/`. "Vira RN em" diz a
+funcionalidade, não o número da pasta, que só sai quando a spec for criada.
 
 1. Um equipamento é uma unidade física individual ou um modelo com quantidade?
    resposta: unidade física individual. Um registro por unidade, identificada
