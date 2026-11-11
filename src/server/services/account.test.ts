@@ -193,7 +193,7 @@ describe("destinationOf", () => {
     expect(destinationOf({ name: null, role: "member" })).toBe("/account/setup");
   });
 
-  it("ca_05 sem papel, como no vínculo em mais de uma área (RN-46), não há destino", () => {
+  it("ca_31 sem papel, como no vínculo em mais de uma área (RN-46, RN-52), não há destino", () => {
     expect(destinationOf({ name: "Beatriz Fontes", role: null })).toBeNull();
   });
 });
