@@ -2,7 +2,6 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { serverEnv } from "@/env/server";
-import { runtimeEnv } from "@/env/runtime";
 import { authMessages } from "@/lib/auth-messages";
 import {
   createTRPCRouter,
@@ -27,10 +26,10 @@ function attemptDeps(ctx: Context) {
   };
 }
 
-// O link do e-mail volta a /auth/confirm, na URL canônica do app (RN-37).
+// O link do e-mail volta a /auth/confirm, na URL canônica do app. O Auth só aceita
+// a Site URL e o localhost (RN-37); a URL de cada deploy (VERCEL_URL) ele recusaria.
 function confirmUrl() {
-  const base =
-    serverEnv.APP_URL ?? runtimeEnv.deploymentUrl ?? "http://localhost:3000";
+  const base = serverEnv.APP_URL ?? "http://localhost:3000";
   return new URL("/auth/confirm", base).toString();
 }
 
