@@ -44,6 +44,20 @@ export function uniqueEmail(person: string) {
   return `${person}+${randomUUID().slice(0, 8)}@example.com`;
 }
 
+// O que os casos criam na pilha, para o cleanupAccounts apagar: o ca_13 do seed.e2e.ts conta
+// todas as contas e áreas da pilha.
+const created = { users: [] as string[], tenants: [] as string[] };
+
+export function trackUser(id: string) {
+  created.users.push(id);
+  return id;
+}
+
+export function trackTenant(id: string) {
+  created.tenants.push(id);
+  return id;
+}
+
 export async function createAccount(email: string, password: string) {
   const { data, error } = await adminAuth().createUser({
     email,
@@ -51,12 +65,28 @@ export async function createAccount(email: string, password: string) {
     email_confirm: true,
   });
   if (error || !data.user) throw error ?? new Error("O Auth não criou a conta");
-  return data.user.id;
+  return trackUser(data.user.id);
 }
 
-export function ensureFirstEntryTenant() {
-  sql(`INSERT INTO "tenants" ("slug", "name") VALUES ('default', 'Área de teste')
-       ON CONFLICT ("slug") DO NOTHING;`);
+// Os ids vêm do Auth e do randomUUID, sempre UUID: entram no SQL sem risco.
+const uuidList = (ids: string[]) => ids.map((id) => `'${id}'::uuid`).join(", ");
+
+export async function cleanupAccounts() {
+  const { users, tenants } = created;
+  if (users.length) {
+    sql(`DELETE FROM "memberships" WHERE "user_id" IN (${uuidList(users)});
+         DELETE FROM "profiles" WHERE "id" IN (${uuidList(users)});`);
+  }
+  if (tenants.length) {
+    sql(`DELETE FROM "memberships" WHERE "tenant_id" IN (${uuidList(tenants)});
+         DELETE FROM "tenants" WHERE "id" IN (${uuidList(tenants)});`);
+  }
+  for (const id of users) {
+    const { error } = await adminAuth().deleteUser(id);
+    if (error) throw error;
+  }
+  created.users = [];
+  created.tenants = [];
 }
 
 type TrpcResponse = { status: number; body: unknown };
@@ -106,11 +136,13 @@ export function newRequest(playwright: {
   return playwright.request.newContext({ baseURL: fromSetup("E2E_BASE_URL") });
 }
 
-// O cookie de sessão do @supabase/ssr, inteiro ou em pedaços (.0, .1). Os do code verifier
-// do PKCE, que o pedido de redefinição grava, não são sessão e ficam de fora.
+// O cookie de sessão do @supabase/ssr, inteiro ou em pedaços (.0, .1), de um request ou de um
+// navegador do Playwright. Os de code verifier do PKCE não são sessão e ficam de fora.
 const SESSION_COOKIE = /^sb-.+-auth-token(\.\d+)?$/;
 
-export async function sessionCookies(request: APIRequestContext) {
-  const { cookies } = await request.storageState();
+export async function sessionCookies(target: {
+  storageState(): Promise<{ cookies: { name: string; httpOnly: boolean }[] }>;
+}) {
+  const { cookies } = await target.storageState();
   return cookies.filter((cookie) => SESSION_COOKIE.test(cookie.name));
 }

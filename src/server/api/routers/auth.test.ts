@@ -23,8 +23,8 @@ import {
   type RateLimitRules,
 } from "@/server/services/rate-limit";
 import {
+  createFirstEntryTenant,
   createTwoAreas,
-  ensureFirstEntryTenant,
   fakeAuth,
   generousRules,
 } from "../../../../tests/helpers/auth";
@@ -38,13 +38,24 @@ const createCaller = createCallerFactory(appRouter);
 // banco, e lá a conta de Beatriz é contada dentro de uma transação.
 const denise = "denise.araujo@example.com";
 
+let firstEntry: Awaited<ReturnType<typeof createFirstEntryTenant>>;
+
 function caller(
   auth: (AuthPort & PasswordResetPort) | null,
   ip: string,
   rateLimitRules: RateLimitRules = generousRules,
   session: Context["session"] = null,
+  database: Context["db"] = db,
 ) {
-  return createCaller({ db, auth, passwordReset: auth, ip, rateLimitRules, session });
+  return createCaller({
+    db: database,
+    auth,
+    passwordReset: auth,
+    ip,
+    rateLimitRules,
+    session,
+    firstEntryTenantSlug: firstEntry.slug,
+  });
 }
 
 const tooManyAttempts = {
@@ -57,7 +68,7 @@ const invalidCredentials = {
 };
 
 beforeAll(async () => {
-  await ensureFirstEntryTenant(db);
+  firstEntry = await createFirstEntryTenant(db);
 });
 
 beforeEach(async () => {
@@ -67,6 +78,7 @@ beforeEach(async () => {
 
 afterAll(async () => {
   await db.rateLimit.deleteMany();
+  await firstEntry.cleanup();
   await db.$disconnect();
 });
 
@@ -195,7 +207,7 @@ describe("auth.signIn", () => {
     const userId = randomUUID();
     const enzo = "enzo.paiva@example.com";
     const { auth } = fakeAuth({ [enzo]: userId });
-    const tenant = await ensureFirstEntryTenant(db);
+    const { tenant } = firstEntry;
 
     try {
       // Sem nome, o destino é /account/setup (CA-06).
@@ -246,6 +258,45 @@ describe("auth.signIn", () => {
       caller(null, "192.0.2.44").auth.signIn({ email: denise, password: "x" }),
     ).rejects.toMatchObject(invalidCredentials);
   });
+
+  it("ca_31 com vínculo em duas áreas, entrar falha com a mensagem genérica, e a sessão aberta pelo Auth sai", async () => {
+    const areas = await createTwoAreas(db);
+    const { auth, calls } = fakeAuth({ [areas.inA.email]: areas.inA.userId });
+
+    try {
+      await db.membership.create({
+        data: { tenantId: areas.tenantB.id, userId: areas.inA.userId, role: "member" },
+      });
+
+      await expect(
+        caller(auth, "192.0.2.45").auth.signIn({
+          email: areas.inA.email,
+          password: "certa",
+        }),
+      ).rejects.toMatchObject(invalidCredentials);
+      expect(calls.signIn).toEqual([areas.inA.email]);
+      expect(calls.signOut).toEqual(["local"]);
+    } finally {
+      await areas.cleanup();
+    }
+  });
+
+  it("ca_31 com o contador fora do ar, entrar falha com a mensagem genérica, sem consultar o Auth", async () => {
+    const unreachableDb = createTestDb("postgresql://127.0.0.1:1/x");
+    const { auth, calls } = fakeAuth({ [denise]: randomUUID() });
+
+    try {
+      await expect(
+        caller(auth, "192.0.2.46", generousRules, null, unreachableDb).auth.signIn({
+          email: denise,
+          password: "certa",
+        }),
+      ).rejects.toMatchObject(invalidCredentials);
+      expect(calls.signIn).toEqual([]);
+    } finally {
+      await unreachableDb.$disconnect();
+    }
+  });
 });
 
 describe("isolamento entre áreas", () => {
@@ -285,7 +336,7 @@ describe("isolamento entre áreas", () => {
       caller(auth, "192.0.2.51", generousRules, session).auth.signOut(),
     ).resolves.toEqual({ redirectTo: "/login" });
 
-    expect(calls.signOut).toBe(1);
+    expect(calls.signOut).toEqual(["local"]);
     await expect(areas.snapshotB()).resolves.toEqual(before);
   });
 
@@ -322,15 +373,20 @@ describe("isolamento entre áreas", () => {
     ]) {
       await expect(call).rejects.toMatchObject({ code: "BAD_REQUEST" });
     }
-    expect(calls).toEqual({ signIn: [], signOut: 0, reset: [], updateUser: [] });
+    expect(calls).toEqual({ signIn: [], signOut: [], reset: [], updateUser: [] });
   });
 });
 
 describe("auth.signOut", () => {
-  it("ca_09 sem sessão, sair falha com UNAUTHORIZED", async () => {
-    await expect(
-      caller(fakeAuth().auth, "192.0.2.60").auth.signOut(),
-    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  // Com o Auth fora do ar, o getUser() do contexto falha e a chamada chega sem
+  // sessão. O Sair apaga o cookie deste navegador mesmo assim (RN-52, RN-53).
+  it("ca_32 sem sessão conferida, sair apaga a sessão só deste navegador e leva a /login", async () => {
+    const { auth, calls } = fakeAuth();
+
+    await expect(caller(auth, "192.0.2.60").auth.signOut()).resolves.toEqual({
+      redirectTo: "/login",
+    });
+    expect(calls.signOut).toEqual(["local"]);
   });
 });
 

@@ -7,7 +7,6 @@ import {
   createTRPCRouter,
   type Context,
   envRateLimitRules,
-  protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
 import {
@@ -49,7 +48,11 @@ export const authRouter = createTRPCRouter({
     .input(z.strictObject({ email, password: z.string().min(1).max(256) }))
     .mutation(async ({ ctx, input }) => {
       const result = await signIn(
-        { ...limitDeps(ctx), auth: ctx.auth ?? null },
+        {
+          ...limitDeps(ctx),
+          auth: ctx.auth ?? null,
+          firstEntryTenantSlug: ctx.firstEntryTenantSlug,
+        },
         input,
       );
       if (result.ok) return { redirectTo: result.destination };
@@ -61,7 +64,9 @@ export const authRouter = createTRPCRouter({
       });
     }),
 
-  signOut: protectedProcedure.input(z.void()).mutation(async ({ ctx }) => {
+  // Público: com o Auth fora do ar, o getUser() do contexto falha e a chamada
+  // chega sem sessão, mas o cookie deste navegador sai mesmo assim (RN-53).
+  signOut: publicProcedure.input(z.void()).mutation(async ({ ctx }) => {
     await signOut(ctx.auth ?? null);
     return { redirectTo: "/login" as const };
   }),

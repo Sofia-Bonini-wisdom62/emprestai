@@ -33,6 +33,8 @@ export type Context = {
   passwordReset?: PasswordResetPort | null;
   ip?: string | null;
   rateLimitRules?: RateLimitRules;
+  // A área da primeira entrada (RN-13). Só o teste troca a default por outra.
+  firstEntryTenantSlug?: string;
 };
 
 export const envRateLimitRules = rateLimitRulesFrom(serverEnv);

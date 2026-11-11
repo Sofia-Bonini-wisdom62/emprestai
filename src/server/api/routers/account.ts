@@ -13,6 +13,12 @@ const name = z
   .min(1, authMessages.nameRequired)
   .max(80, authMessages.nameTooLong);
 
+const passwordMessages = {
+  weak_password: authMessages.weakPassword,
+  same_password: authMessages.samePassword,
+  failed: authMessages.setupFailed,
+} as const;
+
 export const accountRouter = createTRPCRouter({
   // Sem repassar o erro do banco: a mensagem do driver pode trazer host e usuário.
   me: protectedProcedure.input(z.void()).query(async ({ ctx }) => {
@@ -39,24 +45,35 @@ export const accountRouter = createTRPCRouter({
         if (!result.ok) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message:
-              result.reason === "weak_password"
-                ? authMessages.weakPassword
-                : authMessages.setupFailed,
+            message: passwordMessages[result.reason],
           });
         }
       }
 
+      let destination: Awaited<ReturnType<typeof enterAccount>>;
       try {
         if (input.name !== undefined) {
           await saveName(ctx.db, ctx.session.userId, input.name);
         }
-        return { redirectTo: await enterAccount(ctx.db, ctx.session.userId) };
+        destination = await enterAccount(
+          ctx.db,
+          ctx.session.userId,
+          ctx.firstEntryTenantSlug,
+        );
       } catch {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: authMessages.setupFailed,
         });
       }
+
+      // Vínculo em mais de uma área: sem destino, e sem dizer o motivo (RN-51).
+      if (!destination) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: authMessages.setupFailed,
+        });
+      }
+      return { redirectTo: destination };
     }),
 });

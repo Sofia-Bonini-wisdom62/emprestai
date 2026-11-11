@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import type { PrismaClient } from "@/generated/prisma/client";
 import type { AuthPort, PasswordResetPort } from "@/server/services/auth";
-import { FIRST_ENTRY_TENANT_SLUG } from "@/server/services/account";
 import { rateLimitRulesFrom } from "@/server/services/rate-limit";
+
+// A senha que o Auth de mentira trata como a atual da conta (RN-55).
+export const CURRENT_PASSWORD = "senha-atual";
 
 // Auth de mentira para o createCaller: registra cada chamada e responde como o
 // Auth responderia. Entrar só aceita os e-mails de `users`, com qualquer senha.
@@ -11,7 +13,7 @@ import { rateLimitRulesFrom } from "@/server/services/rate-limit";
 export function fakeAuth(users: Record<string, string> = {}) {
   const calls = {
     signIn: [] as string[],
-    signOut: 0,
+    signOut: [] as string[],
     reset: [] as { email: string; redirectTo: string }[],
     updateUser: [] as string[],
   };
@@ -24,8 +26,8 @@ export function fakeAuth(users: Record<string, string> = {}) {
         ? { data: { user: { id } }, error: null }
         : { data: { user: null }, error: { code: "invalid_credentials" } };
     },
-    async signOut() {
-      calls.signOut += 1;
+    async signOut({ scope }) {
+      calls.signOut.push(scope);
       return { error: null };
     },
     async resetPasswordForEmail(email, { redirectTo }) {
@@ -34,9 +36,11 @@ export function fakeAuth(users: Record<string, string> = {}) {
     },
     async updateUser({ password }) {
       calls.updateUser.push(password);
-      return password.length < 6
-        ? { error: { code: "weak_password" } }
-        : { error: null };
+      if (password.length < 6) return { error: { code: "weak_password" } };
+      if (password === CURRENT_PASSWORD) {
+        return { error: { code: "same_password" } };
+      }
+      return { error: null };
     },
   };
 
@@ -51,16 +55,20 @@ export const generousRules = rateLimitRulesFrom({
   RATE_LIMIT_USER_WINDOW_SECONDS: 60,
 });
 
-// A área da primeira entrada. Outros arquivos de teste podem criá-la ao mesmo
-// tempo, e por isso ela nunca é apagada.
-export async function ensureFirstEntryTenant(db: PrismaClient) {
-  await db.tenant.createMany({
-    data: [{ slug: FIRST_ENTRY_TENANT_SLUG, name: "Área de teste" }],
-    skipDuplicates: true,
+// A área da primeira entrada deste arquivo de teste, no lugar da default: o
+// first-admin.test.ts cria e apaga a default no mesmo banco, ao mesmo tempo. A
+// default de verdade se prova no E2E, onde o seed a cria.
+export async function createFirstEntryTenant(db: PrismaClient) {
+  const tenant = await db.tenant.create({
+    data: { slug: `primeira-entrada-${randomUUID()}`, name: "Área de teste" },
   });
-  return db.tenant.findUniqueOrThrow({
-    where: { slug: FIRST_ENTRY_TENANT_SLUG },
-  });
+
+  async function cleanup() {
+    await db.membership.deleteMany({ where: { tenantId: tenant.id } });
+    await db.tenant.delete({ where: { id: tenant.id } });
+  }
+
+  return { tenant, slug: tenant.slug, cleanup };
 }
 
 // Duas áreas, Beatriz como Colaborador só na A e Flávia como Operações só na B,

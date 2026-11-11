@@ -10,12 +10,16 @@ export const FIRST_ENTRY_TENANT_SLUG = "default";
 
 // Quem não tem vínculo nenhum ganha o de Colaborador na área da primeira
 // entrada. O skipDuplicates faz duas entradas simultâneas gravarem uma linha só.
-async function ensureFirstMembership(db: PrismaClient, userId: string) {
+async function ensureFirstMembership(
+  db: PrismaClient,
+  userId: string,
+  tenantSlug: string,
+) {
   const existing = await db.membership.count({ where: { userId } });
   if (existing > 0) return;
 
   const tenant = await db.tenant.findUnique({
-    where: { slug: FIRST_ENTRY_TENANT_SLUG },
+    where: { slug: tenantSlug },
     select: { id: true },
   });
   if (!tenant) throw new Error("A área da primeira entrada não existe.");
@@ -27,29 +31,33 @@ async function ensureFirstMembership(db: PrismaClient, userId: string) {
 }
 
 // Sem nome, a pessoa vai antes a /account/setup (CA-06). Com vínculo em mais de
-// uma área, a sessão fica sem área (RN-46), e o destino é o do Colaborador, o de
-// menos acesso: os procedimentos de área recusam.
+// uma área, a sessão fica sem área (RN-46), e não há destino: quem chama recusa
+// a entrada sem dizer o motivo (RN-51).
 async function destinationFor(
   db: PrismaClient,
   userId: string,
-): Promise<Destination> {
+): Promise<Destination | null> {
+  const membership = await findSessionMembership(db, userId);
+  if (!membership) return null;
+
   const profile = await db.profile.findUnique({
     where: { id: userId },
     select: { name: true },
   });
   if (!profile?.name) return "/account/setup";
 
-  const membership = await findSessionMembership(db, userId);
-  return membership?.role === "operations" ? "/operations/loans" : "/catalog";
+  return membership.role === "operations" ? "/operations/loans" : "/catalog";
 }
 
 // A entrada, depois que o Auth aceitou a pessoa: chamada pelo auth.signIn e pelo
-// account.setup (RN-13).
+// account.setup (RN-13). O teste troca a área da primeira entrada por uma só
+// dele, porque outros arquivos criam e apagam a default no mesmo banco.
 export async function enterAccount(
   db: PrismaClient,
   userId: string,
-): Promise<Destination> {
-  await ensureFirstMembership(db, userId);
+  firstEntryTenantSlug: string = FIRST_ENTRY_TENANT_SLUG,
+): Promise<Destination | null> {
+  await ensureFirstMembership(db, userId, firstEntryTenantSlug);
   return destinationFor(db, userId);
 }
 

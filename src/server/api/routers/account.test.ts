@@ -7,8 +7,9 @@ import { appRouter } from "@/server/api/root";
 import { type Context, createCallerFactory } from "@/server/api/trpc";
 import type { AuthPort } from "@/server/services/auth";
 import {
+  CURRENT_PASSWORD,
+  createFirstEntryTenant,
   createTwoAreas,
-  ensureFirstEntryTenant,
   fakeAuth,
 } from "../../../../tests/helpers/auth";
 import { createTestDb } from "../../../../tests/helpers/db";
@@ -16,20 +17,28 @@ import { createTestDb } from "../../../../tests/helpers/db";
 const db = createTestDb(inject("databaseUrl"));
 const createCaller = createCallerFactory(appRouter);
 
+let firstEntry: Awaited<ReturnType<typeof createFirstEntryTenant>>;
+
 function caller(
   session: Context["session"],
   extra: Partial<Pick<Context, "tenantId" | "role">> & {
     auth?: AuthPort | null;
   } = {},
 ) {
-  return createCaller({ db, session, ...extra });
+  return createCaller({
+    db,
+    session,
+    firstEntryTenantSlug: firstEntry.slug,
+    ...extra,
+  });
 }
 
 beforeAll(async () => {
-  await ensureFirstEntryTenant(db);
+  firstEntry = await createFirstEntryTenant(db);
 });
 
 afterAll(async () => {
+  await firstEntry.cleanup();
   await db.$disconnect();
 });
 
@@ -71,7 +80,7 @@ describe("account.setup na primeira entrada", () => {
     const userId = randomUUID();
     const session = { userId, email: "enzo.paiva@example.com" };
     const { auth, calls } = fakeAuth();
-    const tenant = await ensureFirstEntryTenant(db);
+    const { tenant } = firstEntry;
 
     try {
       await expect(
@@ -163,6 +172,44 @@ describe("senha", () => {
     await expect(
       db.membership.count({ where: { userId: session.userId } }),
     ).resolves.toBe(0);
+  });
+
+  it("ca_33 senha igual à atual, recusada pelo Auth, mostra a mensagem do RN-55, sem salvar o nome", async () => {
+    const session = { userId: randomUUID(), email: "enzo.paiva@example.com" };
+
+    await expect(
+      caller(session, { auth: fakeAuth().auth }).account.setup({
+        password: CURRENT_PASSWORD,
+        name: "Enzo Paiva",
+      }),
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: authMessages.samePassword,
+    });
+    await expect(db.profile.count({ where: { id: session.userId } })).resolves.toBe(0);
+  });
+});
+
+describe("vínculo em mais de uma área", () => {
+  it("ca_31 account.setup falha sem dizer o motivo e não grava vínculo novo", async () => {
+    const areas = await createTwoAreas(db);
+
+    try {
+      await db.membership.create({
+        data: { tenantId: areas.tenantB.id, userId: areas.inA.userId, role: "member" },
+      });
+      const session = { userId: areas.inA.userId, email: areas.inA.email };
+
+      await expect(caller(session).account.setup({})).rejects.toMatchObject({
+        code: "FORBIDDEN",
+        message: authMessages.setupFailed,
+      });
+      await expect(
+        db.membership.count({ where: { userId: areas.inA.userId } }),
+      ).resolves.toBe(2);
+    } finally {
+      await areas.cleanup();
+    }
   });
 });
 

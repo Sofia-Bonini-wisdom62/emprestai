@@ -1,10 +1,13 @@
 import { randomUUID } from "node:crypto";
 
-import { afterAll, describe, expect, inject, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
 import type { Prisma } from "@/generated/prisma/client";
-import { enterAccount } from "@/server/services/account";
-import { ensureFirstEntryTenant } from "../../../tests/helpers/auth";
+import {
+  enterAccount,
+  FIRST_ENTRY_TENANT_SLUG,
+} from "@/server/services/account";
+import { createFirstEntryTenant } from "../../../tests/helpers/auth";
 import { createTestDb } from "../../../tests/helpers/db";
 
 const db = createTestDb(inject("databaseUrl"));
@@ -111,17 +114,24 @@ it("ca_14 as policies explícitas negam tudo a anon e authenticated", async () =
 });
 
 describe("enterAccount", () => {
-  const userIds: string[] = [];
+  let firstEntry: Awaited<ReturnType<typeof createFirstEntryTenant>>;
+
+  beforeAll(async () => {
+    firstEntry = await createFirstEntryTenant(db);
+  });
 
   afterAll(async () => {
-    await db.membership.deleteMany({ where: { userId: { in: userIds } } });
+    await firstEntry.cleanup();
+  });
+
+  it("ca_05 a área da primeira entrada é a default", () => {
+    expect(FIRST_ENTRY_TENANT_SLUG).toBe("default");
   });
 
   // A regra é explícita, e não um destino implícito: quem já tem vínculo em
-  // outra área não ganha o da default (RN-13; ADR-005, seção 4).
+  // outra área não ganha o da primeira entrada (RN-13; ADR-005, seção 4).
   it("ca_05 quem já tem vínculo em outra área não ganha o da default", async () => {
     const userId = randomUUID();
-    userIds.push(userId);
     const other = await db.tenant.create({
       data: { slug: `outra-${randomUUID()}`, name: "Outra área" },
     });
@@ -130,7 +140,7 @@ describe("enterAccount", () => {
       await db.membership.create({
         data: { tenantId: other.id, userId, role: "operations" },
       });
-      await enterAccount(db, userId);
+      await enterAccount(db, userId, firstEntry.slug);
 
       await expect(
         db.membership.findMany({
@@ -146,10 +156,12 @@ describe("enterAccount", () => {
 
   it("ca_05 duas primeiras entradas ao mesmo tempo gravam um vínculo só", async () => {
     const userId = randomUUID();
-    userIds.push(userId);
-    const tenant = await ensureFirstEntryTenant(db);
+    const { tenant } = firstEntry;
 
-    await Promise.all([enterAccount(db, userId), enterAccount(db, userId)]);
+    await Promise.all([
+      enterAccount(db, userId, firstEntry.slug),
+      enterAccount(db, userId, firstEntry.slug),
+    ]);
 
     await expect(
       db.membership.findMany({
