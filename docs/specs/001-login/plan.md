@@ -40,7 +40,7 @@ O CLI do shadcn/ui mostra antes a lista do que vai criar e das dependências que
 - **As páginas existentes**, porque a CSP com nonce as torna dinâmicas, e algum primitivo do shadcn/ui pode escrever `style`. Prova: o console sem violação. Se houver, parar e levar ao ADR-002.
 - **O tempo de cada chamada tRPC**, porque o `getUser()` vai ao Auth a cada chamada (custo anotado na resposta 32), e as functions ficam nos Estados Unidos, longe do Supabase em São Paulo (ADR-001, 2.9). Prova: medir na produção depois do primeiro deploy.
 - **O `compose.yaml` em versões futuras do Envoy**, que avisa que opções da configuração oficial vão sair (ADR-006, "Respostas e prova"). Prova: o CA-15 a cada troca de tag.
-- **A conta de quem pede redefinição**, que a mensagem neutra (RN-42) esconde no texto, mas que o tempo de resposta pode revelar, se o Auth demorar mais para uma conta que existe. Prova: o CA-28 confere a resposta igual; o tempo não é medido.
+- **A conta de quem pede redefinição**, que a mensagem neutra (RN-42) esconde no texto, mas que o tempo de resposta pode revelar, se o Auth demorar mais para uma conta que existe. O mesmo vale para o login. Prova: o CA-28 confere a resposta igual; o tempo não é medido. Aceito pela pessoa em 2026-11-11 como risco conhecido da v1, atenuado pelo limite de 5 tentativas por e-mail a cada 15 min (RN-50), sem tempo mínimo de resposta.
 - **A versão do Auth da produção**, que segue sem conferir (ADR-006, item 8), enquanto a do dev precisa acompanhá-la. Prova: nenhuma, por enquanto.
 
 ## Depende de

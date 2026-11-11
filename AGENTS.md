@@ -92,7 +92,7 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 
 ## 8. O repositório hoje
 
-Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. A spec 001, de login, já pode ser rascunhada: as perguntas dela estão respondidas e o ADR-006 foi aceito. O `compose.yaml` sobe o Auth e o gateway desde a T-01 da spec 001, e o `pnpm test:e2e` sobe uma pilha igual, efêmera, desde a T-02; o app ainda não fala com eles.
+Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. A spec 001, de login, está aprovada e em implementação: o estado de cada tarefa está em `docs/specs/001-login/tasks.md`. Na `main` já estão a sessão no servidor, o `proxy.ts`, os routers `auth` e `account` e o `/auth/confirm`; as telas de login ainda não. O `compose.yaml` sobe o Auth e o gateway (T-01), e o `pnpm test:e2e` sobe uma pilha igual, efêmera (T-02).
 
 ### Comandos
 
