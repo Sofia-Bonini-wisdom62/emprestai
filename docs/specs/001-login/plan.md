@@ -26,10 +26,16 @@ Dependências, com a versão exata conferida no npm em 2026-11-11. A aprovação
 | `testcontainers` | 12.2.1, a mesma do `@testcontainers/postgresql` | ADR-006, item 5 | T-02 |
 | `@supabase/ssr` | 0.12.7 | ADR-001, 2.7 | T-05 |
 | `@supabase/supabase-js` | 2.119.0, dependência obrigatória (peer `^2.114.0`) do `@supabase/ssr` | decisão de 2026-11-11 | T-05 |
-| `lucide-react` | 1.72.0 | ADR-002 | T-09 |
-| `react-hook-form` | 7.92.0 | ADR-001, 2.2 | T-09 |
+| `lucide-react` | 1.71.0, e não a 1.72.0 conferida antes: a 1.72.0 saiu em 2026-11-11 e não passa da idade mínima de publicação do pnpm | ADR-002; decisão de 2026-11-11, na T-09 | T-09 |
+| `react-hook-form` | 7.91.0, e não a 7.92.0 conferida antes, pelo mesmo motivo | ADR-001, 2.2; decisão de 2026-11-11, na T-09 | T-09 |
 | `@hookform/resolvers` | 7.0.5 | ADR-001, 2.2 | T-09 |
 | CLI `shadcn` | 4.23.0, por `pnpm dlx`, sem entrar no `package.json` | ADR-002 | T-09 |
+| `class-variance-authority` | 0.7.1, que o `init` do shadcn/ui acrescenta | decisão de 2026-11-11, na T-09 | T-09 |
+| `cn` | 0.5.2, do repositório `shadcn-ui/cn`, no lugar de `clsx` e `tailwind-merge` | decisão de 2026-11-11, na T-09 | T-09 |
+| `radix-ui` | 1.8.1, a base dos primitivos (`init -b radix`) | decisão de 2026-11-11, na T-09 | T-09 |
+| `tw-animate-css` | 1.4.0, que o `init` do shadcn/ui acrescenta | decisão de 2026-11-11, na T-09 | T-09 |
+
+O `init` também quer o pacote `shadcn` como dependência, só pelo CSS que o `globals.css` importa. Esse CSS está copiado em `src/app/shadcn.css`, com a licença MIT e a versão de origem, e o pacote não entra (decisão de 2026-11-11, na T-09).
 
 O CLI do shadcn/ui mostra antes a lista do que vai criar e das dependências que acrescenta. A T-09 cola essa lista na resposta, com a versão exata de cada dependência que não está na tabela, e PARA para aprovação antes de rodar (`rules/restrictions.md`, Escopo; `rules/operacao.md`).
 
