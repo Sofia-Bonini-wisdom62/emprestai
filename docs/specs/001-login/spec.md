@@ -15,7 +15,7 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 
 ## Regras
 
-"Decisão de 2026-11-11" é a resposta da pessoa às propostas do rascunho desta spec, dada em duas rodadas no mesmo dia.
+"Decisão de 2026-11-11" é a resposta da pessoa às propostas do rascunho desta spec, dada em duas rodadas no mesmo dia. "Revisão da T-05" é a resposta dela, também em 2026-11-11, aos quatro pontos que o PR #26 deixou para decidir.
 
 - RN-01 — A conta só nasce por convite, sem cadastro aberto, sem tela para convidar e sem tabela de convite no emprestai. Origem: ADR-001, 2.7; resposta 5.
 - RN-02 — Em produção, o convite é feito no painel do Supabase e chega por e-mail, pelo SMTP do ADR-008. Origem: respostas 5 e 22; ADR-008.
@@ -62,6 +62,9 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 - RN-43 — O pedido de redefinição conta no mesmo limite de tentativas do login, por IP e por e-mail. Origem: ADR-001, 2.10; decisão de 2026-11-11.
 - RN-44 — O e-mail de redefinição tem o assunto "Redefina sua senha do emprestai", um parágrafo e o link para `/auth/confirm` com `token_hash` e `type`. Origem: ADR-008, seção 6; decisão de 2026-11-11.
 - RN-45 — Operações não redefine senha, porque o painel do Supabase não tem essa opção (conferência de 2026-11-11). Origem: resposta 24.
+- RN-46 — Quem tem vínculo em mais de uma área fica sem área na sessão: os procedimentos de área recusam com `FORBIDDEN`, e o código não escolhe uma das áreas. Na v1 o caso não acontece, porque só existe a `default`. Origem: resposta 29; revisão da T-05.
+- RN-47 — Se o banco não responde na leitura do vínculo, a sessão fica sem área, em vez de a chamada falhar: o `health.check` continua respondendo `{ status: "unavailable", message }`, como no AZ-04, também para quem tem sessão, e os procedimentos de área respondem `FORBIDDEN`. Origem: revisão da T-05.
+- RN-48 — Toda chamada do servidor ao Supabase Auth tem limite de 3 s, contadas as novas tentativas que o cliente faz sozinho, como a conexão com o banco tem limite de 2 s. Estourado o limite, a chamada conta como falha do Auth, e o `createContext` e o `proxy.ts` seguem sem sessão. Origem: revisão da T-05.
 
 ## Critérios de aceitação
 
@@ -95,6 +98,7 @@ Pessoas e e-mails fictícios de `docs/layout.md`, seção 10.
 - CA-26 — Dado Enzo Paiva em `/account/setup` pelo link do convite, quando ele envia a senha "12345", então a tela mostra "Use pelo menos 6 caracteres.", e ele continua sem senha definida.
 - CA-27 — Dado Enzo Paiva em `/account/setup`, com sessão, quando ele usa "Sair", então o cookie de sessão é apagado e ele vai para `/login`.
 - CA-28 — Dado `ninguem@example.com`, que não tem conta, e `beatriz.fontes@example.com`, quando cada um pede a redefinição em `/forgot-password`, então a tela mostra a mesma mensagem do RN-42 para os dois, e `auth.requestPasswordReset` devolve a mesma resposta nos dois casos.
+- CA-29 — Dado o banco de pé, o Auth inalcançável, numa porta que recusa a conexão ou num servidor que aceita a conexão e não responde, e Beatriz Fontes com o token de acesso vencido no cookie: quando ela faz `GET /catalog`, então a resposta, que é o redirecionamento para `/login`, chega em menos de 4 s, porque só o `proxy.ts` vai ao Auth; quando ela faz `GET /api/trpc/health.check`, então a resposta `{ status: "ok" }` chega em menos de 7 s, porque o `proxy.ts` e o `createContext` vão ao Auth um depois do outro, cada um com o limite do RN-48.
 
 ## Fora de escopo / não decidido
 
@@ -117,9 +121,9 @@ Pessoas e e-mails fictícios de `docs/layout.md`, seção 10.
 - Endpoint: `account.setup` — novo, mutação protegida. Input `{ password?, name? }`: a senha no convite e na redefinição, o nome quando falta, sem espaços nas pontas e com até 80 caracteres. Cria o vínculo da primeira entrada pela mesma regra do `auth.signIn` (RN-13) e devolve o destino do papel.
 - Endpoint: `account.me` — novo, consulta, sem input. Devolve nome, e-mail e papel da sessão, para o header.
 - Rota: `GET /auth/confirm` — novo Route Handler. Recebe `token_hash` e `type` (`invite` ou `recovery`) do link do e-mail, valida no Auth, grava o cookie e leva a `/account/setup`.
-- Contexto: o `createContext` passa a montar `{ db, session, tenantId, role }`, conferindo o cookie com `getUser()` (RN-31), com `protectedProcedure`, `tenantProcedure` e `adminProcedure` (ADR-001, 2.7).
+- Contexto: o `createContext` passa a montar `{ db, session, tenantId, role }`, conferindo o cookie com `getUser()` (RN-31), com `protectedProcedure`, `tenantProcedure` e `adminProcedure` (ADR-001, 2.7). A sessão fica sem área quando há vínculo em mais de uma área ou o banco não responde (RN-46 e RN-47), e a conferência no Auth tem o limite de 3 s do RN-48.
 - Tela: `/login`, `/account/setup` e `/forgot-password`, novas; `/catalog` e `/operations/loans`, provisórias, só com o header, até as specs do catálogo e da tela de Operações; o header com o nome e o menu "Sair", novo.
-- Sessão: `proxy.ts`, novo, renova a sessão em toda rota, menos os estáticos, confere com `getClaims()` e manda a `/login` quem abre uma tela do produto sem sessão (ADR-003, 2.7).
+- Sessão: `proxy.ts`, novo, renova a sessão em toda rota, menos os estáticos, confere com `getClaims()`, com o limite de 3 s do RN-48, e manda a `/login` quem abre uma tela do produto sem sessão (ADR-003, 2.7).
 - Tabela: `tenants (id, slug, name)`, com a linha `default`; `memberships (id, tenant_id, user_id, role, created_at)`, única por `(tenant_id, user_id)`, com `role` em `member` ou `operations`; `profiles (id, name)`, com `id` igual ao id do Auth; `rate_limits`, o contador do RN-09. Sem FK para `auth.users`. Todas com RLS e policy explícita na mesma migration (ADR-001, 2.7; `rules/migration.md`).
 - Ambiente: `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` passam a ser usadas no servidor, e as linhas `onde:` do `.env.example` mudam (ADR-006; RN-34). A aplicação não usa a `SUPABASE_SECRET_KEY` nesta spec: só o seed e o setup do E2E, com chaves locais. `RATE_LIMIT_*` deixam de ser só reserva; `FIRST_ADMIN_EMAIL` vive só nos secrets do Actions (ADR-009).
 - **Não pode mudar:** a raiz `/` pública e o `health.check` público, com o contrato do AZ-04, do AZ-05 e do AZ-09; os casos `az_03`, `az_04` e `adr_001` dos testes; e a regra de que área e papel vêm da sessão, nunca do input.
