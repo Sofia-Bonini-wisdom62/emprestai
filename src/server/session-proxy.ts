@@ -9,8 +9,16 @@ import {
 // Sem sessão, só estas abrem; o resto leva a /login (RN-33, RN-49). A raiz
 // segue pública até a spec do catálogo. O /api/trpc não é redirecionado: cada
 // procedimento confere a própria sessão (ADR-001, 2.7), e o health.check
-// continua público. O /_next/ fica de fora para não travar o próprio Next.
-const PUBLIC_PATHS = new Set(["/", "/login", "/forgot-password", "/auth/confirm"]);
+// continua público. O /_next/ fica de fora para não travar o próprio Next. O
+// /auth/confirm/verify é o envio do botão de /auth/confirm, que chega sem sessão
+// (RN-55).
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/login",
+  "/forgot-password",
+  "/auth/confirm",
+  "/auth/confirm/verify",
+]);
 const PUBLIC_PREFIXES = ["/api/trpc/", "/_next/"];
 
 function isPublic(pathname: string) {

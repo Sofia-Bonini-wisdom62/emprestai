@@ -1,4 +1,5 @@
 import { type CookieMethodsServer, createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
 import { clientEnv } from "@/env/client";
 
@@ -41,6 +42,23 @@ export function createAuthClient(
     // precisa ser legível por JavaScript (RN-08).
     cookieOptions: { httpOnly: true },
     cookies,
+    global: { fetch: fetchWithTimeout },
+  });
+}
+
+// Só para o pedido de redefinição de senha. O cliente do @supabase/ssr usa PKCE e
+// grava o code verifier num cookie quando o Auth aceita o pedido, e o apaga quando
+// o Auth recusa: pelos cabeçalhos, a resposta revelaria se a conta existe (RN-42).
+// O link volta por token_hash (RN-44), sem verifier, e este cliente não grava
+// cookie.
+export function createRecoveryAuthClient(config: AuthConfig) {
+  return createClient(config.url, config.key, {
+    auth: {
+      flowType: "implicit",
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
     global: { fetch: fetchWithTimeout },
   });
 }

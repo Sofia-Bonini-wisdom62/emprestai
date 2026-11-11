@@ -54,6 +54,13 @@ export default async function globalSetup() {
         NEXT_PUBLIC_SUPABASE_URL: relay.url,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: stack.publishableKey,
         APP_URL: siteUrl,
+        // Os valores do CA-22: três tentativas por e-mail em 60 s. Cada caso usa um e-mail
+        // próprio. Todo request vem de 127.0.0.1, e por isso o limite por IP fica alto: o
+        // limite por IP se prova no pnpm test.
+        RATE_LIMIT_USER_MAX: "3",
+        RATE_LIMIT_USER_WINDOW_SECONDS: "60",
+        RATE_LIMIT_IP_MAX: "1000",
+        RATE_LIMIT_IP_WINDOW_SECONDS: "60",
       },
     });
   } catch (error) {
@@ -63,8 +70,9 @@ export default async function globalSetup() {
   }
 
   // Os workers do Playwright herdam este ambiente: o baseURL (playwright.config.ts) e a pilha,
-  // para os casos que rodam o seed de novo ou entram com a conta dele, e o repasse do Auth, para
-  // os casos que trocam de pilha ou tiram o Auth do ar.
+  // para os casos que rodam o seed de novo, entram com a conta dele ou criam e bloqueiam contas
+  // de teste (rules/secrets.md), e o repasse do Auth, para os casos que trocam de pilha ou tiram
+  // o Auth do ar.
   process.env.E2E_BASE_URL = app.baseURL;
   process.env.E2E_DATABASE_URL = seedTarget.databaseUrl;
   process.env.E2E_SUPABASE_URL = seedTarget.supabaseUrl;

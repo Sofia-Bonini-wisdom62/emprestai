@@ -9,6 +9,11 @@ const optionalPositiveInt = z.preprocess(
   emptyToUndefined,
   z.coerce.number().int().positive().optional(),
 );
+const positiveIntOr = (fallback: number) =>
+  z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().positive().default(fallback),
+  );
 
 export const serverEnvSchema = z.object({
   DATABASE_URL: z
@@ -23,10 +28,12 @@ export const serverEnvSchema = z.object({
   SENTRY_AUTH_TOKEN: optionalString,
   SENTRY_ORG: optionalString,
   SENTRY_PROJECT: optionalString,
-  RATE_LIMIT_IP_MAX: optionalPositiveInt,
-  RATE_LIMIT_IP_WINDOW_SECONDS: optionalPositiveInt,
-  RATE_LIMIT_USER_MAX: optionalPositiveInt,
-  RATE_LIMIT_USER_WINDOW_SECONDS: optionalPositiveInt,
+  // Os limites do RN-09, combinados na T-06: 30 tentativas por IP em 60 s e 5
+  // por e-mail em 15 min. "USER" é o contador por e-mail.
+  RATE_LIMIT_IP_MAX: positiveIntOr(30),
+  RATE_LIMIT_IP_WINDOW_SECONDS: positiveIntOr(60),
+  RATE_LIMIT_USER_MAX: positiveIntOr(5),
+  RATE_LIMIT_USER_WINDOW_SECONDS: positiveIntOr(900),
   PORT: optionalPositiveInt,
 });
 

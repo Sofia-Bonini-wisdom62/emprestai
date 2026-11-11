@@ -5,6 +5,27 @@ import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 export type RateLimitRule = { max: number; windowSeconds: number };
 export type RateLimitRules = { ip: RateLimitRule; email: RateLimitRule };
 
+export type RateLimitEnv = {
+  RATE_LIMIT_IP_MAX: number;
+  RATE_LIMIT_IP_WINDOW_SECONDS: number;
+  RATE_LIMIT_USER_MAX: number;
+  RATE_LIMIT_USER_WINDOW_SECONDS: number;
+};
+
+// "USER" nas variáveis é o contador por e-mail (RN-09).
+export function rateLimitRulesFrom(env: RateLimitEnv): RateLimitRules {
+  return {
+    ip: {
+      max: env.RATE_LIMIT_IP_MAX,
+      windowSeconds: env.RATE_LIMIT_IP_WINDOW_SECONDS,
+    },
+    email: {
+      max: env.RATE_LIMIT_USER_MAX,
+      windowSeconds: env.RATE_LIMIT_USER_WINDOW_SECONDS,
+    },
+  };
+}
+
 type Db = PrismaClient | Prisma.TransactionClient;
 
 // A chave é o hash: a tabela não guarda IP nem e-mail em claro.
