@@ -41,8 +41,13 @@ function expectPassThrough(response: Response) {
 }
 
 describe("handleSession sem sessão", () => {
-  it.each(["/catalog", "/operations/loans", "/account/setup"])(
-    "ca_08 %s leva a /login",
+  it.each(["/catalog", "/operations/loans"])("ca_08 %s leva a /login", async (path) => {
+    expectRedirectToLogin(await handleSession(request(path), unreachableAuth));
+  });
+
+  // RN-49: fora da lista pública, até o que não é tela do produto leva a /login.
+  it.each(["/account/setup", "/rota-que-nao-existe"])(
+    "ca_08 %s, fora da lista pública, leva a /login (RN-49)",
     async (path) => {
       expectRedirectToLogin(await handleSession(request(path), unreachableAuth));
     },

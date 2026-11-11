@@ -6,7 +6,7 @@ import {
   withAuthTimeout,
 } from "@/server/auth-client";
 
-// Sem sessão, só estas abrem; as outras telas levam a /login (RN-33). A raiz
+// Sem sessão, só estas abrem; o resto leva a /login (RN-33, RN-49). A raiz
 // segue pública até a spec do catálogo. O /api/trpc não é redirecionado: cada
 // procedimento confere a própria sessão (ADR-001, 2.7), e o health.check
 // continua público. O /_next/ fica de fora para não travar o próprio Next.
