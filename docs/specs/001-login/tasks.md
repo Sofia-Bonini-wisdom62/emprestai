@@ -17,7 +17,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [ ] T-05 — Cliente de servidor do `@supabase/ssr`, sessão no `createContext` com `getUser()` e os middlewares `protectedProcedure`, `tenantProcedure` e `adminProcedure`. Instala `@supabase/ssr` e `@supabase/supabase-js`
       CA: CA-10
       Verifica: `pnpm test` com `ca_10` via `createCaller`, com um procedimento de teste montado com `adminProcedure`; os casos `az_04` continuam passando com o novo `createContext`
-- [ ] T-06 — Rate limit: migration de `rate_limits`, com RLS e policy, e o service que conta por IP e por e-mail
+- [x] T-06 — Rate limit: migration de `rate_limits`, com RLS e policy, e o service que conta por IP e por e-mail
       CA: CA-14, CA-22
       Verifica: o DDL aprovado na resposta antes de gerar; `pnpm test` com `ca_22` no service e `ca_14` na policy de `rate_limits`
 - [ ] T-07 — Routers `auth` (`signIn`, `signOut`, `requestPasswordReset`) e `account` (`me`, `setup`), e o Route Handler `/auth/confirm`
