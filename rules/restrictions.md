@@ -28,9 +28,15 @@ alwaysApply: true
 - Não escreva código de funcionalidade sem uma spec correspondente em
   `docs/specs/`. Pode rascunhar a spec a partir do PRD, no formato de
   `docs/specs/README.md`, mas PARE e espere aprovação antes de codar.
-- Não edite `.github/workflows/` nem `vercel.json` sem aprovação
-  explícita, mesmo que estejam dentro do escopo da tarefa. São
-  arquivos do repositório: com um "pode mudar o workflow", pode.
+- Não edite `vercel.json` sem aprovação explícita, mesmo que esteja
+  dentro do escopo da tarefa. É arquivo do repositório: com um "pode
+  mudar o vercel.json", pode.
+- Não edite `.github/workflows/`, `.claude/hooks/` nem
+  `.claude/settings.json`, nem com aprovação: prepare o texto da
+  mudança e PARE, que quem aplica é a pessoa, à mão. Um workflow
+  alterado numa branch roda com os secrets do repositório. O deny e o
+  hook do push do `.claude/settings.json` garantem isso (ADR-011;
+  spec 002, RN-07).
 
 ## Ritmo
 

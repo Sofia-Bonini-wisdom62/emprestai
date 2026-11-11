@@ -45,3 +45,6 @@ Thumbs.db
 
 # Despejo de falha de programa do Git Bash (ex.: grep.exe.stackdump)
 *.stackdump
+
+# Saída local da skill imagens-equipamentos: cache, fotos e folha de contato (spec 002)
+.skill-output/
