@@ -41,6 +41,14 @@ jobs:
         run: pnpm prisma migrate deploy
         env:
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      # Área default e papel de Operações do primeiro administrador (ADR-009). Roda a cada
+      # deploy, depois das migrations, e não muda nada quando já estão lá. Sem a conta ou sem o
+      # secret, só avisa e o deploy segue. Os dois secrets só existem neste passo.
+      - name: Garante a área default e o primeiro administrador
+        run: node --import ./prisma/resolve-ts.mjs prisma/first-admin.ts
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          FIRST_ADMIN_EMAIL: ${{ secrets.FIRST_ADMIN_EMAIL }}
       # A CLI publica o código deste commit. Se a main já andou, esta rodada só migra e deixa
       # o deploy para a do commit mais novo: reexecutar uma rodada antiga não publica código
       # antigo, e o schema fica à frente do código, nunca atrás.

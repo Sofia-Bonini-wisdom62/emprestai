@@ -9,7 +9,7 @@ const LOCAL_HOSTS = ["localhost", "127.0.0.1"];
 
 // O globalSetup grava estes valores, todos da pilha efêmera da rodada.
 function fromSetup(
-  name: "E2E_BASE_URL" | "E2E_DATABASE_URL" | "E2E_AUTH_URL" | "E2E_SECRET_KEY",
+  name: "E2E_BASE_URL" | "E2E_DATABASE_URL" | "E2E_SUPABASE_URL" | "E2E_SUPABASE_SECRET_KEY",
 ) {
   const value = process.env[name];
   if (!value) throw new Error(`${name} não veio do globalSetup do E2E`);
@@ -34,7 +34,7 @@ export function sql(script: string) {
 
 // A API de admin do Auth da pilha, só para criar, convidar e bloquear contas de teste.
 export function adminAuth() {
-  return createClient(fromSetup("E2E_AUTH_URL"), fromSetup("E2E_SECRET_KEY"), {
+  return createClient(fromSetup("E2E_SUPABASE_URL"), fromSetup("E2E_SUPABASE_SECRET_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
   }).auth.admin;
 }

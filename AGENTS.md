@@ -105,7 +105,8 @@ Primeira subida, nesta ordem:
 | 1 | `pnpm install` | Instala e gera o client do Prisma |
 | 2 | `docker compose --env-file .env.local up -d --wait` | Sobe o Postgres, o Auth e o gateway de dev e espera os três ficarem saudáveis |
 | 3 | `pnpm prisma migrate deploy` | Aplica as migrations no banco de dev |
-| 4 | `pnpm dev` | Roda em http://localhost:3000; a landing mostra "Banco de dados ok" |
+| 4 | `pnpm prisma db seed` | Cria a área `default` e a conta fictícia de Operações, Flávia Rocha, com a senha da `SEED_PASSWORD`; rodar de novo não duplica nada |
+| 5 | `pnpm dev` | Roda em http://localhost:3000; a landing mostra "Banco de dados ok" |
 
 Depois, quando precisar:
 
