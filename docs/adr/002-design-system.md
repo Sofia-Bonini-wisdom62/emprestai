@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto. Quem aceita é o time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade) |
+| Status | Aceito em 2026-11-11, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade). Confirma o `lucide-react` de [`docs/layout.md`](../layout.md) |
 | Data | 2026-10-23 |
 | Turma | B |
 | Vínculo | [`docs/PRD.md`](../PRD.md) e [`docs/layout.md`](../layout.md) |

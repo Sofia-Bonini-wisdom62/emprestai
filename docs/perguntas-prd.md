@@ -45,17 +45,6 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
     colaborador também registra a devolução sozinho, em Meus empréstimos. Sem
     resposta, `docs/layout.md` mostra a data calculada, sem ajuste.
 
-5b. Em produção, onde o seed não roda, como nasce o primeiro administrador? E
-    quem faz os convites no painel do Supabase de produção?
-    tipo: negócio, com consequência técnica
-    por que importa: a resposta da 5 tira o primeiro administrador do seed, e
-    nenhum fluxo roda o seed em produção: lá, o GitHub Actions só aplica as
-    migrations, e o dado vem da aplicação (`AGENTS.md`, seção 6). O mesmo vale
-    para a área `default`, que também nasce no seed (ADR-005). Os convites
-    saem do painel do Supabase de produção, onde o agente nunca mexe em dado
-    (`rules/restrictions.md`, Bancos e schema) e que hoje só a pessoa usa.
-    Liga-se às perguntas 22, 24 e 25.
-
 7. O que acontece quando um item volta danificado ou incompleto? O PRD diz que
    "equipamento em manutenção não aparece como disponível", mas não diz quem
    coloca o item nesse estado, nem quando.
@@ -163,73 +152,6 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
     resposta, `docs/layout.md` desenha a busca como filtro da tabela de
     empréstimos em aberto.
 
-22. O convite que cria a conta chega à pessoa por e-mail? Se chega, ele conta
-    como a "notificação por e-mail" que o PRD tira da v1?
-    tipo: negócio, com consequência técnica
-    por que importa: a resposta da 5 põe o convite no Supabase Auth, fora do
-    emprestai, sem dizer como ele chega à pessoa. Se for por e-mail, a v1
-    manda e-mail, e o PRD põe "Notificação por e-mail" em "O que NÃO entra
-    nesta versão". Se não for, a pessoa recebe o primeiro acesso por outro
-    caminho, que a spec do login precisa descrever. Liga-se à pergunta 5b.
-
-24. O que Operações faz quando alguém esquece a senha?
-    tipo: negócio, com consequência técnica
-    por que importa: a resposta da pergunta 15 tira a recuperação de senha da
-    v1 e manda a pessoa a Operações ("Sem acesso? Fale com Operações."), mas
-    não diz o que Operações consegue fazer por ela. Pelas respostas da 5 e da
-    23, as contas vivem no Supabase Auth, fora do emprestai, e quem as
-    administra é Operações, sem tela na v1. Redefinir a senha seria então
-    trabalho no painel do Supabase, como o convite (pergunta 5b), ou uma ação
-    nova sobre a conta de outra pessoa, que o PRD não lista. Liga-se à 5b.
-
-25. Quem desativa a conta de quem sai da empresa, e o que acontece com os
-    empréstimos em aberto dessa pessoa?
-    tipo: negócio
-    por que importa: a resposta da 5 trata de criar contas, não de encerrá-las.
-    Sem desativação, quem saiu continua entrando no sistema. Com ela, o
-    empréstimo em aberto de uma conta desativada precisa continuar na tela de
-    Operações, e alguém registra a devolução por essa pessoa. Liga-se à
-    pergunta 3 (quem registra a devolução).
-
-26. Que dados a conta de uma pessoa guarda além de e-mail e senha, e quem os
-    preenche?
-    tipo: negócio
-    por que importa: o ADR-001 (seção 2.7) decide o login por e-mail e senha.
-    As respostas das perguntas 8b e 14 mostram o nome de quem está com o item,
-    então a conta precisa ao menos de um nome. Se a própria pessoa preenche, o
-    primeiro acesso ganha um passo; se quem cria a conta preenche, o nome
-    entra junto com o convite. Liga-se à pergunta 5.
-
-27. Quanto tempo a pessoa fica logada, e a sessão termina sozinha quando o
-    computador fica parado?
-    tipo: negócio, com consequência técnica
-    por que importa: o ADR-001 (seção 2.7) renova a sessão em toda rota, para
-    ninguém ser deslogado no meio da navegação, mas não fixa limite. O PRD
-    põe Operações no balcão: se o computador do balcão é compartilhado, uma
-    sessão de Operações esquecida aberta deixa quem passa por ali registrar
-    devolução em nome de Operações. O `docs/layout.md` tem o ícone de "Sair",
-    mas não diz quando a sessão termina sem ele.
-
-28. Depois de entrar, cada papel cai em que tela?
-    tipo: negócio
-    por que importa: o item 1 do PRD diz "Login. Cada pessoa vê os próprios
-    empréstimos.", e o `docs/layout.md` manda a raiz `/` para o catálogo, para
-    todo mundo. Para Operações, a tela de trabalho é a de empréstimos em
-    aberto. Sem resposta, vale o `docs/layout.md`: todo mundo cai no
-    catálogo.
-
-29. Uma pessoa pode pertencer a mais de uma área? Se pode, como escolhe em
-    qual está depois de entrar? E o que vê quem tem conta e nenhuma área?
-    tipo: negócio, com consequência técnica
-    por que importa: o ADR-001 (seção 2.6) tira o tenant da sessão, nunca do
-    input, e justifica a tabela `memberships` com "a mesma pessoa pode ter
-    papel diferente em cada área". Com duas áreas, a sessão precisa saber
-    qual vale, e a tela precisa de um jeito de trocar; com nenhuma, a pessoa
-    entra e não tem área para ver. A resposta da 6 mantém a multi-tenancy,
-    então a pergunta vale. Liga-se também à 23: pela resposta dela, a pessoa
-    ganha o papel de Colaborador na área `default` no primeiro login, o que
-    toca a última parte desta pergunta.
-
 ---
 
 ## Respondidas, aguardando spec
@@ -276,8 +198,23 @@ pasta, que só sai quando a spec for criada.
    pelo Supabase Auth. A v1 não tem tela de convite nem tabela de convite. O
    primeiro administrador vem do seed, no banco de dev local.
    decidido: pela pessoa em 2026-11-09, adotando o modelo da Leticia.
-   fica aberto: a 5b, o primeiro administrador e os convites em produção.
+   ainda liga-se à pergunta 22: o convite chega por e-mail, por um SMTP
+   próprio.
    vira RN em: login.
+
+5b. Em produção, onde o seed não roda, como nasce o primeiro administrador? E
+    quem faz os convites no painel do Supabase de produção?
+    resposta: a conta do primeiro administrador nasce do convite que a pessoa
+    faz no painel do Supabase de produção para o próprio e-mail. A área
+    `default` e o papel de Operações dessa conta nascem de um passo
+    idempotente do workflow de produção, depois do `prisma migrate deploy`:
+    cria a `default`, se não existir, e dá o papel de Operações na `default`
+    à conta cujo e-mail está num secret do Actions. Ninguém escreve SQL à mão
+    na produção. Os demais convites são a pergunta 22.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    fica para a spec do login: o nome do secret, como o passo grava sem SQL à
+    mão, e o que ele faz se a conta ainda não existe.
+    vira RN em: login.
 
 6. Como o sistema distingue Colaborador de Operações — e Operações é um papel
    global na empresa ou um papel por área?
@@ -384,9 +321,8 @@ pasta, que só sai quando a spec for criada.
     resposta: não. O login diz "Sem acesso? Fale com Operações."
     decidido: pela pessoa em 2026-10-26, adotando a resposta da spec 001-telas
     do repositório do Guilherme.
-    ainda liga-se à pergunta 24: a frase manda a pessoa a Operações, que pela
-    resposta da 23 é quem administra as contas, mas o que Operações faz por
-    quem esqueceu a senha segue aberto.
+    ainda liga-se à pergunta 24: a frase manda a pessoa a Operações, que
+    dispara a redefinição pelo painel do Supabase.
     vira RN em: login.
 
 16. Item em manutenção aparece no catálogo? O PRD diz que ele "não aparece
@@ -396,8 +332,25 @@ pasta, que só sai quando a spec for criada.
     decidido: pela pessoa, diretamente, em 2026-10-26.
     vira RN em: catálogo.
 
-<!-- A numeração pula de 16 para 23; este comentário separa as listas para o
+<!-- A numeração pula de 16 para 22; este comentário separa as listas para o
      Markdown não renumerar. -->
+
+22. O convite que cria a conta chega à pessoa por e-mail? Se chega, ele conta
+    como a "notificação por e-mail" que o PRD tira da v1?
+    resposta: chega por e-mail. Operações convida pelo painel do Supabase de
+    produção, e o Supabase envia o convite por um SMTP próprio, configurado
+    no painel. Não conta como a "notificação por e-mail" do PRD: é o acesso à
+    conta, não um aviso sobre empréstimo.
+    decidido: pela pessoa em 2026-11-11, entre as duas saídas que o agente
+    levou: SMTP próprio, ou o link gerado no servidor por
+    `auth.admin.generateLink`, que pediria uma ação de administrador e
+    contrariaria a resposta da 5.
+    nota do agente: conferido em 2026-11-11 na documentação do Supabase (guia
+    de SMTP do Auth): sem SMTP próprio, o painel só entrega e-mail a quem é
+    da equipe do projeto no Supabase, até 2 por hora. Escolher o provedor de
+    e-mail transacional é decisão técnica que o ADR-001 deixou de fora (seção
+    6) e vira ADR novo; configurar o painel é com a pessoa.
+    vira RN em: login.
 
 23. Quais papéis existem? O PRD tem duas personas, Colaborador e Operações; o
     ADR-001 fala em administrador, que convida, e em `adminProcedure`.
@@ -410,4 +363,62 @@ pasta, que só sai quando a spec for criada.
     fica para a spec do login: a chave de `role`. O glossário do `AGENTS.md`
     tem `operations` e `admin` para o que agora é um papel só, e `member` para
     colaborador; o modelo da Leticia usa `ADMIN` e `COLLABORATOR`.
+    vira RN em: login.
+
+24. O que Operações faz quando alguém esquece a senha?
+    resposta: Operações dispara a redefinição de senha pelo painel do Supabase
+    (Authentication > Users), e a pessoa recebe o link por e-mail, pelo mesmo
+    SMTP próprio da 22. A v1 continua sem tela de recuperação no emprestai
+    (resposta da 15).
+    decidido: pela pessoa em 2026-11-11, junto com a 22.
+    nota do agente: a redefinição pelo painel aparece em relatos da comunidade
+    do Supabase, não na documentação oficial; a spec do login confere no
+    painel antes de virar RN.
+    vira RN em: login.
+
+25. Quem desativa a conta de quem sai da empresa, e o que acontece com os
+    empréstimos em aberto dessa pessoa?
+    resposta: Operações bloqueia a conta no painel do Supabase (ban, em
+    Authentication > Users). Os empréstimos em aberto da pessoa continuam na
+    tela de Operações, com o nome dela, e Operações registra a devolução, como
+    a resposta da 3 já permite.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    nota do agente: hoje só a pessoa tem acesso ao painel do Supabase de
+    produção; quem mais for Operações precisa desse acesso para bloquear.
+    vira RN em: login.
+
+26. Que dados a conta de uma pessoa guarda além de e-mail e senha, e quem os
+    preenche?
+    resposta: o nome, além de e-mail e senha. A própria pessoa preenche no
+    primeiro acesso, num campo só.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    nota do agente: a proposta partiu de o convite do painel não levar nome,
+    e a resposta da 22 manteve o convite no painel.
+    vira RN em: login.
+
+27. Quanto tempo a pessoa fica logada, e a sessão termina sozinha quando o
+    computador fica parado?
+    resposta: a v1 não tem limite automático de sessão. O "Sair" fica sempre
+    visível, e Operações sai da conta no computador do balcão.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    nota do agente: conferido em 2026-11-11 na documentação do Supabase
+    (guia de sessões e página de preços): limite por tempo e por inatividade
+    só existem do plano Pro em diante. Um limite feito na aplicação fica para
+    depois da v1.
+    custo anotado: uma sessão de Operações esquecida aberta no balcão deixa
+    quem passa por ali agir como Operações.
+    vira RN em: login.
+
+28. Depois de entrar, cada papel cai em que tela?
+    resposta: Colaborador cai no catálogo; Operações cai em Empréstimos em
+    aberto.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    vira RN em: login.
+
+29. Uma pessoa pode pertencer a mais de uma área? Se pode, como escolhe em
+    qual está depois de entrar? E o que vê quem tem conta e nenhuma área?
+    resposta: na v1, não. Só existe a área `default`, e não há troca de área.
+    No primeiro login a pessoa vira Colaborador na `default` (resposta da 23),
+    então ninguém entra sem área.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
     vira RN em: login.
