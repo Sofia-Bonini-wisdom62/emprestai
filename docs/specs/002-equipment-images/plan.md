@@ -18,7 +18,8 @@ O critério de separação:
 
 1. **Bloqueio de produção e configuração.** Vem primeiro porque a garantia de que o agente não envia nada ao deploy precisa existir antes de qualquer script. Entram:
    - o `permissions.deny` no `.claude/settings.json`, com o teste que o lê (CA-06);
-   - as duas rules que hoje deixam o agente editar workflow com aprovação, `rules/restrictions.md` (Escopo) e `rules/operacao.md`, passando a dizer que `.github/workflows/` e `.claude/settings.json` são editados pela pessoa, à mão, a partir do texto que o agente prepara; o `vercel.json` continua "pedir antes";
+   - o hook PreToolUse do Bash e do PowerShell que nega `git push` e `gh pr create` quando os commits a enviar tocam `.github/workflows/`, `.claude/hooks/` ou `.claude/settings.json`, num `.mjs` em `.claude/hooks/` como os que já existem, com o teste num repositório git de teste (CA-10);
+   - as duas rules que hoje deixam o agente editar workflow com aprovação, `rules/restrictions.md` (Escopo) e `rules/operacao.md`, passando a dizer que `.github/workflows/`, `.claude/hooks/` e `.claude/settings.json` são editados pela pessoa, à mão, a partir do texto que o agente prepara; o `vercel.json` continua "pedir antes";
    - a exceção da `PEXELS_API_KEY` em `rules/secrets.md` e o placeholder no `.env.example`;
    - `.skill-output/` no `.gitignore`;
    - `.claude/skills/**/*.ts` no `tsconfig.json`;
@@ -43,8 +44,11 @@ Os scripts rodam a partir da raiz com `node --import ./prisma/resolve-ts.mjs`, o
 - **Uma rota até a produção que o deny não cobre.** São três:
   - O deny casa pelo id de cada conector na conta da pessoa. Se ela reconectar, o id muda, e o deny para de casar sem aviso. Prova: o passo 0 do `SKILL.md`, em cada rodada, procura pelo nome as ferramentas de escrita dos quatro servidores negados (Supabase, Vercel, Composio e v0) e só segue com zero resultados. A segunda camada é a pessoa desligar os conectores no claude.ai.
   - O navegador com as sessões da pessoa alcança o painel. Esse caminho fica no pedido de permissão por site.
-  - O deny de `Edit` cobre as ferramentas de arquivo e os comandos que o Claude Code reconhece no shell (`sed`, `tee`, redirecionamento), mas não um script em Node nem o git. Por eles, o agente ainda escreve um workflow, e um workflow alterado numa branch roda em `pull_request` com os secrets do repositório (`DIRECT_URL`, `VERCEL_TOKEN`). O tratamento desta rota está em "Não decidido", na spec.
-- **O que o deny dos workflows trava fora desta spec.** O job de E2E no CI (ADR-006, seção 6) e qualquer passo novo do `production.yml`, como a gravação dos equipamentos em produção pela spec dos dados iniciais, passam a ser escritos pela pessoa a partir do texto que o agente prepara.
+  - O deny de `Edit` cobre as ferramentas de arquivo e os comandos que o Claude Code reconhece no shell (`sed`, `tee`, redirecionamento), mas não um script em Node nem o git. Por eles, o agente ainda escreve um workflow, e um workflow alterado numa branch roda em `pull_request` com os secrets do repositório (`DIRECT_URL`, `VERCEL_TOKEN`). Prova: o hook da T-01 nega o `git push` e o `gh pr create` desses commits (CA-10). Sobra um script que faça o push sozinho, sem passar pelo Bash nem pelo PowerShell; esse resto fica registrado no ADR-011. O hook também protege `.claude/hooks/`, para o agente não desligá-lo editando o próprio arquivo.
+- **O que o deny dos workflows e dos hooks trava fora desta spec.** Passam a ser escritos pela pessoa, a partir do texto que o agente prepara:
+  - o job de E2E no CI (ADR-006, seção 6);
+  - qualquer passo novo do `production.yml`, como a gravação dos equipamentos em produção pela spec dos dados iniciais;
+  - qualquer mudança nos hooks que já existem (`require-verification.mjs` e `verifier-bash-allowlist.mjs`).
 - **O CDN do Pexels deixar de devolver 800×600.** Prova: o `download.ts` e a conferência recusam o arquivo. Se acontecer, a saída é o `sharp`, que pede ADR e pedido de dependência.
 - **O `pnpm typecheck` e o `pnpm build` passarem a checar os scripts da skill**, pelo `include` novo do `tsconfig.json`. Prova: os dois passam no fim da T-01.
 - **Os testes da skill dependerem do Docker**, porque rodam no `pnpm test`, que sobe o Testcontainers. É o custo de o verificador conseguir rodá-los.

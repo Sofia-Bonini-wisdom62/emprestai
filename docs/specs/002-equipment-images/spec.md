@@ -15,7 +15,7 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
 
 ## Regras
 
-"Decisão de 2026-11-11" é a resposta da pessoa ("Aprovo todas") à lista do desenho da skill: a estrutura, os nove requisitos com a garantia de cada um e as treze decisões.
+"Decisão de 2026-11-11" é a resposta da pessoa ("Aprovo todas") à lista do desenho da skill: a estrutura, os nove requisitos com a garantia de cada um e as treze decisões. Inclui também a resposta dela ("Hook no git push") sobre a rota do shell até a produção, dada no mesmo dia, na revisão deste rascunho.
 
 - RN-01 — As imagens vêm só da API do Pexels: a busca em `api.pexels.com` e o arquivo em `images.pexels.com`, com a chave da pessoa. Nenhuma outra origem de imagem. Origem: contrato da Entrega 2, "Fonte".
 - RN-02 — Nenhuma foto com pessoa, marca ou logo legível, texto ou tela com conteúdo chega ao sistema. Tela apagada passa; interface, texto ou logo legível reprova; na dúvida, reprova. Quem garante é a revisão visual, primeiro do agente, foto a foto, e depois da pessoa, na folha de contato. Origem: contrato, "Direito de imagem"; decisão de 2026-11-11.
@@ -32,10 +32,10 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
 - RN-06 — O objeto se chama `<patrimonio>-<idPexels>.jpg`, no bucket público `equipment-images`. Repetir o processo não cria objeto novo, e trocar uma foto lista o objeto antigo que a pessoa apaga. Origem: contrato, "Armazenamento"; decisão de 2026-11-11.
 - RN-07 — O agente prepara as imagens e o manifesto, mas não envia nada ao Supabase do deploy.
   - O `.claude/settings.json` nega ao agente os servidores MCP do Supabase, da Vercel, do Composio e do v0, inteiros.
-  - Ele também nega as ferramentas de arquivo (`Edit`, e por ela `Write`, e os comandos de arquivo que o Claude Code reconhece no shell) em `.github/workflows/**` e no próprio `.claude/settings.json`.
+  - Ele também nega as ferramentas de arquivo (`Edit`, e por ela `Write`, e os comandos de arquivo que o Claude Code reconhece no shell) em `.github/workflows/**`, em `.claude/hooks/**` e no próprio `.claude/settings.json`.
+  - Um hook PreToolUse do Bash e do PowerShell nega `git push` e `gh pr create` quando os commits a enviar tocam `.github/workflows/`, `.claude/hooks/` ou `.claude/settings.json`. O deny não alcança um script em Node nem o git, e o hook fecha o passo que dispararia o CI. Sobra um script que faça o push sozinho, risco que fica registrado no ADR-011.
   - Como segunda camada, a pessoa desliga esses conectores no claude.ai, ou os deixa só de leitura.
   - A pessoa cria o bucket e envia os arquivos pelo painel.
-  - O deny não alcança o Node nem o git: essa rota está em "Não decidido".
 
   Origem: contrato, "Produção"; prática, seção 01; decisão de 2026-11-11; documentação de permissões do Claude Code, lida em 2026-11-11.
 - RN-08 — A `PEXELS_API_KEY` vive só no `.env.local`. Só o módulo de entrada da skill a lê, sem carregar o resto do arquivo, e nenhuma mensagem a mostra. A skill não acrescenta dependência. Origem: contrato, "Segredos e dependências"; `rules/secrets.md`; decisão de 2026-11-11.
@@ -66,12 +66,13 @@ Só o que o `pnpm test` prova, sem rede e sem a chave. Ficam fora dele, e por is
   - `mcp__cd63b4c8-e88c-449d-8d47-120629820758__*` (Vercel);
   - `mcp__7b70377e-6561-44af-b328-9a1533d0144c__*` (Composio);
   - `mcp__e6d3977c-2db1-4b63-97c4-d36718977027__*` (v0);
-  - `Edit(/.github/workflows/**)` e `Edit(/.claude/settings.json)`.
+  - `Edit(/.github/workflows/**)`, `Edit(/.claude/hooks/**)` e `Edit(/.claude/settings.json)`.
 
   Os ids são os dos conectores na conta da pessoa, vistos em 2026-11-11.
 - CA-07 — Com uma chave fictícia, as mensagens de erro de 401, de 429 e de falha de rede não trazem a chave. Fora do módulo de entrada, nenhum arquivo da skill lê `process.env` nem o `.env.local`.
 - CA-08 — `prisma/data/equipment.json` tem os 12 equipamentos da prática, com os patrimônios de TI-0001 a TI-0012 únicos. `prisma/data/equipment-images.json`, o manifesto aprovado, passa na conferência do CA-03 com os 12 patrimônios.
 - CA-09 — Dado um manifesto aprovado com `TI-0001-111.jpg` e um manifesto novo com `TI-0001-222.jpg` para o mesmo patrimônio, a conferência lista `TI-0001-111.jpg` entre os objetos a apagar e `TI-0001-222.jpg` entre os a enviar. Com os dois manifestos iguais, as duas listas saem vazias.
+- CA-10 — Num repositório git de teste, com um commit à frente da `origin/main`, o hook do RN-07 nega `git push` e `gh pr create`, pelo Bash e pelo PowerShell, quando o commit toca `.github/workflows/ci.yml`, `.claude/hooks/x.mjs` ou `.claude/settings.json`. A mensagem pede que a pessoa faça a mudança. Quando o commit só toca `docs/`, o hook deixa passar, e ele também deixa passar comandos que não são push nem abertura de PR.
 
 ## Fora de escopo / não decidido
 
@@ -86,13 +87,7 @@ Só o que o `pnpm test` prova, sem rede e sem a chave. Ficam fora dele, e por is
     - conferir a contagem de objetos no painel, antes e depois de repetir o envio;
   - Storage no dev, que o `compose.yaml` não sobe (ADR-004, ADR-006);
   - imagens que não são de equipamento: landing, logo e ilustrações.
-- Não decidido:
-  - **A rota do shell até a produção.** Quem decide é a pessoa. O deny de `Edit` cobre as ferramentas de arquivo e os comandos que o Claude Code reconhece no shell, mas não um script em Node nem o git. Por eles, o agente ainda escreveria um workflow. Um workflow alterado numa branch roda em `pull_request` com os secrets do repositório. Opções:
-    - (a) aceitar o risco e registrá-lo no ADR-011, com a `rules/restrictions.md` (Escopo) e a confirmação que o Claude Code pede para editar `.claude/settings.json` como camadas restantes;
-    - (b) acrescentar um hook PreToolUse de Bash que nega `git push` e `gh pr create` quando os commits a enviar tocam `.github/workflows/` ou `.claude/settings.json`, também contornável, mas no passo que dispara o CI;
-    - (c) ligar o sandbox do Claude Code com a escrita negada nesses caminhos, se a plataforma suportar.
-
-    Recomendação do agente: (b), com o risco que sobra registrado no ADR-011.
+- Não decidido: nada. A rota do shell até a produção foi decidida pela pessoa em 2026-11-11, pelo hook do RN-07.
 
 ## Contrato afetado
 
@@ -102,14 +97,15 @@ Só o que o `pnpm test` prova, sem rede e sem a chave. Ficam fora dele, e por is
   - `prisma/data/equipment-images.json`, novo quando a pessoa aprovar as fotos.
 - Storage: bucket público `equipment-images`, criado pela pessoa no painel do projeto de produção.
 - Configuração:
-  - `.claude/settings.json` ganha o `permissions.deny`;
+  - `.claude/settings.json` ganha o `permissions.deny` e o hook PreToolUse do Bash e do PowerShell;
+  - `.claude/hooks/` ganha o script do hook do RN-07;
   - `.gitignore` ganha `.skill-output/`;
   - `tsconfig.json` passa a incluir `.claude/skills/**/*.ts`;
   - `eslint.config.mjs` ganha um bloco para a skill;
   - `.env.example` ganha `PEXELS_API_KEY=`.
 - Rules:
   - `rules/secrets.md` ganha a exceção da chave;
-  - `rules/restrictions.md` (Escopo) e `rules/operacao.md` passam a dizer que `.github/workflows/` e `.claude/settings.json` são editados pela pessoa, à mão, a partir do texto que o agente prepara;
+  - `rules/restrictions.md` (Escopo) e `rules/operacao.md` passam a dizer que `.github/workflows/`, `.claude/hooks/` e `.claude/settings.json` são editados pela pessoa, à mão, a partir do texto que o agente prepara;
   - o `vercel.json` continua "pedir antes".
 - **Não pode mudar:**
   - `package.json` e o lockfile, porque não entra dependência nova;

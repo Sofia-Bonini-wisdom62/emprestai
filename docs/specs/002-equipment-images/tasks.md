@@ -2,9 +2,9 @@
 
 Nenhuma tarefa começa antes de a spec e o plano serem aprovados. A skill não acrescenta dependência. Cada tarefa é um PR.
 
-- [ ] T-01 — Bloqueio de produção e configuração: o `permissions.deny` no `.claude/settings.json`, as linhas sobre `.github/workflows/` e `.claude/settings.json` em `rules/restrictions.md` e `rules/operacao.md`, a exceção em `rules/secrets.md`, `PEXELS_API_KEY=` no `.env.example`, `.skill-output/` no `.gitignore`, o `include` do `tsconfig.json` e o bloco da skill no `eslint.config.mjs`
-      CA: CA-06
-      Verifica: `pnpm test` com `ca_06`, que lê o `.claude/settings.json`; `pnpm typecheck`, `pnpm lint` e `pnpm build` passando com o `include` novo
+- [ ] T-01 — Bloqueio de produção e configuração: o `permissions.deny` e o hook do `git push` no `.claude/settings.json`, o script do hook em `.claude/hooks/`, as linhas sobre `.github/workflows/`, `.claude/hooks/` e `.claude/settings.json` em `rules/restrictions.md` e `rules/operacao.md`, a exceção em `rules/secrets.md`, `PEXELS_API_KEY=` no `.env.example`, `.skill-output/` no `.gitignore`, o `include` do `tsconfig.json` e o bloco da skill no `eslint.config.mjs`
+      CA: CA-06, CA-10
+      Verifica: `pnpm test` com `ca_06`, que lê o `.claude/settings.json`, e `ca_10`, que roda o hook num repositório git de teste, sem rede; `pnpm typecheck`, `pnpm lint` e `pnpm build` passando com o `include` novo
 - [ ] T-02 — Leitura do cabeçalho JPEG em `scripts/lib/jpeg.ts`
       CA: CA-02
       Verifica: `pnpm test` com `ca_02` sobre cabeçalhos montados em bytes

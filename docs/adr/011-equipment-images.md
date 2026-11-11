@@ -37,7 +37,7 @@ A emissão de chaves novas do Pexels está pausada desde, no máximo, 2026-09-30
 | Nome do objeto | `<patrimonio>-<idPexels>.jpg` |
 | Quem cria o bucket | A pessoa, pelo painel |
 | Quem envia os arquivos | A pessoa, pelo painel, pela lista que a conferência imprime |
-| Bloqueio do agente | `permissions.deny` no `.claude/settings.json`: os servidores MCP do Supabase, da Vercel, do Composio e do v0, inteiros, e `Edit(/.github/workflows/**)` e `Edit(/.claude/settings.json)`. Como segunda camada, a pessoa desliga esses conectores no claude.ai, ou os deixa só de leitura |
+| Bloqueio do agente | `permissions.deny` no `.claude/settings.json`: os servidores MCP do Supabase, da Vercel, do Composio e do v0, inteiros, e `Edit(/.github/workflows/**)`, `Edit(/.claude/hooks/**)` e `Edit(/.claude/settings.json)`. Um hook PreToolUse do Bash e do PowerShell nega `git push` e `gh pr create` quando os commits a enviar tocam esses três caminhos. Como segunda camada, a pessoa desliga os conectores no claude.ai, ou os deixa só de leitura |
 
 - **Pexels** — é a fonte que o contrato da prática aceita. O limite padrão, de 200 requisições por hora e 20.000 por mês, sobra para umas 30 chamadas.
 - **Sem `sharp`** — o CDN já entrega o tamanho exato, e a conferência do cabeçalho JPEG recusa qualquer arquivo fora de 800×600. Assim, o tamanho fica garantido sem dependência direta nova, fora do ADR-001.
@@ -45,7 +45,8 @@ A emissão de chaves novas do Pexels está pausada desde, no máximo, 2026-09-30
 - **Envio pela pessoa** — um script de envio exigiria a secret key de produção na máquina, o que o `rules/restrictions.md` proíbe, e daria ao agente um caminho para rodá-lo. Doze arquivos cabem na mão, e o nome fixo faz o reenvio substituir o mesmo objeto.
 - **Nome com o id do Pexels** — trocar a foto muda a URL, e o CDN do Storage nunca serve a versão velha. O preço é atualizar o seed e apagar o objeto antigo a cada troca.
 - **Deny por servidor inteiro** — uma lista de ferramentas de escrita envelhece a cada versão do conector. O deploy na Vercel também é rota até a produção, porque o código publicado roda com a secret key do ambiente da Vercel.
-- **Deny nos workflows e no próprio settings** — a regra `Edit(caminho)` cobre o `Write`, as ferramentas de arquivo e os comandos que o Claude Code reconhece no shell, como `sed`, `tee` e redirecionamento ([permissões do Claude Code](https://code.claude.com/docs/en/permissions), lida em 2026-11-11). Ela não cobre um script em Node nem o git, que escrevem por conta própria.
+- **Deny nos workflows, nos hooks e no próprio settings** — a regra `Edit(caminho)` cobre o `Write`, as ferramentas de arquivo e os comandos que o Claude Code reconhece no shell, como `sed`, `tee` e redirecionamento ([permissões do Claude Code](https://code.claude.com/docs/en/permissions), lida em 2026-11-11). Ela não cobre um script em Node nem o git, que escrevem por conta própria. Os hooks entram no deny para o agente não desligar o hook do push editando o próprio arquivo.
+- **Hook no `git push`** — é o passo que dispara o CI com os secrets. Negar o push e a abertura de PR quando os commits tocam esses caminhos fecha a rota do Node e do git, que o deny não alcança. A escolha é da pessoa, em 2026-11-11, entre aceitar o risco, este hook e o sandbox do Claude Code.
 
 ---
 
@@ -73,8 +74,8 @@ A emissão de chaves novas do Pexels está pausada desde, no máximo, 2026-09-30
 
 - O deny casa pelo id de cada conector. Se a pessoa reconectar, o id muda, e o deny para de casar sem aviso. Duas coisas cobrem isso: a segunda camada, que é a pessoa desligar os conectores no claude.ai, e a conferência que a skill faz em cada rodada, de que nenhuma ferramenta de escrita dos quatro servidores aparece.
 - O navegador com as sessões da pessoa alcança o painel do Supabase, e o deny não cobre isso. Esse caminho fica no pedido de permissão por site.
-- Pelas ferramentas de arquivo, o agente não edita mais o `.claude/settings.json` nem os workflows. Mudança nesses arquivos passa a ser feita pela pessoa, à mão. Isso inclui o job de E2E no CI (ADR-006, seção 6) e o passo de gravar os equipamentos em produção, da spec dos dados iniciais.
-- Por um script em Node ou pelo git, o agente ainda escreveria um workflow, que rodaria com os secrets do repositório num pull request. O tratamento dessa rota está em "Não decidido" na spec 002.
+- Pelas ferramentas de arquivo, o agente não edita mais o `.claude/settings.json`, os hooks nem os workflows. Mudança nesses arquivos passa a ser feita pela pessoa, à mão. Isso inclui o job de E2E no CI (ADR-006, seção 6), o passo de gravar os equipamentos em produção, da spec dos dados iniciais, e os hooks que já existem.
+- Por um script em Node ou pelo git, o agente ainda escreveria um workflow. O hook nega o push desses commits pelo Bash e pelo PowerShell. Sobra um script que faça o push sozinho, sem passar por nenhum dos dois: esse risco é aceito e fica registrado aqui.
 - Sem a chave, a rodada real não acontece. Enquanto a emissão estiver pausada, só quem já tem chave consegue rodar a skill.
 - Os Termos do Pexels proíbem cópia em massa ou sistemática, sem dizer onde fica o limite. Doze fotos escolhidas à mão ficam longe disso; o risco é aceito e fica registrado aqui.
 
@@ -84,13 +85,11 @@ A emissão de chaves novas do Pexels está pausada desde, no máximo, 2026-09-30
 
 - De onde vêm as fotos no dev, que não tem Storage: fica para a spec do catálogo.
 - Onde a imagem e os créditos ficam no banco: fica para a spec dos dados iniciais.
-- A rota do shell até a produção: fica para a pessoa, na spec 002.
 
 ---
 
 ## 6. Antes de aceitar
 
-- A pessoa decide a rota do shell ("Não decidido" na spec 002).
 - A pessoa confere em `pexels.com/api/key`, logada, se a conta dela tem chave.
 
 ---
