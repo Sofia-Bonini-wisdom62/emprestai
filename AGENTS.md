@@ -64,7 +64,7 @@ As decisões e o porquê estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.
 |---|---|---|
 | Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | schema: GitHub Actions, via `prisma migrate deploy`; dado: a aplicação na Vercel |
 | Desenvolvimento | Postgres local em Docker, imagem `supabase/postgres`, subido por `docker compose` a partir do `compose.yaml`, com o Supabase Auth e o gateway Envoy ao lado (ADR-006), e apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md`, a aplicação e, só no schema `auth`, o servidor de Auth |
-| Testes | Postgres efêmero do Testcontainers, a mesma imagem `supabase/postgres` (traz o schema `auth` que as policies referenciam) | o globalSetup do Vitest |
+| Testes | Postgres efêmero do Testcontainers, a mesma imagem `supabase/postgres` (traz os papéis `anon` e `authenticated` que as policies usam) | o globalSetup do Vitest |
 
 O Preview da Vercel não tem banco: a página mostra o estado de falha. Não existe Supabase CLI neste projeto; o `compose.yaml` sobe o Postgres, o Auth e o gateway. A decisão e o porquê estão no [ADR-004](docs/adr/004-environments.md) e no [ADR-006](docs/adr/006-dev-auth.md); o que pode e o que não pode em cada banco está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
 
@@ -84,6 +84,7 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 | área (tenant) | `tenant` |
 | vínculo pessoa–tenant | `membership` |
 | administrador | `admin` |
+| conta | `account` |
 | situação do equipamento: disponível, emprestado, em manutenção, fora de uso | `available`, `loaned`, `maintenance`, `out_of_service` (em classe e variante de CSS, com hífen: `out-of-service`) |
 | em atraso | `overdue` |
 

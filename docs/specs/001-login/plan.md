@@ -2,32 +2,52 @@
 
 ## Caminho
 
-A mudança entra pelo Auth do ADR-006 no `compose.yaml`, pelas tabelas `tenants` e `memberships` e pelo `createContext`; a regra mora em `src/server/services/account.ts`, e a autorização nos middlewares do tRPC (ADR-001, 2.3 e 2.7).
+A mudança entra pelo Auth do ADR-006 no `compose.yaml`, pelas tabelas `tenants`, `memberships`, `profiles` e `rate_limits` e pelo `createContext`; a regra mora em `src/server/services/`, e a autorização nos middlewares do tRPC (ADR-001, 2.3 e 2.7).
 
 ## Ordem
 
-1. **Auth no dev**, como decidido no ADR-006, seção 2 e "Respostas e prova". Vem primeiro porque login, seed e E2E precisam dele de pé. A pessoa recria o volume de dev e preenche o `.env.local` com as chaves do `add-new-auth-keys.sh`.
-2. **Base do E2E**: Playwright contra uma pilha efêmera no Testcontainers, com Postgres, Auth e gateway (ADR-006, item 5). Vem antes das telas porque é por ela que as tarefas seguintes se verificam; nasce provando o que já existe, a landing e o `health.check` sem sessão (CA-08). Espera os itens 12 e 14.
-3. **Schema**: `tenants`, `memberships` e o lugar do nome. Vem antes do contexto e do seed, que leem essas tabelas. O DDL vai na resposta e PARA para aprovação (`rules/migration.md`, passo 1), com RLS, policy e o teste de bloqueio (`rules/tests.md`, passo 3). Espera os itens 2 e 4 da spec.
-4. **Seed**: a `default` e a conta de Flávia Rocha. Vem antes das telas porque o E2E de Operações e o dev precisam dessa conta. Espera os itens 2, 6 e 12.
-5. **Contexto e autorização**: os clientes do `@supabase/ssr`, a sessão no `createContext` e os três middlewares do ADR-001, 2.7. Vem antes do router e das telas, que dependem deles. O teste de procedimento monta a sessão à mão, sem Auth (ADR-006, seção 2). Espera os itens 1 e 9.
-6. **Router `account`**: `enter`, `me` e `setName`, com teste por `createCaller` e o caso de isolamento por procedimento. Espera os itens 2, 6 e 11.
-7. **`proxy.ts`**: renova a sessão em toda rota, menos os estáticos, e manda a `/login` só quem abre uma tela do produto sem sessão. A raiz `/` e o `/api/trpc` não são redirecionados; o procedimento protegido responde 401 (CA-09). A renovação se prova com token de validade curta (CA-17). Vem depois do contexto porque usa os mesmos clientes. Espera o item 9.
-8. **Telas**: `/login`, a tela do link de convite, o header com "Sair" e as páginas provisórias. Vêm depois do contexto e do proxy, de que dependem. Esperam os itens 1, 6, 7, 8, 11, 12, 13 e 14.
-9. **Cabeçalhos e CSP**, se o item 13 confirmar. Vêm depois das telas porque a conferência é feita nelas (`docs/layout.md`, seção 11).
-10. **Primeiro administrador em produção**: só depois do ADR que o item 5 pede. O CA e a tarefa nascem com essa decisão.
+1. **Auth no dev**, como o ADR-006 decidiu. Vem primeiro porque login, seed e E2E precisam dele de pé. A pessoa recria o volume de dev e preenche o `.env.local` com as chaves do `add-new-auth-keys.sh`.
+2. **Base do E2E**: Playwright contra uma pilha efêmera no Testcontainers, com Postgres, Auth e gateway (ADR-006, item 5). Vem antes das telas porque é por ela que as tarefas seguintes se verificam; nasce provando o que já existe, a landing e o `health.check` sem sessão.
+3. **Schema**: `tenants`, `memberships` e `profiles`, sem FK para `auth.users`, com RLS e policy sem funções de `auth` (RN-17 a RN-19). Vem antes do contexto e do seed, que leem essas tabelas. O DDL vai na resposta e PARA para aprovação (`rules/migration.md`, passo 1).
+4. **Seed**: a `default` e a conta de Flávia Rocha. Vem antes das telas porque o E2E de Operações e o dev precisam dessa conta. Lê a chave local pela exceção de `rules/secrets.md`.
+5. **Contexto e autorização**: o cliente de servidor do `@supabase/ssr`, a sessão no `createContext` com `getUser()` e os três middlewares do ADR-001, 2.7. Vem antes dos routers, que dependem deles.
+6. **Rate limit**: a tabela `rate_limits`, com o DDL para aprovação, e o service que conta por IP e por e-mail (ADR-001, 2.10). Vem antes do `auth.signIn`, que o chama primeiro.
+7. **Routers e confirmação**: `auth.signIn`, `auth.signOut`, `account.me`, `account.setup` e o Route Handler `/auth/confirm`. Vem antes do proxy e das telas, que os chamam. O vínculo da primeira entrada (RN-13) fica num service chamado pelo `auth.signIn` e pelo `account.setup`, testável por `createCaller` sem Auth (ADR-006, seção 2); o que entra no Auth se prova no E2E.
+8. **`proxy.ts`**, com `getClaims()`: renova a sessão em toda rota, menos os estáticos, e manda a `/login` quem abre tela do produto sem sessão. A raiz `/` e o `/api/trpc` não são redirecionados. O proxy não lê o banco: o RN-24 acontece no layout das telas de Operações, que lê o papel por `account.me` e leva o Colaborador a `/catalog`.
+9. **Telas**: `/login`, `/account/setup`, o header com "Sair" e as páginas provisórias.
+10. **Cabeçalhos e CSP**, conferidos nas telas do passo 9 (`docs/layout.md`, seção 11).
+11. **Primeiro administrador em produção**: o script e o passo do workflow do ADR-009, só depois de ele ser aceito e de a pessoa aprovar a mudança em `.github/workflows/`.
+
+Dependências, com a versão exata conferida no npm em 2026-11-11. A aprovação deste plano vale como o "pedir antes" de `rules/operacao.md` para elas (decisão de 2026-11-11), e cada tarefa diz quais instala:
+
+| Pacote | Versão | Decidido em | Tarefa |
+|---|---|---|---|
+| `@playwright/test` | 1.65.0 | ADR-001, 2.8 | T-02 |
+| `testcontainers` | 12.2.1, a mesma do `@testcontainers/postgresql` | ADR-006, item 5 | T-02 |
+| `@supabase/ssr` | 0.12.7 | ADR-001, 2.7 | T-05 |
+| `@supabase/supabase-js` | 2.119.0, dependência obrigatória (peer `^2.114.0`) do `@supabase/ssr` | decisão de 2026-11-11 | T-05 |
+| `lucide-react` | 1.72.0 | ADR-002 | T-09 |
+| `react-hook-form` | 7.92.0 | ADR-001, 2.2 | T-09 |
+| `@hookform/resolvers` | 7.0.5 | ADR-001, 2.2 | T-09 |
+| CLI `shadcn` | 4.23.0, por `pnpm dlx`, sem entrar no `package.json` | ADR-002 | T-09 |
+
+O CLI do shadcn/ui mostra antes a lista do que vai criar e das dependências que acrescenta. A T-09 cola essa lista na resposta, com a versão exata de cada dependência que não está na tabela, e PARA para aprovação antes de rodar (`rules/restrictions.md`, Escopo; `rules/operacao.md`).
 
 ## Risco
 
-- **A landing, o `health.check` e o preview do AZ-09**, que um `proxy.ts` mal configurado tranca. Prova: o E2E do CA-08, que passa pelo proxy; os casos `az_04` chamam o procedimento direto e provam só que o novo `createContext` não quebrou o `health.check`.
-- **Os testes de banco**, porque o schema `auth` do dev, migrado pelo Auth, difere do dos testes (ADR-006, seção 4). Prova: `pnpm test` aplica todas as migrations do zero.
-- **O fluxo de migration**, porque uma FK para `auth.users` quebra o `prisma migrate dev` (item 2). Prova: o `migrate dev` da tarefa do schema roda sem erro.
+- **A landing, o `health.check` e o preview do AZ-09**, que um `proxy.ts` mal configurado tranca. Prova: o E2E do CA-08, que passa pelo proxy; os casos `az_04` provam só que o novo `createContext` não quebrou o `health.check`.
+- **Os testes de banco**, porque o schema `auth` do dev, migrado pelo Auth, difere do dos testes (ADR-006, seção 4). Sem FK nem função de `auth` (RN-18 e RN-19), as migrations não dependem dele. Prova: `pnpm test` aplica todas as migrations do zero.
 - **As páginas existentes**, porque a CSP com nonce as torna dinâmicas, e algum primitivo do shadcn/ui pode escrever `style`. Prova: o console sem violação. Se houver, parar e levar ao ADR-002.
-- **O `compose.yaml` em versões futuras do Envoy**, que avisa que opções da configuração oficial (`dns_refresh_rate`, `cors` no virtual host, `inline_code` do Lua) vão sair (ADR-006, "Respostas e prova"). Prova: o CA-15 a cada troca de tag.
-- **A versão do Auth da produção**, que segue sem conferir (ADR-006, item 8). Prova: nenhuma, por enquanto.
+- **O tempo de cada chamada tRPC**, porque o `getUser()` vai ao Auth a cada chamada (custo anotado na resposta 32), e as functions ficam nos Estados Unidos, longe do Supabase em São Paulo (ADR-001, 2.9). Prova: medir na produção depois do primeiro deploy.
+- **O `compose.yaml` em versões futuras do Envoy**, que avisa que opções da configuração oficial vão sair (ADR-006, "Respostas e prova"). Prova: o CA-15 a cada troca de tag.
+- **A versão do Auth da produção**, que segue sem conferir (ADR-006, item 8), enquanto a do dev precisa acompanhá-la. Prova: nenhuma, por enquanto.
 
 ## Depende de
 
-- As respostas aos itens de "Não decidido" da spec, e os ADRs novos que os itens 1, 5, 6 e 13 podem pedir. Sem elas, a spec não passa de rascunho, e nenhuma tarefa começa (`rules/restrictions.md`, seção Ritmo).
-- O ADR do provedor de e-mail transacional (item 10), para o convite em produção.
-- A pessoa: recriar o volume de dev e preencher o `.env.local`; no painel de produção, configurar o SMTP, os modelos de e-mail, a URL do site, os redirects e as variáveis do Preview, e conferir a redefinição (item 10).
+- Os itens de "Não decidido" da spec, entre eles o aceite do ADR-008, do ADR-009 e do ADR-010.
+- A pessoa:
+  - recriar o volume de dev e preencher o `.env.local`;
+  - no painel de produção, configurar o SMTP do ADR-008, os modelos de e-mail de convite e de redefinição apontando para `/auth/confirm`, a URL do site e os redirects;
+  - tirar do Preview as variáveis do Supabase (RN-34);
+  - criar o secret `FIRST_ADMIN_EMAIL` no Actions;
+  - conferir no painel a redefinição de senha da resposta 24, que a documentação oficial não mostra. Se ela não existir, a resposta 24 volta para decisão.

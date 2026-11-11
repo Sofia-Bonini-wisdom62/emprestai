@@ -152,39 +152,6 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
     resposta, `docs/layout.md` desenha a busca como filtro da tabela de
     empréstimos em aberto.
 
-<!-- A numeração pula de 21 para 30; este comentário separa as listas para o
-     Markdown não renumerar. -->
-
-30. O que a pessoa vê quando abre o link do convite? E o link de redefinição
-    que Operações dispara pelo painel leva a alguma tela do emprestai?
-    tipo: negócio
-    por que importa: o convite chega por e-mail (pergunta 22) e traz a pessoa
-    ao emprestai, que precisa deixá-la definir a senha, e o nome entra no
-    primeiro acesso (pergunta 26). A redefinição também manda um link por
-    e-mail (pergunta 24), e a resposta da 24 diz que a v1 continua sem tela de
-    recuperação no emprestai. Sem resposta, `docs/layout.md` não desenha a
-    tela do convite, e não se sabe onde o link de redefinição cai.
-
-31. O que vê o Colaborador que abre o endereço de uma tela de Operações?
-    tipo: negócio
-    por que importa: `docs/layout.md`, seção 6, restringe Empréstimos em
-    aberto e Cadastrar equipamento ao papel Operações, sem dizer o que
-    acontece com quem não tem o papel. O servidor nega o dado de qualquer
-    jeito; a dúvida é a tela. Sem resposta, a spec 001 propõe levar ao
-    catálogo.
-
-32. Por quanto tempo uma conta bloqueada no painel ainda age com a sessão que
-    já estava aberta?
-    tipo: negócio
-    por que importa: pela resposta da 25, Operações bloqueia a conta de quem
-    sai da empresa. A conferência de sessão que a Supabase recomenda no
-    servidor (`getClaims()`) valida o token sem consultar o Auth, então só
-    percebe o bloqueio quando o token vence: 3600 segundos no padrão do Auth
-    (`JWT_EXPIRY` do self-hosting, conferido em 2026-11-09); o valor da
-    produção não foi conferido. Conferir no Auth a cada chamada (`getUser()`)
-    fecha essa janela, ao custo de uma ida ao Auth por chamada. Sem resposta,
-    a spec 001 não escolhe.
-
 ---
 
 ## Respondidas, aguardando spec
@@ -401,8 +368,10 @@ funcionalidade, não o número da pasta, que só sai quando a spec for criada.
 24. O que Operações faz quando alguém esquece a senha?
     resposta: Operações dispara a redefinição de senha pelo painel do Supabase
     (Authentication > Users), e a pessoa recebe o link por e-mail, pelo mesmo
-    SMTP próprio da 22. A v1 continua sem tela de recuperação no emprestai
-    (resposta da 15).
+    SMTP próprio da 22. A v1 continua sem "esqueci minha senha" no emprestai
+    (resposta da 15); o link da redefinição cai na tela de definir senha da
+    resposta da 30, que nesse caso pede só a senha.
+    ajustado: pela pessoa em 2026-11-11, junto com a resposta da 30.
     decidido: pela pessoa em 2026-11-11, junto com a 22.
     nota do agente: a redefinição pelo painel aparece em relatos da comunidade
     do Supabase, não na documentação oficial; a spec do login confere no
@@ -454,4 +423,26 @@ funcionalidade, não o número da pasta, que só sai quando a spec for criada.
     No primeiro login a pessoa vira Colaborador na `default` (resposta da 23),
     então ninguém entra sem área.
     decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    vira RN em: login.
+
+30. O que a pessoa vê quando abre o link do convite? E o link de redefinição
+    que Operações dispara pelo painel leva a alguma tela do emprestai?
+    resposta: uma tela só, na moldura do login. No convite, ela pede a senha e
+    o nome; na redefinição, só a senha. A resposta da 24 foi ajustada para
+    dizer que o link da redefinição cai nessa tela.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    vira RN em: login.
+
+31. O que vê o Colaborador que abre o endereço de uma tela de Operações?
+    resposta: vai para o catálogo. O servidor nega o dado de qualquer jeito.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    vira RN em: login.
+
+32. Por quanto tempo uma conta bloqueada no painel ainda age com a sessão que
+    já estava aberta?
+    resposta: até a chamada seguinte ao servidor. O `proxy.ts` confere a
+    sessão com o `getClaims()`, e o `createContext` de toda chamada tRPC
+    confere com o `getUser()`, que consulta o Auth e vê o bloqueio.
+    decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
+    custo anotado: uma ida ao Auth por chamada tRPC.
     vira RN em: login.
