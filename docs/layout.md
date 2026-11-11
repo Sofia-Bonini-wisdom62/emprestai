@@ -157,7 +157,7 @@ Primitivos do shadcn/ui copiados para `src/components/ui/` e ajustados aos token
 
 ### 5.1 Ícones
 
-**Lucide, pelo pacote `lucide-react`**, que o shadcn/ui já usa. Proposta do agente, confirmada com a aprovação do ADR-002 (que tem status Proposto). Traço padrão, tamanhos 14px (pill), 16px (breadcrumb), 20px (navegação, botão, card) e 48px (imagem do detalhe). Ícone decorativo leva `aria-hidden`; botão só de ícone leva `aria-label`.
+**Lucide, pelo pacote `lucide-react`**, que o shadcn/ui já usa. Proposta do agente, confirmada com a aprovação do ADR-002, em 2026-11-11. Traço padrão, tamanhos 14px (pill), 16px (breadcrumb), 20px (navegação, botão, card) e 48px (imagem do detalhe). Ícone decorativo leva `aria-hidden`; botão só de ícone leva `aria-label`.
 
 | Uso | Ícone | Uso | Ícone |
 |---|---|---|---|
@@ -330,7 +330,7 @@ Cada requisito do `layout.md` de origem, por seção, e onde este documento cobr
 | 5.9 | Diálogo de confirmação com o que muda | 5 | Coberto: resumo do que muda |
 | 5.9 | Backdrop do diálogo | 2.3, 5 | Coberto: `--overlay` |
 | 5.10 | Segmentos de limite e barra de prazo | 5 | Coberto; barra por `<progress>` |
-| 5.11 | Ícones Phosphor e mapa | 5.1 | Substituído: Lucide (proposta do agente, confirmada com a aprovação do ADR-002, que tem status Proposto) |
+| 5.11 | Ícones Phosphor e mapa | 5.1 | Substituído: Lucide (proposta do agente, confirmada com a aprovação do ADR-002, em 2026-11-11) |
 | 6.01 | Login dividido, números do PRD | 6 | Coberto |
 | 6.01 | Nota de suporte no login | 6 | Substituído: a frase "Sem acesso? Fale com Operações.", adotada na resposta à pergunta 15 |
 | 6.01 | Subtítulo do formulário de login | 6 | Não adotado: com dois campos, o título "Entrar" basta |

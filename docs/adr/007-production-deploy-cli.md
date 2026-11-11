@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto em 2026-11-10. A pessoa escolheu este caminho na conversa; falta o time aprovar o texto |
+| Status | Aceito em 2026-11-11, pela pessoa, que responde pelo time. A primeira rodada pela CLI, em 2026-11-11, publicou a produção e confirmou os dois pontos da seção 4: o `git.deploymentEnabled` não barra o deploy pela CLI, e o build remoto usa as variáveis de Production |
 | Data | 2026-11-10 |
 | Turma | B |
 | Vínculo | [ADR-004](004-environments.md), seção 2, itens "Produção só pelo CI" e "Caminho de uma mudança"; `.github/workflows/production.yml` |

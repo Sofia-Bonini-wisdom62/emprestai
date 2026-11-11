@@ -53,7 +53,7 @@ Verificável = entrada concreta e saída concreta. Nada de "funciona bem" nem "r
 - CA-02 — ...
 - CA-xx — **Isolamento:** um `member` do tenant A não lê nem altera dado do tenant B por nenhum
   caminho desta funcionalidade. Obrigatório em toda spec que toca dado de domínio, enquanto valer a
-  multi-tenancy do ADR-001 (pendente da pergunta 6 de `docs/perguntas-prd.md`).
+  multi-tenancy do ADR-001 (confirmada pela resposta da pergunta 6 de `docs/perguntas-prd.md`).
 
 ## Fora de escopo / não decidido
 
