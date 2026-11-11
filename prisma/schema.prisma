@@ -13,3 +13,43 @@ model HealthCheck {
 
   @@map("health_checks")
 }
+
+enum MembershipRole {
+  member
+  operations
+
+  @@map("membership_role")
+}
+
+model Tenant {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String       @unique
+  name        String
+  createdAt   DateTime     @default(now()) @map("created_at")
+  memberships Membership[]
+
+  @@map("tenants")
+}
+
+model Membership {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String         @map("tenant_id") @db.Uuid
+  // Id da conta no Supabase Auth, sem FK para auth.users (spec 001, RN-18).
+  userId    String         @map("user_id") @db.Uuid
+  role      MembershipRole
+  createdAt DateTime       @default(now()) @map("created_at")
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Profile {
+  // O mesmo id da conta no Supabase Auth, sem FK para auth.users (spec 001, RN-18).
+  id        String   @id @db.Uuid
+  name      String   @db.VarChar(80)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("profiles")
+}

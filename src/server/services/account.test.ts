@@ -1,0 +1,113 @@
+import { randomUUID } from "node:crypto";
+
+import { afterAll, describe, expect, inject, it } from "vitest";
+
+import type { Prisma } from "@/generated/prisma/client";
+import { createTestDb } from "../../../tests/helpers/db";
+
+const db = createTestDb(inject("databaseUrl"));
+const rollback = new Error("desfaz a transação do teste");
+
+// Nada deste arquivo fica no banco: toda transação termina em rollback.
+async function inRolledBackTransaction(
+  run: (tx: Prisma.TransactionClient) => Promise<void>,
+) {
+  await db
+    .$transaction(async (tx) => {
+      await run(tx);
+      throw rollback;
+    })
+    .catch((error: unknown) => {
+      if (error !== rollback) throw error;
+    });
+}
+
+async function createTenant(tx: Prisma.TransactionClient) {
+  return tx.tenant.create({ data: { slug: "ca-14", name: "Área de teste" } });
+}
+
+// As tabelas da conta (spec 001). Cada uma grava uma linha como dono e conta as linhas.
+const tables = [
+  {
+    name: "tenants",
+    insert: async (tx: Prisma.TransactionClient) => {
+      await createTenant(tx);
+    },
+    count: (tx: Prisma.TransactionClient) => tx.tenant.count(),
+  },
+  {
+    name: "memberships",
+    insert: async (tx: Prisma.TransactionClient) => {
+      const tenant = await createTenant(tx);
+      await tx.membership.create({
+        data: { tenantId: tenant.id, userId: randomUUID(), role: "member" },
+      });
+    },
+    count: (tx: Prisma.TransactionClient) => tx.membership.count(),
+  },
+  {
+    name: "profiles",
+    insert: async (tx: Prisma.TransactionClient) => {
+      await tx.profile.create({
+        data: { id: randomUUID(), name: "Beatriz Fontes" },
+      });
+    },
+    count: (tx: Prisma.TransactionClient) => tx.profile.count(),
+  },
+];
+
+describe.each(tables)("$name", (table) => {
+  describe.each(["authenticated", "anon"])("como %s", (role) => {
+    const setRole = `SET LOCAL ROLE ${role}`;
+
+    it(`ca_14 ${role} não lê a linha de ${table.name} que o dono lê`, async () => {
+      await inRolledBackTransaction(async (tx) => {
+        await table.insert(tx);
+        expect(await table.count(tx)).toBeGreaterThan(0);
+
+        await tx.$executeRawUnsafe(setRole);
+
+        await expect(table.count(tx)).resolves.toBe(0);
+      });
+    });
+
+    // Controle: prova que o zero acima vem da RLS, e não de outra coisa.
+    it(`ca_14 ${role} lê a linha de ${table.name} quando a RLS está desligada`, async () => {
+      await inRolledBackTransaction(async (tx) => {
+        await table.insert(tx);
+        await tx.$executeRawUnsafe(
+          `ALTER TABLE "${table.name}" DISABLE ROW LEVEL SECURITY`,
+        );
+
+        await tx.$executeRawUnsafe(setRole);
+
+        await expect(table.count(tx)).resolves.toBeGreaterThan(0);
+      });
+    });
+  });
+});
+
+// A RLS sozinha já nega tudo: só o catálogo mostra se as policies explícitas existem.
+it("ca_14 as policies explícitas negam tudo a anon e authenticated", async () => {
+  await expect(
+    db.$queryRaw`
+      SELECT tablename, policyname, roles::text[] AS roles, cmd, qual, with_check
+      FROM pg_policies
+      WHERE schemaname = 'public'
+        AND tablename IN ('tenants', 'memberships', 'profiles')
+      ORDER BY tablename`,
+  ).resolves.toEqual(
+    ["memberships", "profiles", "tenants"].map((name) => ({
+      tablename: name,
+      policyname: `${name}_deny_all`,
+      roles: ["anon", "authenticated"],
+      cmd: "ALL",
+      qual: "false",
+      with_check: "false",
+    })),
+  );
+});
+
+afterAll(async () => {
+  await db.$disconnect();
+});
