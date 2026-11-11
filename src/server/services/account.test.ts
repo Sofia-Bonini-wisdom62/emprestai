@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
 import type { Prisma } from "@/generated/prisma/client";
 import {
+  destinationOf,
   enterAccount,
   FIRST_ENTRY_TENANT_SLUG,
 } from "@/server/services/account";
@@ -174,4 +175,25 @@ describe("enterAccount", () => {
 
 afterAll(async () => {
   await db.$disconnect();
+});
+
+// A regra do destino, a mesma do auth.signIn e do /login com sessão (RN-22, RN-23).
+describe("destinationOf", () => {
+  it("ca_19 member com nome vai para /catalog", () => {
+    expect(destinationOf({ name: "Beatriz Fontes", role: "member" })).toBe("/catalog");
+  });
+
+  it("ca_02 operations com nome vai para /operations/loans", () => {
+    expect(destinationOf({ name: "Flávia Rocha", role: "operations" })).toBe(
+      "/operations/loans",
+    );
+  });
+
+  it("ca_06 sem nome vai antes para /account/setup", () => {
+    expect(destinationOf({ name: null, role: "member" })).toBe("/account/setup");
+  });
+
+  it("ca_31 sem papel, como no vínculo em mais de uma área (RN-46, RN-52), não há destino", () => {
+    expect(destinationOf({ name: "Beatriz Fontes", role: null })).toBeNull();
+  });
 });

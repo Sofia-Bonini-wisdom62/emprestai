@@ -30,9 +30,20 @@ async function ensureFirstMembership(
   });
 }
 
-// Sem nome, a pessoa vai antes a /account/setup (CA-06). Com vínculo em mais de
-// uma área, a sessão fica sem área (RN-46), e não há destino: quem chama recusa
-// a entrada sem dizer o motivo (RN-52).
+// Sem nome, a pessoa vai antes a /account/setup (CA-06). Sem papel, o que inclui
+// o vínculo em mais de uma área (RN-46), não há destino: quem chama recusa a
+// entrada sem dizer o motivo (RN-52). O /login usa a mesma regra para quem já
+// tem sessão (RN-23).
+export function destinationOf(account: {
+  name: string | null;
+  role: MembershipRole | null;
+}): Destination | null {
+  if (!account.role) return null;
+  if (!account.name) return "/account/setup";
+
+  return account.role === "operations" ? "/operations/loans" : "/catalog";
+}
+
 async function destinationFor(
   db: PrismaClient,
   userId: string,
@@ -44,9 +55,8 @@ async function destinationFor(
     where: { id: userId },
     select: { name: true },
   });
-  if (!profile?.name) return "/account/setup";
 
-  return membership.role === "operations" ? "/operations/loans" : "/catalog";
+  return destinationOf({ name: profile?.name ?? null, role: membership.role });
 }
 
 // A entrada, depois que o Auth aceitou a pessoa: chamada pelo auth.signIn e pelo

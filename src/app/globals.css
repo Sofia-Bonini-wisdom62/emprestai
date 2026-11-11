@@ -1,22 +1,52 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "./shadcn.css";
 
-/* Valores de docs/layout.md, seção 2. Em :root, não em .dark: há um tema só. */
+/* O <html> leva a classe dark fixa, para os primitivos do shadcn/ui que usam a variante dark:
+   (docs/layout.md, seção 11). Os valores ficam todos em :root: há um tema só. */
+@custom-variant dark (&:is(.dark *));
+
+/* Valores de docs/layout.md, seção 2, com os nomes que o shadcn/ui lê (ADR-002). */
 :root {
   color-scheme: dark;
 
+  /* 2.1 Fundo, superfícies, bordas e texto */
   --background: #0b0c14;
+  --sidebar: #090a11;
   --card: #13151f;
+  --popover: #1a1c28;
+  --surface-sunken: #0f1019;
+  --muted: #1d2030;
+  --secondary: var(--muted);
+  --accent: #1f2238;
   --border: #262938;
+  --input: #626888;
+  --border-strong: #6b7190;
   --foreground: #edeef5;
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --accent-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
   --text-secondary: #bcc0d2;
   --muted-foreground: #9196ae;
+  --text-disabled: #5e6380;
 
+  /* 2.2 Escala do indigo */
+  --indigo-50: #eeefff;
   --indigo-100: #dde0ff;
+  --indigo-200: #c4c8ff;
   --indigo-300: #a5acff;
   --indigo-400: #8c93fa;
+  --indigo-500: #6e75ee;
+  --indigo-600: #5257e0;
+  --indigo-700: #454ac9;
+  --indigo-800: #363a9e;
   --indigo-900: #24275c;
   --indigo-950: #171936;
+  --primary: var(--indigo-600);
+  --primary-foreground: #f7f7ff;
 
+  /* 2.3 Estados */
   --status-available: #5bd69b;
   --status-available-bg: #0e2a1e;
   --status-available-border: #2f8f62;
@@ -29,19 +59,62 @@
   --status-overdue: #ff9497;
   --status-overdue-bg: #33171b;
   --status-overdue-border: #c24c55;
+  --status-overdue-row: #1c1418;
+  --meter-track: #2e3144;
+  --destructive: #c9343f;
+  --overlay: rgb(5 6 11 / 70%);
+
+  /* 2.4 Foco */
+  --ring: var(--indigo-300);
+
+  /* Sidebar (2.1 e 2.2) */
+  --sidebar-foreground: var(--text-secondary);
+  --sidebar-primary: var(--indigo-600);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+
+  /* Seção 4 */
+  --radius: 10px;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-muted: var(--muted);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
+  --color-input: var(--input);
+  --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
   --color-secondary-text: var(--text-secondary);
   --color-muted-foreground: var(--muted-foreground);
+  --color-text-disabled: var(--text-disabled);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
 
+  --color-indigo-50: var(--indigo-50);
   --color-indigo-100: var(--indigo-100);
+  --color-indigo-200: var(--indigo-200);
   --color-indigo-300: var(--indigo-300);
   --color-indigo-400: var(--indigo-400);
+  --color-indigo-500: var(--indigo-500);
+  --color-indigo-600: var(--indigo-600);
+  --color-indigo-700: var(--indigo-700);
+  --color-indigo-800: var(--indigo-800);
   --color-indigo-900: var(--indigo-900);
   --color-indigo-950: var(--indigo-950);
 
@@ -57,15 +130,42 @@
   --color-status-overdue: var(--status-overdue);
   --color-status-overdue-bg: var(--status-overdue-bg);
   --color-status-overdue-border: var(--status-overdue-border);
+  --color-status-overdue-row: var(--status-overdue-row);
+  --color-meter-track: var(--meter-track);
 
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Seção 3: Geist pelo next/font, no <html> (src/app/layout.tsx). */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Seção 4: 6px (badge), 8px (botão, input), 10px (card), 14px (diálogo). */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: var(--radius);
+  --radius-xl: 14px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 24px;
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 15px;
+    line-height: 24px;
+  }
+  p {
+    text-wrap: pretty;
+  }
 }

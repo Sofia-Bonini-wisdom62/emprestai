@@ -74,6 +74,7 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 - RN-55 — O link do e-mail abre `/auth/confirm`, uma página com o botão "Continuar" que não chama o Auth; só o envio desse botão, por POST da mesma origem a `/auth/confirm/verify`, valida o link. Um leitor de e-mail que abra o link sozinho não gasta o convite nem a redefinição. Origem: revisão da T-07.
 - RN-56 — A senha igual à atual, recusada pelo Auth, mostra "Escolha uma senha diferente da atual.". Origem: revisão da T-07.
 - RN-57 — Se o contador de tentativas não responde, a entrada é recusada com a mensagem do RN-25, sem consultar o Auth; o pedido de redefinição devolve a resposta do RN-42 sem pedir o link. Origem: revisão da T-07.
+- RN-58 — O painel da marca, à esquerda do `/login`, de `/account/setup` e de `/forgot-password`, mostra a frase "Saiba o que está disponível e com quem está cada item.", a mesma da landing, e os números "3 itens por pessoa" e "14 dias de prazo". Origem: `docs/layout.md`, seção 6, telas 1, 7 e 8; decisão de 2026-11-11, na T-09.
 
 ## Critérios de aceitação
 
