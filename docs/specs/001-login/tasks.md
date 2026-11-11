@@ -26,7 +26,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [x] T-08 — `proxy.ts` com `getClaims()`: renova a sessão e manda a `/login` quem abre tela do produto sem sessão, sem ler o banco; e o limite de 3 s do RN-48 nas chamadas ao Auth, no `proxy.ts` e em `src/server/supabase.ts`
       CA: CA-08, CA-17, CA-29
       Verifica: `pnpm test:e2e` com `ca_08` completo e `ca_17`, numa pilha com validade curta do token de acesso, e `ca_29` com a URL do Auth numa porta que recusa a conexão e num servidor que aceita a conexão e não responde
-- [ ] T-09 — Tela `/login` com shadcn/ui. Instala os primitivos do shadcn/ui pelo CLI, depois de mostrar a lista do que ele cria, `lucide-react`, `react-hook-form` e `@hookform/resolvers`
+- [x] T-09 — Tela `/login` com shadcn/ui. Instala os primitivos do shadcn/ui pelo CLI, depois de mostrar a lista do que ele cria, `lucide-react`, `react-hook-form` e `@hookform/resolvers`
       CA: CA-01, CA-02, CA-03, CA-04, CA-12, CA-19, CA-22, CA-23
       Verifica: `pnpm test:e2e` com `ca_03`, `ca_04`, `ca_19`, a mensagem de `ca_22` na tela, `ca_23` com o app sem as variáveis do Supabase, e `ca_01` e `ca_02` só no destino pela URL (o header e as páginas vêm na T-11); CA-12 no navegador em 1024px e 375px, com captura de tela
 - [ ] T-10 — Telas `/account/setup`, com o link "Sair", e `/forgot-password`, as duas na moldura do login
