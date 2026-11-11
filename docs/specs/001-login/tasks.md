@@ -38,6 +38,6 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [ ] T-12 — Cabeçalhos HTTP e CSP sem `unsafe-inline`, com nonce
       CA: CA-16
       Verifica: `pnpm test:e2e` com `ca_16` (o cabeçalho na resposta de `/login` e o console sem violação em `/login`, `/account/setup` e no header)
-- [ ] T-13 — Script e passo do primeiro administrador no workflow de produção (ADR-009). Espera a aprovação para editar `.github/workflows/`
+- [x] T-13 — Script e passo do primeiro administrador no workflow de produção (ADR-009). Espera a aprovação para editar `.github/workflows/`
       CA: CA-24
       Verifica: `pnpm test` com `ca_24`, que roda o script duas vezes contra o Postgres do Testcontainers com uma linha fictícia em `auth.users` e uma vez com e-mail inexistente; a rodada real em produção é conferida pela pessoa
