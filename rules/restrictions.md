@@ -50,22 +50,28 @@ alwaysApply: true
   a partir do `compose.yaml` e apontado por `DATABASE_URL` e `DIRECT_URL`
   no `.env.local`; ADR-004): só por `pnpm prisma migrate dev`,
   `pnpm prisma migrate reset`, `pnpm prisma migrate deploy`,
-  `pnpm prisma db seed` e pela aplicação. Nada de SQL à mão. Nada de dado
+  `pnpm prisma db seed`, pela aplicação e, só no schema `auth`, pelo
+  servidor de Auth do `compose.yaml` (ADR-006). Nada de SQL à mão, com uma
+  exceção: o script versionado que só define a senha de
+  `supabase_auth_admin` e roda sozinho na criação do volume. Nada de dado
   real. Enquanto o `compose.yaml` não existir ou o Docker estiver parado,
   o passo que depende dele é declarado pulado.
 - Preview da Vercel: sem banco. Nunca ponha no ambiente Preview a URL
   do banco de produção (`DATABASE_URL`, `DIRECT_URL`) nem a
   `SUPABASE_SECRET_KEY`. No `.env.local`, também nunca a
-  `SUPABASE_SECRET_KEY` nem a URL do banco de produção.
+  `SUPABASE_SECRET_KEY` de produção nem a URL do banco de produção; ali
+  só vai a chave gerada para o Auth da máquina (ADR-006).
 - Testes: só Testcontainers. Nunca rode teste contra banco remoto,
   nem o de dev.
-- O banco local é só o Postgres do `compose.yaml`, sem Supabase CLI:
-  nada de `supabase start`, `supabase db reset` nem
-  `supabase migration new`.
+- O `compose.yaml` sobe o Postgres, o Supabase Auth e o gateway Envoy
+  (ADR-006), sem Supabase CLI: nada de `supabase start`,
+  `supabase db reset` nem `supabase migration new`.
 - Não edite migration já aplicada em `prisma/migrations/`. Mudança de
   schema é sempre migration nova.
 - Não altere policy de RLS, trigger, função SQL nem a tabela de
-  auditoria sem revisão humana explícita, mesmo em migration nova.
+  auditoria sem revisão humana explícita, mesmo em migration nova. Não
+  vale para as migrations que o próprio Supabase Auth aplica no schema
+  `auth` (ADR-006).
 - Não mocke o Prisma em teste: isso testa o mock, não o banco.
 
 ## Dados e segredos

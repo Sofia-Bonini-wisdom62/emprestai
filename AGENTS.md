@@ -56,17 +56,17 @@ As quatro regras do PRD tinham lacunas: o que conta para o limite de três itens
 
 Monolito Next.js (App Router) + TypeScript `strict` + tRPC + Prisma + PostgreSQL no Supabase + Supabase Auth via `@supabase/ssr` + Tailwind + shadcn/ui. Gerenciador de pacotes: **pnpm**.
 
-As decisões e o porquê estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md), lido junto com [`docs/adr/003-stack-corrections.md`](docs/adr/003-stack-corrections.md): o ADR-003 numera cada trecho pela seção do ADR-001 que corrige, e onde os dois tratam do mesmo ponto vale o ADR-003. A multi-tenancy é decisão deliberada, confirmada pela resposta da pergunta 6 de `docs/perguntas-prd.md` (papel por área). [ADR-002](docs/adr/002-design-system.md): identidade visual. [ADR-004](docs/adr/004-environments.md): ambientes e bancos. [ADR-005](docs/adr/005-first-tenant-name.md): nome do primeiro tenant, que substitui as linhas do ADR-003 sobre ele. [ADR-006](docs/adr/006-dev-auth.md): Auth no desenvolvimento, ainda Proposto. [ADR-007](docs/adr/007-production-deploy-cli.md): deploy de produção pela CLI da Vercel, que substitui o Deploy Hook do ADR-004.
+As decisões e o porquê estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md), lido junto com [`docs/adr/003-stack-corrections.md`](docs/adr/003-stack-corrections.md): o ADR-003 numera cada trecho pela seção do ADR-001 que corrige, e onde os dois tratam do mesmo ponto vale o ADR-003. A multi-tenancy é decisão deliberada, confirmada pela resposta da pergunta 6 de `docs/perguntas-prd.md` (papel por área). [ADR-002](docs/adr/002-design-system.md): identidade visual. [ADR-004](docs/adr/004-environments.md): ambientes e bancos. [ADR-005](docs/adr/005-first-tenant-name.md): nome do primeiro tenant, que substitui as linhas do ADR-003 sobre ele. [ADR-006](docs/adr/006-dev-auth.md): Auth no desenvolvimento, em contêiner, que substitui trechos do ADR-001 e do ADR-004. [ADR-007](docs/adr/007-production-deploy-cli.md): deploy de produção pela CLI da Vercel, que substitui o Deploy Hook do ADR-004.
 
 ## 6. Bancos, três e só três
 
 | Banco | Onde | Quem escreve nele |
 |---|---|---|
 | Produção | projeto Supabase `emprestai`, ref `zawqxqukgaqjlbtwiogb` | schema: GitHub Actions, via `prisma migrate deploy`; dado: a aplicação na Vercel |
-| Desenvolvimento | Postgres local em Docker, imagem `supabase/postgres`, subido por `docker compose` a partir do `compose.yaml` e apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md` e a aplicação |
+| Desenvolvimento | Postgres local em Docker, imagem `supabase/postgres`, subido por `docker compose` a partir do `compose.yaml`, com o Supabase Auth e o gateway Envoy ao lado (ADR-006), e apontado por `DATABASE_URL`/`DIRECT_URL` no `.env.local` | os comandos de Prisma listados em `rules/restrictions.md`, a aplicação e, só no schema `auth`, o servidor de Auth |
 | Testes | Postgres efêmero do Testcontainers, a mesma imagem `supabase/postgres` (traz o schema `auth` que as policies referenciam) | o globalSetup do Vitest |
 
-O Preview da Vercel não tem banco: a página mostra o estado de falha. Não existe Supabase CLI neste projeto; o banco local é só o Postgres do `compose.yaml`. A decisão e o porquê estão no [ADR-004](docs/adr/004-environments.md); o que pode e o que não pode em cada banco está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
+O Preview da Vercel não tem banco: a página mostra o estado de falha. Não existe Supabase CLI neste projeto; o `compose.yaml` sobe o Postgres, o Auth e o gateway. A decisão e o porquê estão no [ADR-004](docs/adr/004-environments.md) e no [ADR-006](docs/adr/006-dev-auth.md); o que pode e o que não pode em cada banco está em [`rules/restrictions.md`](rules/restrictions.md), seção Bancos e schema.
 
 ## 7. Idioma
 
@@ -91,7 +91,7 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 
 ## 8. O repositório hoje
 
-Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. Pendente para a spec 001, de login: a aceitação do ADR-006.
+Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. Login e telas do produto ainda não existem. A spec 001, de login, já pode ser rascunhada: as perguntas dela estão respondidas e o ADR-006 foi aceito. O Auth ainda não está no `compose.yaml`; entra numa tarefa da spec.
 
 ### Comandos
 
