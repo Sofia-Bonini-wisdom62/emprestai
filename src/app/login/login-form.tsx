@@ -1,29 +1,57 @@
 "use client";
 
+import { TRPCClientError } from "@trpc/client";
 import { CircleAlert, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authMessages } from "@/lib/auth-messages";
+import type { AppRouter } from "@/server/api/root";
+import { trpc } from "@/trpc/client";
 
 type SignInValues = { email: string; password: string };
 
+// Só o limite de tentativas tem mensagem própria (RN-26). Senha errada, conta que não existe,
+// conta bloqueada e qualquer falha do servidor ou da rede mostram a do RN-25.
+function signInError(error: unknown) {
+  const tooMany =
+    error instanceof TRPCClientError &&
+    (error as TRPCClientError<AppRouter>).data?.code === "TOO_MANY_REQUESTS";
+
+  return tooMany ? authMessages.tooManyAttempts : authMessages.invalidCredentials;
+}
+
 // O formulário da tela 1 (docs/layout.md, seção 6; RN-28). Sem link de criar conta: a conta só
 // nasce por convite (RN-01).
-export function LoginForm() {
+export function LoginForm({ initialError }: { initialError: string | null }) {
+  const router = useRouter();
+  const signIn = trpc.auth.signIn.useMutation();
   const [showPassword, setShowPassword] = useState(false);
-  const [formError] = useState<string | null>(null);
+  const [formError, setFormError] = useState(initialError);
+  const [navigating, setNavigating] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<SignInValues>({ defaultValues: { email: "", password: "" } });
 
-  // O envio chama auth.signIn, da T-07 (PR #33), e mostra a mensagem dele (RN-25, RN-26).
-  const onSubmit = handleSubmit(async () => {});
+  // Entra pelo servidor (RN-07), que grava o cookie e devolve o destino do papel (RN-22).
+  const onSubmit = handleSubmit(async (values) => {
+    setFormError(null);
+    try {
+      const { redirectTo } = await signIn.mutateAsync(values);
+      setNavigating(true);
+      router.replace(redirectTo);
+    } catch (error) {
+      setFormError(signInError(error));
+    }
+  });
+  const busy = isSubmitting || navigating;
 
   return (
     // method="post": antes de o JavaScript carregar, o envio nativo não põe a senha na URL.
@@ -77,8 +105,8 @@ export function LoginForm() {
       )}
 
       <div className="flex flex-col gap-4">
-        <Button type="submit" size="lg" disabled={isSubmitting}>
-          {isSubmitting && (
+        <Button type="submit" size="lg" disabled={busy}>
+          {busy && (
             <LoaderCircle aria-hidden="true" className="animate-spin motion-reduce:animate-none" />
           )}
           Entrar
