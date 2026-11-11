@@ -6,8 +6,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { PrismaClient } from "../src/generated/prisma/client";
+import { DEFAULT_TENANT, upsertDefaultTenant } from "./default-tenant";
 
-const TENANT = { slug: "default", name: "default" };
 // A pessoa fictícia da spec 001 (CA-02), num domínio reservado para exemplo.
 const OPERATIONS_ACCOUNT = { email: "flavia.rocha@example.com", name: "Flávia Rocha" };
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
@@ -94,11 +94,7 @@ async function main() {
   });
 
   try {
-    const tenant = await db.tenant.upsert({
-      where: { slug: TENANT.slug },
-      update: {},
-      create: TENANT,
-    });
+    const tenant = await upsertDefaultTenant(db);
 
     const userId = await upsertAuthUser(supabase, OPERATIONS_ACCOUNT.email, password);
 
@@ -114,7 +110,7 @@ async function main() {
     });
 
     console.log(
-      `Seed: área ${TENANT.slug} e ${OPERATIONS_ACCOUNT.name} (${OPERATIONS_ACCOUNT.email}) em Operações`,
+      `Seed: área ${DEFAULT_TENANT.slug} e ${OPERATIONS_ACCOUNT.name} (${OPERATIONS_ACCOUNT.email}) em Operações`,
     );
   } finally {
     await db.$disconnect();
