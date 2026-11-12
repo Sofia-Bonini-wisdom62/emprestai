@@ -22,11 +22,13 @@ enum MembershipRole {
 }
 
 model Tenant {
-  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug        String       @unique
-  name        String
-  createdAt   DateTime     @default(now()) @map("created_at")
-  memberships Membership[]
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                String              @unique
+  name                String
+  createdAt           DateTime            @default(now()) @map("created_at")
+  memberships         Membership[]
+  equipmentCategories EquipmentCategory[]
+  equipments          Equipment[]
 
   @@map("tenants")
 }
@@ -61,4 +63,47 @@ model RateLimit {
   windowStartedAt DateTime @map("window_started_at") @db.Timestamptz(3)
 
   @@map("rate_limits")
+}
+
+// Situação do equipamento, com as chaves do glossário do AGENTS.md, seção 7 (spec 003, RN-03).
+enum EquipmentStatus {
+  available
+  loaned
+  maintenance
+  out_of_service
+
+  @@map("equipment_status")
+}
+
+model EquipmentCategory {
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  name       String
+  createdAt  DateTime    @default(now()) @map("created_at")
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  equipments Equipment[]
+
+  @@unique([tenantId, name])
+  // Alvo da FK composta de equipments: a categoria é sempre da mesma área do equipamento.
+  @@unique([tenantId, id])
+  @@map("equipment_categories")
+}
+
+model Equipment {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String            @map("tenant_id") @db.Uuid
+  // Patrimônio (spec 003, RN-02).
+  assetTag    String            @map("asset_tag")
+  name        String
+  categoryId  String            @map("category_id") @db.Uuid
+  status      EquipmentStatus
+  // Nome do objeto no bucket equipment-images, <patrimonio>-<idPexels>.jpg (spec 003, RN-04).
+  imageObject String            @map("image_object")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  category    EquipmentCategory @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, assetTag])
+  @@index([categoryId])
+  @@map("equipments")
 }
