@@ -29,9 +29,9 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [x] T-09 — Tela `/login` com shadcn/ui. Instala os primitivos do shadcn/ui pelo CLI, depois de mostrar a lista do que ele cria, `lucide-react`, `react-hook-form` e `@hookform/resolvers`
       CA: CA-01, CA-02, CA-03, CA-04, CA-12, CA-19, CA-22, CA-23
       Verifica: `pnpm test:e2e` com `ca_03`, `ca_04`, `ca_19`, a mensagem de `ca_22` na tela, `ca_23` com o app sem as variáveis do Supabase, e `ca_01` e `ca_02` só no destino pela URL (o header e as páginas vêm na T-11); CA-12 no navegador em 1024px e 375px, com captura de tela
-- [ ] T-10 — Telas `/account/setup`, com o link "Sair", e `/forgot-password`, as duas na moldura do login
-      CA: CA-06, CA-07, CA-20, CA-25, CA-26, CA-27, CA-28
-      Verifica: `pnpm test:e2e` com `ca_07` (convite por `generateLink` até `/catalog`), `ca_06` (conta sem nome vai à tela antes de qualquer outra; nome vazio mostra "Informe seu nome."), `ca_25` (link usado e link vencido, com a validade reduzida na pilha), `ca_26` (senha curta), `ca_27` ("Sair"), `ca_20` (do "Esqueci minha senha" à senha nova) e `ca_28` na tela
+- [x] T-10 — Telas `/account/setup`, com o link "Sair", e `/forgot-password`, as duas na moldura do login
+      CA: CA-06, CA-07, CA-20, CA-25, CA-26, CA-27, CA-28, CA-34, CA-35
+      Verifica: `pnpm test:e2e` com `ca_07` (convite por `generateLink` até `/catalog`), `ca_06` (conta sem nome vai à tela antes de qualquer outra; nome vazio mostra "Informe seu nome."), `ca_25` (link usado e link vencido, com a validade reduzida na pilha), `ca_26` (senha curta), `ca_27` ("Sair"), `ca_20` (do "Esqueci minha senha" à senha nova), `ca_28` na tela e `ca_34` (a senha nova recusada da sessão aberta com senha, e a renovação da sessão sem estender o prazo), `ca_35` (o pedido de redefinição sem resposta); `pnpm test` com `ca_34` no `account.setup` (sessão com senha e sessão do link há mais de 1 hora)
 - [x] T-11 — Header com o nome e "Sair", e as páginas provisórias de `/catalog` e `/operations/loans`, esta com o layout das telas de Operações que leva o Colaborador a `/catalog`
       CA: CA-01, CA-02, CA-11, CA-18, CA-21
       Verifica: `pnpm test:e2e` com `ca_01` e `ca_02` completos (header com o nome; `ca_02` com a conta do seed), `ca_11`, `ca_18` e a ida a `/login` de `ca_21`

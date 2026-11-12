@@ -5,6 +5,9 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import type { Prisma } from "@/generated/prisma/client";
 import {
   destinationOf,
+  setupFields,
+  canSetPassword,
+  LINK_PASSWORD_WINDOW_SECONDS,
   enterAccount,
   FIRST_ENTRY_TENANT_SLUG,
 } from "@/server/services/account";
@@ -195,5 +198,56 @@ describe("destinationOf", () => {
 
   it("ca_31 sem papel, como no vínculo em mais de uma área (RN-46, RN-52), não há destino", () => {
     expect(destinationOf({ name: "Beatriz Fontes", role: null })).toBeNull();
+  });
+
+  it("ca_07 a sessão do convite que ainda não passou por /account/setup, sem nome e sem vínculo, vai para lá", () => {
+    expect(destinationOf({ name: null, role: null })).toBe("/account/setup");
+  });
+});
+
+// O que /account/setup pede em cada entrada (RN-21; docs/layout.md, tela 7).
+describe("setupFields", () => {
+  it("ca_07 pelo link do convite, sem nome, pede a senha e o nome", () => {
+    expect(setupFields({ name: null }, true)).toEqual({ password: true, name: true });
+  });
+
+  it("ca_20 pelo link da redefinição, com nome, pede só a senha", () => {
+    expect(setupFields({ name: "Beatriz Fontes" }, true)).toEqual({
+      password: true,
+      name: false,
+    });
+  });
+
+  it("ca_06 entrando com senha e sem nome, pede só o nome", () => {
+    expect(setupFields({ name: null }, false)).toEqual({ password: false, name: true });
+  });
+
+  it("ca_06 entrando com senha e com nome, não pede nada", () => {
+    expect(setupFields({ name: "Beatriz Fontes" }, false)).toEqual({
+      password: false,
+      name: false,
+    });
+  });
+});
+
+// O prazo da senha nova sem a atual (RN-59): 1 hora desde a entrada pelo link.
+describe("canSetPassword", () => {
+  const now = 1_800_000_000;
+
+  it("ca_34 a sessão aberta com a senha não pode trocar a senha sem a atual", () => {
+    expect(canSetPassword(null, now)).toBe(false);
+  });
+
+  it("ca_34 a sessão do link pode, até antes de completar 1 hora", () => {
+    expect(canSetPassword(now, now)).toBe(true);
+    expect(canSetPassword(now - LINK_PASSWORD_WINDOW_SECONDS + 1, now)).toBe(true);
+  });
+
+  it("ca_34 a sessão do link não pode a partir de 1 hora", () => {
+    expect(canSetPassword(now - LINK_PASSWORD_WINDOW_SECONDS, now)).toBe(false);
+  });
+
+  it("ca_34 um horário de entrada no futuro não vale", () => {
+    expect(canSetPassword(now + 60, now)).toBe(false);
   });
 });

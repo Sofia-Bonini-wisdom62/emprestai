@@ -3,7 +3,12 @@ import { z } from "zod";
 
 import { authMessages } from "@/lib/auth-messages";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { enterAccount, getAccount, saveName } from "@/server/services/account";
+import {
+  canSetPassword,
+  enterAccount,
+  getAccount,
+  saveName,
+} from "@/server/services/account";
 import { setPassword } from "@/server/services/auth";
 
 // Um campo só, sem espaços nas pontas e com até 80 caracteres (RN-20, RN-27).
@@ -41,6 +46,16 @@ export const accountRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       if (input.password !== undefined) {
+        // Senha nova sem a atual, só na sessão que entrou pelo link há menos de
+        // 1 hora (RN-59). Fora disso, nada muda, nem a senha nem o nome.
+        const now = Math.floor(Date.now() / 1000);
+        if (!canSetPassword(ctx.linkEntryAt ?? null, now)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: authMessages.setupFailed,
+          });
+        }
+
         const result = await setPassword(ctx.auth ?? null, input.password);
         if (!result.ok) {
           throw new TRPCError({

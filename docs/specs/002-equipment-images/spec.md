@@ -1,7 +1,7 @@
 # 002 — Imagens dos equipamentos
 
 Status: aprovada
-Atualizada em: 2026-11-11
+Atualizada em: 2026-11-12
 
 ## Objetivo
 
@@ -16,6 +16,8 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
 ## Regras
 
 "Decisão de 2026-11-11" é a resposta da pessoa ("Aprovo todas") à lista do desenho da skill: a estrutura, os nove requisitos com a garantia de cada um e as treze decisões. Inclui também a resposta dela ("Hook no git push") sobre a rota do shell até a produção, dada no mesmo dia, na revisão deste rascunho.
+
+"Decisão de 2026-11-12" é a resposta da pessoa ("Aceito todas") à recomendação de registrar aqui as quatro recusas que a revisão da T-02 acrescentou ao leitor de JPEG (RN-12 a RN-15). As RN-12 a RN-14 fecham arquivos montados que passariam pelo RN-03 e que o navegador mostraria com outro tamanho ou girados, ou nem abriria. A RN-15 pega o arquivo cortado ou com bytes a mais. Os testes citados ficam em `.claude/skills/imagens-equipamentos/scripts/lib/jpeg.test.ts`.
 
 - RN-01 — As imagens vêm só da API do Pexels: a busca em `api.pexels.com` e o arquivo em `images.pexels.com`, com a chave da pessoa. Nenhuma outra origem de imagem. Origem: contrato da Entrega 2, "Fonte".
 - RN-02 — Nenhuma foto com pessoa, marca ou logo legível, texto ou tela com conteúdo chega ao sistema. Tela apagada passa; interface, texto ou logo legível reprova; na dúvida, reprova. Quem garante é a revisão visual, primeiro do agente, foto a foto, e depois da pessoa, na folha de contato. Origem: contrato, "Direito de imagem"; decisão de 2026-11-11.
@@ -42,6 +44,21 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
 - RN-09 — A skill só roda quando a pessoa a invoca, e para antes de liberar a lista de envio até a pessoa aprovar a folha de contato. Origem: decisão de 2026-11-11 (estrutura do `SKILL.md` e requisito "Direito de imagem").
 - RN-10 — A lista dos 12 equipamentos fica em `prisma/data/equipment.json`, igual à da prática, e o manifesto aprovado em `prisma/data/equipment-images.json`, ao lado do seed, que lê os dois. Origem: decisão de 2026-11-11.
 - RN-11 — O nome do fotógrafo entra no manifesto como crédito público. Fixtures e testes usam nomes fictícios. Origem: `rules/restrictions.md`, Dados e segredos; decisão de 2026-11-11.
+- RN-12 — Antes dos dados da imagem (SOS), o JPEG é uma sequência de marcadores, cada um com um segmento de tamanho válido. Bytes 0xFF de preenchimento antes de um marcador não atrapalham. Só entram DQT, DHT, DRI, COM, APP0 a APP15 e um só SOF, que vem antes do SOS e é SOF0, SOF1 ou SOF2. São recusados:
+  - qualquer outro marcador, inclusive o FF00, o JPG0 logo depois do APP15, o DHP do JPEG hierárquico e os SOF sem perda e aritméticos;
+  - um byte que não é marcador onde um marcador deveria vir;
+  - um segmento com tamanho menor que 2;
+  - um segundo SOF, o SOS antes do SOF e o fim da imagem antes do SOS.
+
+  Origem: decisão de 2026-11-12. Prova: "rn_12 passam DQT, DHT, DRI, comentário, XMP, ICC, APP14, APP15 e bytes 0xFF de preenchimento", "rn_12 um SOF1 de 8 bits passa" e "rn_12 é recusado: %s". Todo JPEG que passa nos testes traz DQT e DHT.
+- RN-13 — O SOF é de 8 bits, declara ao menos um componente e traz exatamente 3 bytes por componente declarado. Origem: decisão de 2026-11-12; o navegador não abre JPEG de 12 bits. Prova: "rn_13 é recusado: %s".
+- RN-14 — A orientação só vale de um EXIF sem ambiguidade. São recusados:
+  - um segundo APP1 com EXIF;
+  - a orientação repetida na IFD0, ou de tipo diferente de SHORT;
+  - o EXIF malformado: sem o byte 0 depois de `Exif\0`, com o TIFF de menos de 8 bytes, com a ordem de bytes que não é II nem MM, sem a marca 42, com a IFD0 fora do segmento ou truncada. A IFD0 truncada é a que não cabe no segmento com a contagem, os 12 bytes de cada entrada e o ponteiro de 4 bytes da próxima IFD, como define o TIFF 6.0.
+
+  Origem: decisão de 2026-11-12; os decodificadores leem o primeiro EXIF. Prova: "rn_14 é recusado: %s".
+- RN-15 — Os dois últimos bytes do JPEG são o fim da imagem (EOI, FF D9). O leitor não percorre os dados da imagem. Por isso é essa conferência que recusa, com o mesmo motivo, o arquivo cortado nos dados e o arquivo com bytes a mais depois do fim. Ela não pega um arquivo que termine em outro FF D9, como dois JPEG colados; quem garante que o arquivo é o do CDN é a conferência de origem do CA-05. Origem: decisão de 2026-11-12. Prova: "rn_15 é recusado o arquivo que não termina em FF D9: %s".
 
 ## Critérios de aceitação
 
