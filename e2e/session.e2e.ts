@@ -4,13 +4,14 @@ import { expect, test } from "@playwright/test";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
+import { sql } from "../tests/e2e/accounts";
 import { authRelayFromEnv, setAuthRelayMode } from "../tests/e2e/auth-relay";
 import { seedTargetFromEnv } from "../tests/e2e/seed";
 
 // O proxy.ts com uma sessão de verdade: a renovação do token vencido (CA-17) e o Auth fora do ar
 // (CA-29, RN-48). A conta de Beatriz Fontes nasce na pilha de token curto, pelo repasse do Auth
-// (tests/e2e/auth-relay.ts). As telas /catalog e /login ainda não existem (T-09 e T-11): o que se
-// prova aqui é o caminho do proxy, que acontece antes da rota.
+// (tests/e2e/auth-relay.ts). Desde a T-11, o /catalog confere a conta pelo account.me: a conta
+// ganha nome e o papel member no banco do app, como uma conta de verdade.
 
 type Cookie = { name: string; value: string };
 
@@ -30,6 +31,7 @@ function readSession(cookies: Cookie[]) {
 }
 
 let expiredSession: Cookie[] = [];
+let userId = "";
 
 test.describe.configure({ mode: "serial" });
 
@@ -49,6 +51,12 @@ test.beforeAll(async () => {
     if (created.error) {
       throw created.error;
     }
+    userId = created.data.user.id;
+    // O nome e o vínculo member na default, no banco do app: sem nome, o layout do produto leva a
+    // /account/setup (CA-06); sem vínculo, a /login. O id vem do Auth, sempre UUID.
+    sql(`INSERT INTO "profiles" ("id", "name") VALUES ('${userId}'::uuid, 'Beatriz Fontes');
+         INSERT INTO "memberships" ("tenant_id", "user_id", "role")
+           SELECT "id", '${userId}'::uuid, 'member' FROM "tenants" WHERE "slug" = 'default';`);
 
     // Entra como o servidor entra, para o cookie sair no formato que o app grava.
     let jar: Cookie[] = [];
@@ -76,6 +84,15 @@ test.beforeAll(async () => {
     await new Promise((resolveWait) => setTimeout(resolveWait, Math.max(expiresAtMs - Date.now(), 0) + 1_000));
   } finally {
     await setAuthRelayMode("primary");
+  }
+});
+
+// A conta é da pilha de token curto, então só as linhas do banco do app saem aqui; o ca_13 do
+// seed.e2e.ts conta as contas e áreas da pilha principal.
+test.afterAll(() => {
+  if (userId) {
+    sql(`DELETE FROM "memberships" WHERE "user_id" = '${userId}'::uuid;
+         DELETE FROM "profiles" WHERE "id" = '${userId}'::uuid;`);
   }
 });
 

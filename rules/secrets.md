@@ -40,11 +40,14 @@ tem toda chave que o projeto usa, sem nenhum valor real. Enquanto não houver
 ## Não faça
 - Não dê prefixo `NEXT_PUBLIC_` a segredo, nem leia `process.env` fora de `src/env/`.
   Exceções: `prisma.config.ts`, que o ADR-003, 2.5, manda ler `DIRECT_URL` direto;
-  `tests/global-setup.ts`, que repassa o ambiente ao Prisma CLI; e o seed e o
+  `tests/helpers/postgres.ts` (chamado por `tests/global-setup.ts` e pelo setup do E2E), que repassa o ambiente ao Prisma CLI; e o seed e o
   setup do E2E, que leem só uma `SUPABASE_SECRET_KEY` local, a gerada para o
   Auth da máquina ou para a pilha efêmera do E2E, e só para criar, convidar e
   bloquear contas de teste (ADR-006; decisão da pessoa em 2026-11-11, na spec 001);
-  e o script do primeiro administrador (ADR-009), que roda fora do Next, no
+  o script do primeiro administrador (ADR-009), que roda fora do Next, no
   workflow de produção, e lê só `FIRST_ADMIN_EMAIL` e a URL do banco que o
-  workflow lhe passa.
+  workflow lhe passa; e os scripts da skill `imagens-equipamentos`, em que só
+  o `scripts/lib/api-key.ts` lê a `PEXELS_API_KEY`, e só ela, do `.env.local`,
+  por `util.parseEnv`, sem carregar o resto do arquivo e sem mostrá-la
+  (ADR-011; decisão da pessoa em 2026-11-11, na spec 002).
 - Proibições sobre `.env.local`, segredo em log ou PR e painel de provedor: `rules/restrictions.md`.

@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 
-import { afterAll, describe, expect, inject, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
 import { createTestDb } from "../tests/helpers/db";
 
@@ -27,9 +27,22 @@ const defaultMemberships = () =>
 
 // Os casos de um arquivo rodam em ordem: o da conta inexistente vem antes, com o banco ainda sem
 // a default.
-describe("primeiro administrador (ADR-009)", () => {
+//
+// Cada caso sobe um processo Node que carrega o client gerado e abre a própria conexão com o
+// banco. No Windows, cada caso levou de 0,9 a 2,5 s com este arquivo rodando sozinho, e de 1,6 a
+// 9,5 s com a suíte inteira: o primeiro caso cai no começo da rodada, quando os outros arquivos
+// ainda importam em paralelo e o processo filho disputa a CPU com eles. O padrão de 5 s do Vitest
+// é para teste sem processo filho, e o CA-24 não tem limite de tempo: o de 30 s é cerca do triplo
+// do pior caso medido e só pega o processo que trava.
+describe("primeiro administrador (ADR-009)", { timeout: 30_000 }, () => {
   // Conta fictícia no schema auth da imagem, como a que o convite do painel cria em produção.
   const account = { id: randomUUID(), email: `admin.${randomUUID()}@example.test` };
+
+  // A primeira consulta do arquivo inicializa o client de teste e abre a conexão com o contêiner,
+  // o que no supabase.test.ts levou 1,8 s. Ela fica aqui, e não no primeiro caso.
+  beforeAll(async () => {
+    await db.$queryRaw`SELECT 1`;
+  });
 
   afterAll(async () => {
     await db.membership.deleteMany({ where: { userId: account.id } });

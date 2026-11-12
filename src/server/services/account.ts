@@ -30,9 +30,50 @@ async function ensureFirstMembership(
   });
 }
 
-// Sem nome, a pessoa vai antes a /account/setup (CA-06). Com vínculo em mais de
-// uma área, a sessão fica sem área (RN-46), e não há destino: quem chama recusa
-// a entrada sem dizer o motivo (RN-52).
+// Sem nome, a pessoa vai antes a /account/setup (CA-06), tenha ou não papel: a
+// sessão do convite que ainda não passou por lá não tem vínculo. Com nome e sem
+// papel, o que inclui o vínculo em mais de uma área (RN-46), não há destino:
+// quem chama recusa a entrada sem dizer o motivo (RN-52). O /login usa a mesma
+// regra para quem já tem sessão (RN-23); o auth.signIn confere o vínculo antes.
+export function destinationOf(account: {
+  name: string | null;
+  role: MembershipRole | null;
+}): Destination | null {
+  if (!account.name) return "/account/setup";
+  if (!account.role) return null;
+
+  return account.role === "operations" ? "/operations/loans" : "/catalog";
+}
+
+// Quanto tempo depois de entrar pelo link do convite ou da redefinição a sessão
+// ainda pode definir a senha sem informar a atual (RN-59; decisão da pessoa).
+export const LINK_PASSWORD_WINDOW_SECONDS = 60 * 60;
+
+// A senha nova só vale para a sessão que entrou pelo link há menos de 1 hora
+// (RN-59). linkEntryAt é o horário dessa entrada, em segundos, ou null quando a
+// sessão entrou com senha. O account.setup confere isto no servidor, e a tela
+// usa a mesma regra para mostrar o campo.
+export function canSetPassword(linkEntryAt: number | null, nowSeconds: number) {
+  return (
+    linkEntryAt !== null &&
+    nowSeconds - linkEntryAt >= 0 &&
+    nowSeconds - linkEntryAt < LINK_PASSWORD_WINDOW_SECONDS
+  );
+}
+
+export type SetupFields = { password: boolean; name: boolean };
+
+// O que /account/setup pede (RN-21; docs/layout.md, tela 7): a senha quando a sessão
+// veio do link do e-mail, o do convite ou o da redefinição, e o nome quando ele falta
+// (RN-20, CA-06). Assim o convite pede os dois, e a redefinição de quem tem nome, só a
+// senha. Sem nenhum dos dois, a tela não tem o que pedir.
+export function setupFields(
+  account: { name: string | null },
+  fromEmailLink: boolean,
+): SetupFields {
+  return { password: fromEmailLink, name: !account.name };
+}
+
 async function destinationFor(
   db: PrismaClient,
   userId: string,
@@ -44,9 +85,8 @@ async function destinationFor(
     where: { id: userId },
     select: { name: true },
   });
-  if (!profile?.name) return "/account/setup";
 
-  return membership.role === "operations" ? "/operations/loans" : "/catalog";
+  return destinationOf({ name: profile?.name ?? null, role: membership.role });
 }
 
 // A entrada, depois que o Auth aceitou a pessoa: chamada pelo auth.signIn e pelo

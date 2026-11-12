@@ -1,10 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { runtimeEnv } from "@/env/runtime";
 import {
   type AuthConfig,
   createAuthClient,
   withAuthTimeout,
 } from "@/server/auth-client";
+import { contentSecurityPolicy, createNonce } from "@/server/csp";
 
 // Sem sessão, só estas abrem; o resto leva a /login (RN-33, RN-49). A raiz
 // segue pública até a spec do catálogo. O /api/trpc não é redirecionado: cada
@@ -30,10 +32,19 @@ function isPublic(pathname: string) {
 
 // Renova a sessão e manda a /login quem abre tela do produto sem sessão, sem
 // ler o banco (RN-31, RN-33). O papel não é conferido aqui (RN-24, nas telas).
+// Toda resposta leva a CSP com um nonce novo (CA-16).
 export async function handleSession(
   request: NextRequest,
   config: AuthConfig | null,
 ) {
+  // O nonce só nasce aqui: o Next lê a CSP do request e põe o nonce nos
+  // próprios scripts e estilos (guia de CSP do Next 16).
+  const policy = contentSecurityPolicy(createNonce(), {
+    development: runtimeEnv.nextDev,
+    https: request.nextUrl.protocol === "https:",
+  });
+  request.headers.set("content-security-policy", policy);
+
   let response = NextResponse.next({ request });
   const authHeaders: Record<string, string> = {};
   let hasSession = false;
@@ -73,6 +84,7 @@ export async function handleSession(
   for (const [header, value] of Object.entries(authHeaders)) {
     final.headers.set(header, value);
   }
+  final.headers.set("Content-Security-Policy", policy);
 
   return final;
 }

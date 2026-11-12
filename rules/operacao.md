@@ -19,7 +19,8 @@ Esta é a parte do contrato que a pessoa ajusta: arquivo gerado é rascunho, nã
 | Deletar ou renomear arquivo | pedir antes |
 | Instalar ou atualizar dependência (o ADR-001 fechou a stack) | pedir antes |
 | Criar ou alterar migration (fluxo em `rules/migration.md`) | pedir antes |
-| Editar ou criar `vercel.json` ou arquivo em `.github/workflows/` (`rules/restrictions.md`, seção Escopo) | pedir antes |
+| Editar ou criar `vercel.json` (`rules/restrictions.md`, seção Escopo) | pedir antes |
+| Editar ou criar arquivo em `.github/workflows/` ou `.claude/hooks/`, ou o `.claude/settings.json` (`rules/restrictions.md`, seção Escopo; ADR-011): o agente prepara o texto, e a pessoa aplica à mão | proibido |
 | Merge na `main` (`rules/restrictions.md`, seção Produção) | proibido |
 | Painel ou API da Vercel, do Supabase e do GitHub: deploy, variável de ambiente, configuração de projeto, secret de Actions, branch de produção (`rules/restrictions.md`, seção Produção) | só a pedido da pessoa |
 

@@ -26,10 +26,17 @@ Dependências, com a versão exata conferida no npm em 2026-11-11. A aprovação
 | `testcontainers` | 12.2.1, a mesma do `@testcontainers/postgresql` | ADR-006, item 5 | T-02 |
 | `@supabase/ssr` | 0.12.7 | ADR-001, 2.7 | T-05 |
 | `@supabase/supabase-js` | 2.119.0, dependência obrigatória (peer `^2.114.0`) do `@supabase/ssr` | decisão de 2026-11-11 | T-05 |
-| `lucide-react` | 1.72.0 | ADR-002 | T-09 |
-| `react-hook-form` | 7.92.0 | ADR-001, 2.2 | T-09 |
+| `lucide-react` | 1.71.0, e não a 1.72.0 conferida antes: a 1.72.0 saiu em 2026-11-11 e não passa da idade mínima de publicação do pnpm | ADR-002; decisão de 2026-11-11, na T-09 | T-09 |
+| `react-hook-form` | 7.91.0, e não a 7.92.0 conferida antes, pelo mesmo motivo | ADR-001, 2.2; decisão de 2026-11-11, na T-09 | T-09 |
 | `@hookform/resolvers` | 7.0.5 | ADR-001, 2.2 | T-09 |
 | CLI `shadcn` | 4.23.0, por `pnpm dlx`, sem entrar no `package.json` | ADR-002 | T-09 |
+| `class-variance-authority` | 0.7.1, que o `init` do shadcn/ui acrescenta | decisão de 2026-11-11, na T-09 | T-09 |
+| `cn` | 0.5.2, do repositório `shadcn-ui/cn`, no lugar de `clsx` e `tailwind-merge` | decisão de 2026-11-11, na T-09 | T-09 |
+| `radix-ui` | 1.8.1, a base dos primitivos (`init -b radix`) | decisão de 2026-11-11, na T-09 | T-09 |
+| `tw-animate-css` | 1.4.0, que o `init` do shadcn/ui acrescenta | decisão de 2026-11-11, na T-09 | T-09 |
+| `get-nonce` | 1.0.1, do mesmo autor do `react-style-singleton`, que o `radix-ui` já trazia; passa a dependência direta para o cliente chamar `setNonce` | ADR-012, decisão de 2026-11-12, na T-12 | T-12 |
+
+O `init` também quer o pacote `shadcn` como dependência, só pelo CSS que o `globals.css` importa. Esse CSS está copiado em `src/app/shadcn.css`, com a licença MIT e a versão de origem, e o pacote não entra (decisão de 2026-11-11, na T-09).
 
 O CLI do shadcn/ui mostra antes a lista do que vai criar e das dependências que acrescenta. A T-09 cola essa lista na resposta, com a versão exata de cada dependência que não está na tabela, e PARA para aprovação antes de rodar (`rules/restrictions.md`, Escopo; `rules/operacao.md`).
 
@@ -40,7 +47,7 @@ O CLI do shadcn/ui mostra antes a lista do que vai criar e das dependências que
 - **As páginas existentes**, porque a CSP com nonce as torna dinâmicas, e algum primitivo do shadcn/ui pode escrever `style`. Prova: o console sem violação. Se houver, parar e levar ao ADR-002.
 - **O tempo de cada chamada tRPC**, porque o `getUser()` vai ao Auth a cada chamada (custo anotado na resposta 32), e as functions ficam nos Estados Unidos, longe do Supabase em São Paulo (ADR-001, 2.9). Prova: medir na produção depois do primeiro deploy.
 - **O `compose.yaml` em versões futuras do Envoy**, que avisa que opções da configuração oficial vão sair (ADR-006, "Respostas e prova"). Prova: o CA-15 a cada troca de tag.
-- **A conta de quem pede redefinição**, que a mensagem neutra (RN-42) esconde no texto, mas que o tempo de resposta pode revelar, se o Auth demorar mais para uma conta que existe. Prova: o CA-28 confere a resposta igual; o tempo não é medido.
+- **A conta de quem pede redefinição**, que a mensagem neutra (RN-42) esconde no texto, mas que o tempo de resposta pode revelar, se o Auth demorar mais para uma conta que existe. O mesmo vale para o login. Prova: o CA-28 confere a resposta igual; o tempo não é medido. Aceito pela pessoa em 2026-11-11 como risco conhecido da v1, atenuado pelo limite de 5 tentativas por e-mail a cada 15 min (RN-50), sem tempo mínimo de resposta.
 - **A versão do Auth da produção**, que segue sem conferir (ADR-006, item 8), enquanto a do dev precisa acompanhá-la. Prova: nenhuma, por enquanto.
 
 ## Depende de

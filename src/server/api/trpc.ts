@@ -35,6 +35,9 @@ export type Context = {
   rateLimitRules?: RateLimitRules;
   // A área da primeira entrada (RN-13). Só o teste troca a default por outra.
   firstEntryTenantSlug?: string;
+  // Quando a sessão entrou pelo link do e-mail, em segundos, ou null se entrou
+  // com senha; dá o prazo da senha nova no account.setup (RN-59).
+  linkEntryAt?: number | null;
 };
 
 export const envRateLimitRules = rateLimitRulesFrom(serverEnv);
@@ -65,6 +68,8 @@ export async function createContextForUser(
     session: { userId: user.id, email: user.email },
     tenantId: membership?.tenantId ?? null,
     role: membership?.role ?? null,
+    // Do mesmo token que o getUser() conferiu (getUserFromCookies), para o RN-59.
+    linkEntryAt: user.linkEntryAt ?? null,
   };
 }
 
