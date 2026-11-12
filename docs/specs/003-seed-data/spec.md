@@ -11,7 +11,7 @@ O banco de dev e o de produção passam a ter os 12 equipamentos da prática, ca
 
 - PRD: `docs/PRD.md` não pede dados iniciais. Eles servem ao item 2 de "O que precisa existir na primeira versão" (catálogo com a situação de cada item) e à regra "Equipamento em manutenção não aparece como disponível". A origem é a Entrega 3 da prática (seção 04 do enunciado: briefing de dados iniciais e "Ao final, em produção"), com as regras da seção 01 e a lista dos 12 equipamentos da seção 03.
 - Restringe: `docs/adr/001-stack.md`, seções 2.5 e 2.7, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/011-equipment-images.md`, ainda Proposto; `docs/adr/013-production-equipment-data.md`.
-- Assume pronto: 001-login (`tenants`, `memberships`, `profiles`, o seed do dev e o passo do ADR-009); 002-equipment-images (`prisma/data/equipment.json` e o manifesto aprovado `prisma/data/equipment-images.json`, RN-10 da 002).
+- Assume pronto: 001-login (`tenants`, `memberships`, `profiles`, o seed do dev e o passo do ADR-009). Da 002-equipment-images, em partes, como diz o plano: o formato e a conferência do manifesto (T-03 da 002), `prisma/data/equipment.json` (T-06) e o manifesto aprovado `prisma/data/equipment-images.json` (T-07; RN-10 da 002).
 
 ## Regras
 
@@ -42,7 +42,7 @@ O briefing contrariava o enunciado, as rules ou a spec 002 em quatro pontos. Cad
 
 ## Critérios de aceitação
 
-Só o que o `pnpm test` prova, no Testcontainers. A conferência em produção é da pessoa e está em Fora de escopo.
+Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, que precisa do Auth, o `pnpm test:e2e`, como o CA-13 da spec 001. A conferência em produção é da pessoa e está em Fora de escopo.
 
 - CA-01 — Num banco vazio com a área `default`, o carregamento grava as 5 categorias do RN-05 e 12 equipamentos na `default`, com os patrimônios de TI-0001 a TI-0012. O nome, a categoria e a situação de cada um batem com `prisma/data/equipment.json`: 9 `available`, e TI-0004, TI-0007 e TI-0010 `maintenance`.
 - CA-02 — Rodar o carregamento duas vezes deixa as mesmas 5 categorias e os mesmos 12 equipamentos, com os mesmos ids e os mesmos valores.
@@ -55,7 +55,7 @@ Só o que o `pnpm test` prova, no Testcontainers. A conferência em produção �
   - a situação de um item não é `disponivel` nem `manutencao`.
 - CA-06 — O carregamento só grava nas tabelas desta spec: nenhuma linha nova em `tenants`, `memberships`, `profiles` ou `auth.users`.
 - CA-07 — Num banco vazio com o Auth de pé, `pnpm prisma db seed` duas vezes deixa o que o CA-01 pede e o que o CA-13 da spec 001 já pede, sem duplicar nada.
-- CA-08 — Em `prisma/` e `prisma/data/`, nenhum arquivo traz endereço de e-mail fora do domínio `example.com`, e a única senha que o seed usa vem de `SEED_PASSWORD`.
+- CA-08 — Em `prisma/` e `prisma/data/`, nenhum arquivo traz endereço de e-mail fora dos domínios reservados para exemplo, `example.com` e `example.test` (RFC 2606), que os testes da spec 001 já usam, e a única senha que o seed usa vem de `SEED_PASSWORD`.
 - CA-09 — O script do passo de produção, rodado contra o banco do Testcontainers, faz o mesmo que o CA-01 e o CA-02, sem ler `.env.local` e sem precisar do Auth.
 - CA-10 — **Isolamento:** dado as áreas A e B, o carregamento grava só na `default`. Um equipamento de B com o mesmo patrimônio de um da `default` não colide com ele e não muda. Os papéis `anon` e `authenticated` não leem nenhuma linha de `equipments` nem de `equipment_categories`.
 
@@ -77,7 +77,7 @@ Só o que o `pnpm test` prova, no Testcontainers. A conferência em produção �
     - repetir o deploy não duplicou nada;
     - a conta do professor tem zero empréstimos.
 - Não decidido: nada. A spec e o ADR-013 foram aprovados pela pessoa em 2026-11-12 ("Aprovo os dois"). O ADR-011, do bucket e do envio pela pessoa, segue Proposto.
-- Fica para o plano: de onde a tela monta a URL pública da imagem, já que o dev não tem Storage (ADR-004, ADR-006).
+- Fica para a spec do catálogo, como o ADR-011, seção 5, já diz: de onde a tela monta a URL pública da imagem, já que o dev não tem Storage (ADR-004, ADR-006).
 
 ## Contrato afetado
 
@@ -85,7 +85,8 @@ Só o que o `pnpm test` prova, no Testcontainers. A conferência em produção �
 - Tabela: `equipments (id, tenant_id, asset_tag, name, category_id, status, image_object, created_at)`, nova, única por `(tenant_id, asset_tag)`, com RLS e policy explícita. `status` está no enum `EquipmentStatus`, com `available`, `loaned`, `maintenance` e `out_of_service`, as quatro do glossário.
 - Seed: `prisma/seed.ts` passa a fazer o carregamento no dev.
 - Script: um script versionado em `prisma/`, com o Prisma Client, que o seed e o passo de produção usam. O nome fica com a tarefa que implementa, como no ADR-009.
-- Workflow: `.github/workflows/production.yml` ganha o passo do RN-12. A mudança é aplicada pela pessoa, à mão.
+- Workflow: `.github/workflows/production.yml` ganha o passo do RN-12. O agente prepara o texto, e a pessoa aplica, à mão.
+- Rule: `rules/secrets.md` ganha, ao lado da do ADR-009, a exceção do script do passo de produção, que lê só a URL do banco que o workflow lhe passa (ADR-013, seção 2).
 - Glossário: o `AGENTS.md`, seção 7, ganha patrimônio como `asset_tag` e categoria como `category`.
 - **Não pode mudar:**
   - o seed continua recusando banco e Auth fora da máquina e continua sem rodar em produção;
