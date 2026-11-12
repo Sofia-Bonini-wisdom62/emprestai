@@ -15,6 +15,7 @@ import {
   createPasswordResetAuth,
   createRouterAuth,
   getSessionUser,
+  sessionLinkEntryAt,
   type SessionUser,
 } from "@/server/supabase";
 
@@ -35,6 +36,9 @@ export type Context = {
   rateLimitRules?: RateLimitRules;
   // A área da primeira entrada (RN-13). Só o teste troca a default por outra.
   firstEntryTenantSlug?: string;
+  // Quando a sessão entrou pelo link do e-mail, em segundos, ou null se entrou
+  // com senha; dá o prazo da senha nova no account.setup (RN-59).
+  linkEntryAt?: number | null;
 };
 
 export const envRateLimitRules = rateLimitRulesFrom(serverEnv);
@@ -77,10 +81,13 @@ export async function createContext(
   );
   // As chamadas ao Auth das procedures, com o limite de 3 s do RN-48.
   const auth = await createRouterAuth(opts?.resHeaders).catch(() => null);
+  // Só depois de o getUser() conferir a sessão (RN-31): o horário sai do token dela.
+  const linkEntryAt = context.session ? await sessionLinkEntryAt() : null;
 
   return {
     ...context,
     auth,
+    linkEntryAt,
     passwordReset: createPasswordResetAuth(),
     ip: opts?.req ? clientIp(opts.req.headers) : null,
     rateLimitRules: envRateLimitRules,

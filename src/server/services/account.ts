@@ -45,6 +45,22 @@ export function destinationOf(account: {
   return account.role === "operations" ? "/operations/loans" : "/catalog";
 }
 
+// Quanto tempo depois de entrar pelo link do convite ou da redefinição a sessão
+// ainda pode definir a senha sem informar a atual (RN-59; decisão da pessoa).
+export const LINK_PASSWORD_WINDOW_SECONDS = 60 * 60;
+
+// A senha nova só vale para a sessão que entrou pelo link há menos de 1 hora
+// (RN-59). linkEntryAt é o horário dessa entrada, em segundos, ou null quando a
+// sessão entrou com senha. O account.setup confere isto no servidor, e a tela
+// usa a mesma regra para mostrar o campo.
+export function canSetPassword(linkEntryAt: number | null, nowSeconds: number) {
+  return (
+    linkEntryAt !== null &&
+    nowSeconds - linkEntryAt >= 0 &&
+    nowSeconds - linkEntryAt < LINK_PASSWORD_WINDOW_SECONDS
+  );
+}
+
 export type SetupFields = { password: boolean; name: boolean };
 
 // O que /account/setup pede (RN-21; docs/layout.md, tela 7): a senha quando a sessão

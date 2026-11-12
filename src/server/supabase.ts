@@ -104,33 +104,35 @@ function amrOf(accessToken: string): AmrEntry[] {
   return Array.isArray(amr) ? (amr as AmrEntry[]) : [];
 }
 
-// Se esta sessão entrou pelo link do e-mail, pelo método mais recente nos claims do token (amr).
-// O link do convite e o da redefinição, validados em /auth/confirm/verify (RN-55), entram como
-// "otp", os dois, conferido no Auth v2.197.0 da pilha do E2E; entrar com senha entra como
-// "password". O app não tem outra entrada por código. O token sai do cookie, sem uma segunda ida
-// ao Auth, que poderia falhar e esconder o campo de senha do convite. Sem sessão, false.
-export async function sessionFromEmailLink(): Promise<boolean> {
+// Quando esta sessão entrou pelo link do e-mail, em segundos, pelo método mais recente nos claims
+// do token (amr); null se ela entrou de outro jeito. O link do convite e o da redefinição,
+// validados em /auth/confirm/verify (RN-55), entram como "otp", os dois, conferido no Auth
+// v2.197.0 da pilha do E2E; entrar com senha entra como "password". O app não tem outra entrada
+// por código. O horário é o da entrada e não muda quando o token é renovado, o que dá o prazo do
+// RN-59. O token sai do cookie, sem uma segunda ida ao Auth, que poderia falhar e esconder o campo
+// de senha do convite. Sem sessão, ou sem horário no amr, null.
+export async function sessionLinkEntryAt(): Promise<number | null> {
   try {
     const server = await createServerAuthClient();
-    if (!server) return false;
+    if (!server) return null;
 
     const result = await withAuthTimeout(server.client.auth.getSession());
     const accessToken = result?.data.session?.access_token;
-    if (!accessToken) return false;
+    if (!accessToken) return null;
 
     const amr = amrOf(accessToken);
-    if (amr.length === 0) return false;
+    if (amr.length === 0) return null;
 
-    // O amr pode trazer só o nome do método (RFC 8176), sem horário.
+    // O amr pode trazer só o nome do método (RFC 8176), sem horário: aí não há prazo a conferir.
     const entries = amr.map((entry) =>
       typeof entry === "string" ? { method: entry, timestamp: 0 } : entry,
     );
     const latest = entries.reduce((last, entry) =>
       entry.timestamp > last.timestamp ? entry : last,
     );
-    return latest.method === "otp";
+    return latest.method === "otp" && latest.timestamp > 0 ? latest.timestamp : null;
   } catch {
-    return false;
+    return null;
   }
 }
 

@@ -6,6 +6,8 @@ import type { Prisma } from "@/generated/prisma/client";
 import {
   destinationOf,
   setupFields,
+  canSetPassword,
+  LINK_PASSWORD_WINDOW_SECONDS,
   enterAccount,
   FIRST_ENTRY_TENANT_SLUG,
 } from "@/server/services/account";
@@ -225,5 +227,27 @@ describe("setupFields", () => {
       password: false,
       name: false,
     });
+  });
+});
+
+// O prazo da senha nova sem a atual (RN-59): 1 hora desde a entrada pelo link.
+describe("canSetPassword", () => {
+  const now = 1_800_000_000;
+
+  it("ca_34 a sessão aberta com a senha não pode trocar a senha sem a atual", () => {
+    expect(canSetPassword(null, now)).toBe(false);
+  });
+
+  it("ca_34 a sessão do link pode, até antes de completar 1 hora", () => {
+    expect(canSetPassword(now, now)).toBe(true);
+    expect(canSetPassword(now - LINK_PASSWORD_WINDOW_SECONDS + 1, now)).toBe(true);
+  });
+
+  it("ca_34 a sessão do link não pode a partir de 1 hora", () => {
+    expect(canSetPassword(now - LINK_PASSWORD_WINDOW_SECONDS, now)).toBe(false);
+  });
+
+  it("ca_34 um horário de entrada no futuro não vale", () => {
+    expect(canSetPassword(now + 60, now)).toBe(false);
   });
 });
