@@ -14,14 +14,14 @@ import { authMessages } from "@/lib/auth-messages";
 import type { AppRouter } from "@/server/api/root";
 import { trpc } from "@/trpc/client";
 
-// O limite de tentativas tem mensagem própria (RN-43, RN-26). Qualquer outra falha da chamada, que
-// a spec não nomeia, mostra a genérica do RN-51, e o formulário continua na tela.
+// O limite de tentativas tem mensagem própria (RN-43, RN-26). Qualquer outra falha da chamada, como
+// a rede ou o servidor fora do ar, mostra a do RN-60, e o formulário continua na tela.
 function requestError(error: unknown) {
   const tooMany =
     error instanceof TRPCClientError &&
     (error as TRPCClientError<AppRouter>).data?.code === "TOO_MANY_REQUESTS";
 
-  return tooMany ? authMessages.tooManyAttempts : authMessages.setupFailed;
+  return tooMany ? authMessages.tooManyAttempts : authMessages.resetFailed;
 }
 
 // O formulário da tela 8 (docs/layout.md, seção 6). Depois do envio, a resposta do RN-42 toma o
