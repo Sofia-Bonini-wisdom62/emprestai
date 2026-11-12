@@ -75,6 +75,8 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 - RN-56 — A senha igual à atual, recusada pelo Auth, mostra "Escolha uma senha diferente da atual.". Origem: revisão da T-07.
 - RN-57 — Se o contador de tentativas não responde, a entrada é recusada com a mensagem do RN-25, sem consultar o Auth; o pedido de redefinição devolve a resposta do RN-42 sem pedir o link. Origem: revisão da T-07.
 - RN-58 — O painel da marca, à esquerda do `/login`, de `/account/setup` e de `/forgot-password`, mostra a frase "Saiba o que está disponível e com quem está cada item.", a mesma da landing, e os números "3 itens por pessoa" e "14 dias de prazo". Origem: `docs/layout.md`, seção 6, telas 1, 7 e 8; decisão de 2026-11-11, na T-09.
+- RN-59 — O `account.setup` só aceita senha nova, sem pedir a atual, da sessão que entrou pelo link do convite ou da redefinição há menos de 1 hora; fora disso, a resposta é a mensagem genérica do RN-51, e nem a senha nem o nome mudam. `/account/setup` mostra o campo de senha nas mesmas condições. Origem: revisão da T-10; decisão de 2026-11-11.
+- RN-60 — Em `/forgot-password`, o pedido de redefinição que falha por outro motivo que não o limite de tentativas, como a rede ou o servidor fora do ar, mostra "Não foi possível enviar agora. Tente de novo em instantes.", e o formulário continua na tela. Origem: revisão da T-10; decisão de 2026-11-11.
 
 ## Critérios de aceitação
 
@@ -113,6 +115,8 @@ Pessoas e e-mails fictícios de `docs/layout.md`, seção 10.
 - CA-31 — Dado Beatriz Fontes com vínculo em duas áreas, quando ela entra com a senha certa, então a resposta é "E-mail ou senha incorretos." e a sessão aberta pelo Auth sai; em `/account/setup`, a mesma conta recebe "Não foi possível salvar. Tente de novo.", sem vínculo novo. Com o contador de tentativas fora do ar, entrar falha com a mesma mensagem, sem consultar o Auth, e o pedido de redefinição devolve a resposta do RN-42 sem pedir o link.
 - CA-32 — Dado Caio Moreira com sessão em dois navegadores, quando ele usa "Sair" em um deles, então o cookie desse navegador é apagado e o outro continua com sessão. Sem a sessão conferida, como com o Auth fora do ar, "Sair" também apaga o cookie e devolve `/login`.
 - CA-33 — Dado Enzo Paiva em `/account/setup`, quando ele envia como nova a senha que já é a dele, então a resposta é "Escolha uma senha diferente da atual.", e o nome não é salvo.
+- CA-34 — Dado Beatriz Fontes com sessão aberta com a senha, quando ela envia uma senha nova a `account.setup`, então a resposta é "Não foi possível salvar. Tente de novo.", e a senha não muda; o mesmo vale para a sessão aberta pelo link há mais de 1 hora. Pelo link há menos de 1 hora, a senha muda, como no CA-07 e no CA-20.
+- CA-35 — Dado Beatriz Fontes em `/forgot-password`, com o pedido de redefinição sem resposta do servidor, quando ela informa o e-mail, então a tela mostra "Não foi possível enviar agora. Tente de novo em instantes." e continua com o campo de e-mail.
 
 ## Fora de escopo / não decidido
 
@@ -132,7 +136,7 @@ Pessoas e e-mails fictícios de `docs/layout.md`, seção 10.
 - Endpoint: `auth.signIn` — novo, mutação pública. Input `{ email, password }`. Confere o limite (RN-09), entra no Auth pelo servidor, grava o cookie, cria o vínculo da primeira entrada (RN-13) e devolve o destino: `/catalog`, `/operations/loans` ou `/account/setup`.
 - Endpoint: `auth.signOut` — novo, mutação pública, sem input. Apaga o cookie deste navegador, mesmo sem sessão conferida (RN-53, RN-54), e devolve `/login`.
 - Endpoint: `auth.requestPasswordReset` — novo, mutação pública. Input `{ email }`. Confere o limite (RN-43), pede ao Auth o link de redefinição com destino `/auth/confirm` e devolve sempre a mesma resposta (RN-42).
-- Endpoint: `account.setup` — novo, mutação protegida. Input `{ password?, name? }`: a senha no convite e na redefinição, o nome quando falta, sem espaços nas pontas e com até 80 caracteres. Cria o vínculo da primeira entrada pela mesma regra do `auth.signIn` (RN-13) e devolve o destino do papel.
+- Endpoint: `account.setup` — novo, mutação protegida. Input `{ password?, name? }`: a senha no convite e na redefinição, só na sessão que entrou pelo link há menos de 1 hora (RN-59), o nome quando falta, sem espaços nas pontas e com até 80 caracteres. Cria o vínculo da primeira entrada pela mesma regra do `auth.signIn` (RN-13) e devolve o destino do papel.
 - Endpoint: `account.me` — novo, consulta, sem input. Devolve nome, e-mail e papel da sessão, para o header.
 - Rota: `GET /auth/confirm` — nova página. Recebe `token_hash` e `type` (`invite` ou `recovery`) do link do e-mail e mostra o botão "Continuar", sem chamar o Auth (RN-55).
 - Rota: `POST /auth/confirm/verify` — novo Route Handler, o envio do botão. Confere a origem, valida o link no Auth, grava o cookie e leva a `/account/setup`; link que não vale leva a `/login` com o aviso do RN-38.

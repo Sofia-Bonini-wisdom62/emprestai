@@ -12,25 +12,75 @@ import {
 } from "@/server/auth-client";
 import type { AuthPort, PasswordResetPort } from "@/server/services/auth";
 
-export type SessionUser = { id: string; email: string | null };
+// linkEntryAt: quando a sessão entrou pelo link do e-mail, em segundos, ou null
+// (RN-59). Só o teste monta a sessão sem ele.
+export type SessionUser = { id: string; email: string | null; linkEntryAt?: number | null };
 
 type CookieStore = Awaited<ReturnType<typeof cookies>>;
 
+type AmrEntry = string | { method: string; timestamp: number };
+
+// O amr do token de acesso, lido do próprio JWT, sem conferir a assinatura: quem
+// chama confere o mesmo token no Auth (getUserFromCookies).
+function amrOf(accessToken: string): AmrEntry[] {
+  const payload = accessToken.split(".")[1];
+  if (!payload) return [];
+  const claims: unknown = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  const amr = (claims as { amr?: unknown }).amr;
+  return Array.isArray(amr) ? (amr as AmrEntry[]) : [];
+}
+
+// Quando a sessão deste token entrou pelo link do e-mail, em segundos, pelo
+// método mais recente do amr; null se ela entrou de outro jeito. O link do
+// convite e o da redefinição, validados em /auth/confirm/verify (RN-55), entram
+// como "otp", os dois, conferido no Auth v2.197.0 da pilha do E2E; entrar com
+// senha entra como "password". O app não tem outra entrada por código. O horário
+// é o da entrada e não muda quando o token é renovado, também conferido no E2E,
+// o que dá o prazo do RN-59. Sem horário no amr, null.
+function linkEntryAtOf(accessToken: string): number | null {
+  const amr = amrOf(accessToken);
+  if (amr.length === 0) return null;
+
+  // O amr pode trazer só o nome do método (RFC 8176), sem horário.
+  const entries = amr.map((entry) =>
+    typeof entry === "string" ? { method: entry, timestamp: 0 } : entry,
+  );
+  const latest = entries.reduce((last, entry) =>
+    entry.timestamp > last.timestamp ? entry : last,
+  );
+  return latest.method === "otp" && latest.timestamp > 0 ? latest.timestamp : null;
+}
+
 // getUser(), e não getClaims(): pergunta ao Auth a cada chamada, e a conta
-// bloqueada perde o acesso já na seguinte (RN-31, RN-32). Qualquer falha do
-// Auth ou do gateway, e o limite de AUTH_TIMEOUT_MS estourado, viram chamada
-// sem sessão, sem repassar o erro.
+// bloqueada perde o acesso já na seguinte (RN-31, RN-32). A sessão é carregada
+// (e renovada, se venceu) uma vez, e o Auth confere exatamente o token dela, o
+// mesmo de onde sai o linkEntryAt do RN-59: as duas coisas vêm da mesma sessão.
+// Tudo dentro de um limite só de AUTH_TIMEOUT_MS (RN-48). Qualquer falha do Auth
+// ou do gateway, e o limite estourado, viram chamada sem sessão, sem repassar o
+// erro.
 export async function getUserFromCookies(
   config: AuthConfig,
   cookieMethods: CookieMethodsServer,
 ): Promise<SessionUser | null> {
   try {
-    const result = await withAuthTimeout(
-      createAuthClient(config, cookieMethods).auth.getUser(),
-    );
-    if (!result || result.error || !result.data.user) return null;
+    const { auth } = createAuthClient(config, cookieMethods);
 
-    return { id: result.data.user.id, email: result.data.user.email ?? null };
+    return await withAuthTimeout(
+      (async (): Promise<SessionUser | null> => {
+        const { data: sessionData } = await auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        if (!accessToken) return null;
+
+        const { data, error } = await auth.getUser(accessToken);
+        if (error || !data.user) return null;
+
+        return {
+          id: data.user.id,
+          email: data.user.email ?? null,
+          linkEntryAt: linkEntryAtOf(accessToken),
+        };
+      })(),
+    );
   } catch {
     return null;
   }
@@ -90,6 +140,22 @@ export async function createServerAuthClient(responseHeaders?: Headers) {
     client: createAuthClient(config, nextCookieMethods(cookieStore, responseHeaders)),
     cookieStore,
   };
+}
+
+// Para a tela /account/setup decidir se mostra o campo de senha (RN-59). Só a exibição: quem
+// decide se a senha muda é o account.setup, com o linkEntryAt do createContext, tirado do token que
+// o getUser() conferiu (getUserFromCookies). Sem sessão, ou sem horário no amr, null.
+export async function sessionLinkEntryAt(): Promise<number | null> {
+  try {
+    const server = await createServerAuthClient();
+    if (!server) return null;
+
+    const result = await withAuthTimeout(server.client.auth.getSession());
+    const accessToken = result?.data.session?.access_token;
+    return accessToken ? linkEntryAtOf(accessToken) : null;
+  } catch {
+    return null;
+  }
 }
 
 // O cookie de sessão do @supabase/ssr, inteiro ou em pedaços, e os do PKCE.

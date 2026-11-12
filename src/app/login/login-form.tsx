@@ -1,12 +1,14 @@
 "use client";
 
 import { TRPCClientError } from "@trpc/client";
-import { CircleAlert, Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { FormAlert } from "@/components/form-alert";
+import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -31,7 +33,6 @@ function signInError(error: unknown) {
 export function LoginForm({ initialError }: { initialError: string | null }) {
   const router = useRouter();
   const signIn = trpc.auth.signIn.useMutation();
-  const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState(initialError);
   const [navigating, setNavigating] = useState(false);
   const {
@@ -65,44 +66,24 @@ export function LoginForm({ initialError }: { initialError: string | null }) {
 
       <Field>
         <FieldLabel htmlFor="password">Senha</FieldLabel>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            required
-            className="pr-12"
-            {...register("password")}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-            aria-controls="password"
-            onClick={() => setShowPassword((shown) => !shown)}
-            className="absolute inset-y-0 right-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
-          >
-            {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-          </Button>
-        </div>
+        <PasswordInput
+          id="password"
+          autoComplete="current-password"
+          required
+          {...register("password")}
+        />
         {/* O Field estica cada filho na largura toda: o link vai à direita dentro deste bloco. */}
         <div className="flex justify-end">
           <Link
             href="/forgot-password"
-            className="text-[15px]/5 text-indigo-400 underline-offset-4 hover:text-indigo-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="inline-flex min-h-10 items-center text-[15px]/5 text-indigo-400 underline-offset-4 hover:text-indigo-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             Esqueci minha senha
           </Link>
         </div>
       </Field>
 
-      {formError && (
-        <p role="alert" className="flex items-start gap-2 text-sm text-status-overdue">
-          <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-          {formError}
-        </p>
-      )}
+      {formError && <FormAlert>{formError}</FormAlert>}
 
       <div className="flex flex-col gap-4">
         <Button type="submit" size="lg" disabled={busy}>

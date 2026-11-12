@@ -19,6 +19,8 @@ export const authMessages = {
     "Se houver uma conta com esse e-mail, enviamos um link para redefinir a senha.",
   // RN-51.
   setupFailed: "Não foi possível salvar. Tente de novo.",
+  // RN-60: o pedido de redefinição que falha por outro motivo que não o limite.
+  resetFailed: "Não foi possível enviar agora. Tente de novo em instantes.",
 } as const;
 
 // O /auth/confirm leva a /login com este parâmetro quando o link não vale (RN-38).

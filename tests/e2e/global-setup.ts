@@ -10,6 +10,10 @@ import { type AuthStack, freePort, startAuthStack } from "./stack";
 // o token com menos de 90 s de vida; com 5 s, o caso espera o token vencer de verdade.
 export const SHORT_TOKEN_SECONDS = 5;
 
+// Validade do link do e-mail na mesma pilha (CA-25, link vencido): os casos que só usam o token
+// curto não geram link, e a pilha comum continua com as 24 horas do RN-36.
+export const SHORT_LINK_SECONDS = 5;
+
 // Sobe as duas pilhas efêmeras, a comum e a de token curto, com as mesmas chaves; roda o seed na
 // comum; e sobe o app de produção apontado para o repasse do Auth, que começa na pilha comum. O
 // teardown derruba tudo.
@@ -20,7 +24,14 @@ export default async function globalSetup() {
 
   const started = await Promise.allSettled([
     startAuthStack({ siteUrl, keys }),
-    startAuthStack({ siteUrl, keys, authEnv: { GOTRUE_JWT_EXP: String(SHORT_TOKEN_SECONDS) } }),
+    startAuthStack({
+      siteUrl,
+      keys,
+      authEnv: {
+        GOTRUE_JWT_EXP: String(SHORT_TOKEN_SECONDS),
+        GOTRUE_MAILER_OTP_EXP: String(SHORT_LINK_SECONDS),
+      },
+    }),
   ]);
   const stacks = started.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
   const stopStacks = () => Promise.all(stacks.map((item) => item.stop()));

@@ -19,9 +19,13 @@ const createCaller = createCallerFactory(appRouter);
 
 let firstEntry: Awaited<ReturnType<typeof createFirstEntryTenant>>;
 
+const nowSeconds = () => Math.floor(Date.now() / 1000);
+
+// Por padrão, a sessão acabou de entrar pelo link do e-mail, como no convite e na
+// redefinição, e pode definir a senha (RN-59). Os casos do prazo trocam isso.
 function caller(
   session: Context["session"],
-  extra: Partial<Pick<Context, "tenantId" | "role">> & {
+  extra: Partial<Pick<Context, "tenantId" | "role" | "linkEntryAt">> & {
     auth?: AuthPort | null;
   } = {},
 ) {
@@ -29,6 +33,7 @@ function caller(
     db,
     session,
     firstEntryTenantSlug: firstEntry.slug,
+    linkEntryAt: nowSeconds(),
     ...extra,
   });
 }
@@ -187,6 +192,54 @@ describe("senha", () => {
       message: authMessages.samePassword,
     });
     await expect(db.profile.count({ where: { id: session.userId } })).resolves.toBe(0);
+  });
+});
+
+describe("prazo da senha nova (RN-59)", () => {
+  const refusals = [
+    ["sessão aberta com a senha", null],
+    ["sessão do link há mais de 1 hora", () => nowSeconds() - 3601],
+  ] as const;
+
+  for (const [label, linkEntryAt] of refusals) {
+    it(`ca_34 ${label}: account.setup recusa a senha nova com a mensagem do RN-51 e não salva nada`, async () => {
+      const session = { userId: randomUUID(), email: "beatriz.fontes@example.com" };
+      const { auth, calls } = fakeAuth();
+
+      await expect(
+        caller(session, {
+          auth,
+          linkEntryAt: typeof linkEntryAt === "function" ? linkEntryAt() : linkEntryAt,
+        }).account.setup({ password: "senha-nova-123", name: "Beatriz Fontes" }),
+      ).rejects.toMatchObject({ code: "FORBIDDEN", message: authMessages.setupFailed });
+      expect(calls.updateUser).toEqual([]);
+      await expect(db.profile.count({ where: { id: session.userId } })).resolves.toBe(0);
+      await expect(db.membership.count({ where: { userId: session.userId } })).resolves.toBe(0);
+    });
+  }
+
+  // Controle: dentro do prazo, a mesma chamada troca a senha.
+  it("ca_34 sessão do link há menos de 1 hora: account.setup troca a senha", async () => {
+    const session = { userId: randomUUID(), email: "beatriz.fontes@example.com" };
+    const { auth, calls } = fakeAuth();
+
+    await expect(
+      caller(session, { auth, linkEntryAt: nowSeconds() - 3540 }).account.setup({
+        password: "senha-nova-123",
+        name: "Beatriz Fontes",
+      }),
+    ).resolves.toEqual({ redirectTo: "/catalog" });
+    expect(calls.updateUser).toEqual(["senha-nova-123"]);
+  });
+
+  it("ca_34 sessão aberta com a senha ainda salva só o nome", async () => {
+    const session = { userId: randomUUID(), email: "beatriz.fontes@example.com" };
+    const { auth, calls } = fakeAuth();
+
+    await expect(
+      caller(session, { auth, linkEntryAt: null }).account.setup({ name: "Beatriz Fontes" }),
+    ).resolves.toEqual({ redirectTo: "/catalog" });
+    expect(calls.updateUser).toEqual([]);
   });
 });
 
