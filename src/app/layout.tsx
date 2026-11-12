@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { connection } from "next/server";
 
 import { TRPCProvider } from "@/trpc/provider";
+
+import { CspNonce } from "./csp-nonce";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +38,7 @@ export default async function RootLayout({
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <CspNonce />
         <TRPCProvider>{children}</TRPCProvider>
       </body>
     </html>
