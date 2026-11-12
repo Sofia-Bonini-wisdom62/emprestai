@@ -149,11 +149,13 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
     ["photoUrl", "página da foto", "a página da foto (photoUrl)"],
     ["photoUrl", "http://www.pexels.com/photo/222/", "a página da foto (photoUrl)"],
     ["photographerUrl", "javascript:alert(1)", "a página do fotógrafo (photographerUrl)"],
+    ["photographerUrl", "www.pexels.com/@fotografa-ficticia-222", "a página do fotógrafo (photographerUrl)"],
     ["sourceUrl", "pexels-photo-222.jpeg", "a URL de origem do arquivo (sourceUrl)"],
     ["sourceUrl", "data:image/jpeg;base64,AAAA", "a URL de origem do arquivo (sourceUrl)"],
     ["objectName", ["TI-0002-222.jpg"], "o nome do objeto (objectName)"],
     ["sha256", sha(222).toUpperCase().replace(/^0/, "A"), "o SHA-256 (sha256)"],
     ["sha256", "abc", "o SHA-256 (sha256)"],
+    ["sha256", "z".repeat(64), "o SHA-256 (sha256)"],
     ["downloadedAt", "ontem", "a data do download (downloadedAt)"],
     ["downloadedAt", "2026-13-45", "a data do download (downloadedAt)"],
     ["downloadedAt", "2026-02-30", "a data do download (downloadedAt)"],
@@ -195,22 +197,34 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
     });
   });
 
-  it.each([
-    ["photographer", "o fotógrafo (photographer)"],
-    ["sourceUrl", "a URL de origem do arquivo (sourceUrl)"],
-    ["sha256", "o SHA-256 (sha256)"],
-    ["downloadedAt", "a data do download (downloadedAt)"],
-  ])("ca_12 a foto reprovada também precisa do crédito e da origem: sem %s", (field, description) => {
-    const incomplete = omit(photo("TI-0001", 112, "rejected"), field);
+  // A foto reprovada é a segunda do manifesto completo.
+  const rejected = () => photo("TI-0001", 112, "rejected");
+  const rejectedLabel = "foto 2 (TI-0001, 112)";
 
-    expect(checkManifest(withPhoto(1, incomplete))).toEqual({
-      ok: false,
-      problems: [`foto 2 (TI-0001, 112): falta ${description}`],
-    });
+  it.each([
+    ["assetTag", omit(rejected(), "assetTag"), "foto 2 (sem patrimônio, 112): falta o patrimônio (assetTag)"],
+    ["pexelsId", omit(rejected(), "pexelsId"), "foto 2 (TI-0001, sem id): falta o id do Pexels (pexelsId)"],
+    ["photoUrl", omit(rejected(), "photoUrl"), `${rejectedLabel}: falta a página da foto (photoUrl)`],
+    ["photographer", omit(rejected(), "photographer"), `${rejectedLabel}: falta o fotógrafo (photographer)`],
+    ["photographerUrl", omit(rejected(), "photographerUrl"), `${rejectedLabel}: falta a página do fotógrafo (photographerUrl)`],
+    ["license", omit(rejected(), "license"), `${rejectedLabel}: falta a licença (license)`],
+    ["sourceUrl", omit(rejected(), "sourceUrl"), `${rejectedLabel}: falta a URL de origem do arquivo (sourceUrl)`],
+    ["sha256", omit(rejected(), "sha256"), `${rejectedLabel}: falta o SHA-256 (sha256)`],
+    ["downloadedAt", omit(rejected(), "downloadedAt"), `${rejectedLabel}: falta a data do download (downloadedAt)`],
+    [
+      "review.reason",
+      { ...rejected(), review: { verdict: "rejected" } },
+      `${rejectedLabel}: falta o motivo do veredito (review.reason)`,
+    ],
+  ])("ca_12 a foto reprovada também precisa de cada campo do RN-05: sem %s", (_, incomplete, problem) => {
+    expect(checkManifest(withPhoto(1, incomplete))).toEqual({ ok: false, problems: [problem] });
   });
 
-  it("ca_12 a data do download num 29 de fevereiro de ano bissexto passa", () => {
-    const manifest = withPhoto(TI_0002, { ...photo("TI-0002", 222), downloadedAt: "2028-02-29T10:00:00Z" });
+  it.each([
+    ["num 29 de fevereiro de ano bissexto", "2028-02-29T10:00:00Z"],
+    ["sem a hora", "2026-11-12"],
+  ])("ca_12 a data do download %s passa", (_, downloadedAt) => {
+    const manifest = withPhoto(TI_0002, { ...photo("TI-0002", 222), downloadedAt });
 
     expect(checkManifest(manifest)).toMatchObject({ ok: true });
   });

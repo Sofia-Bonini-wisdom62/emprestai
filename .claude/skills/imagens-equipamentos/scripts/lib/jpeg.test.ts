@@ -196,6 +196,11 @@ describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
     });
   });
 
+  // Cada APPn, de APP0 a APP15, e não só os que um codificador comum grava.
+  it.each(Array.from({ length: 16 }, (_, n) => n))("ca_11 passa o JPEG com um APP%i", (n) => {
+    expect(checkJpeg(jpeg({ extra: segment(0xe0 + n, text("teste")) }))).toMatchObject({ ok: true });
+  });
+
   it("ca_11 um SOF1 de 8 bits passa", () => {
     expect(checkJpeg(jpeg({ sof: 0xc1 }))).toEqual({
       ok: true,
