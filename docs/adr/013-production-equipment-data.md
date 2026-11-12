@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto |
+| Status | Aceito em 2026-11-12, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), na revisão da spec 003 ("Aprovo os dois") |
 | Data | 2026-11-12 |
 | Turma | B |
 | Vínculo | [`docs/perguntas-prd.md`](../perguntas-prd.md), resposta 34; [`docs/specs/003-seed-data/spec.md`](../specs/003-seed-data/spec.md), RN-07 e RN-12; [ADR-009](009-production-first-admin.md); [ADR-011](011-equipment-images.md) |

@@ -1,6 +1,6 @@
 # 003 — Dados iniciais
 
-Status: rascunho
+Status: aprovada
 Atualizada em: 2026-11-12
 
 ## Objetivo
@@ -10,7 +10,7 @@ O banco de dev e o de produção passam a ter os 12 equipamentos da prática, ca
 ## Vínculo
 
 - PRD: `docs/PRD.md` não pede dados iniciais. Eles servem ao item 2 de "O que precisa existir na primeira versão" (catálogo com a situação de cada item) e à regra "Equipamento em manutenção não aparece como disponível". A origem é a Entrega 3 da prática (seção 04 do enunciado: briefing de dados iniciais e "Ao final, em produção"), com as regras da seção 01 e a lista dos 12 equipamentos da seção 03.
-- Restringe: `docs/adr/001-stack.md`, seções 2.5 e 2.7, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/011-equipment-images.md`, ainda Proposto; `docs/adr/013-production-equipment-data.md`, Proposto.
+- Restringe: `docs/adr/001-stack.md`, seções 2.5 e 2.7, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/011-equipment-images.md`, ainda Proposto; `docs/adr/013-production-equipment-data.md`.
 - Assume pronto: 001-login (`tenants`, `memberships`, `profiles`, o seed do dev e o passo do ADR-009); 002-equipment-images (`prisma/data/equipment.json` e o manifesto aprovado `prisma/data/equipment-images.json`, RN-10 da 002).
 
 ## Regras
@@ -76,9 +76,7 @@ Só o que o `pnpm test` prova, no Testcontainers. A conferência em produção �
     - as imagens abrem pela URL pública, sem login, todas em 800×600;
     - repetir o deploy não duplicou nada;
     - a conta do professor tem zero empréstimos.
-- Não decidido: nada em `docs/perguntas-prd.md`. A spec ainda depende de duas coisas:
-  - o ADR-013, que amplia o escopo do passo do ADR-009, está Proposto e espera a pessoa;
-  - o ADR-011, do bucket e do envio pela pessoa, também está Proposto.
+- Não decidido: nada. A spec e o ADR-013 foram aprovados pela pessoa em 2026-11-12 ("Aprovo os dois"). O ADR-011, do bucket e do envio pela pessoa, segue Proposto.
 - Fica para o plano: de onde a tela monta a URL pública da imagem, já que o dev não tem Storage (ADR-004, ADR-006).
 
 ## Contrato afetado
