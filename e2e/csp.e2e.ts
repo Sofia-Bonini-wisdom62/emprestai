@@ -1,6 +1,13 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { cleanupAccounts, createAccount, sql, uniqueEmail } from "../tests/e2e/accounts";
+import {
+  adminAuth,
+  cleanupAccounts,
+  createAccount,
+  sql,
+  trackUser,
+  uniqueEmail,
+} from "../tests/e2e/accounts";
 
 // A CSP sem 'unsafe-inline', com nonce por request (T-12, CA-16), contra o build de produção do
 // E2E: o next dev precisa de 'unsafe-eval' e de estilo inline, então a prova é com next start.
@@ -82,6 +89,10 @@ const screens: { path: string; ready: (page: Page) => Promise<void> }[] = [
     },
   },
   {
+    path: "/forgot-password",
+    ready: (page) => expect(page.getByRole("button", { name: "Enviar link" })).toBeEnabled(),
+  },
+  {
     path: "/auth/confirm?token_hash=link-de-teste&type=invite",
     ready: (page) => expect(page.getByRole("button", { name: "Continuar" })).toBeVisible(),
   },
@@ -115,6 +126,27 @@ test("ca_16 o header, com o menu do usuário aberto, abre sem violação de CSP 
   await page.waitForURL("**/catalog");
   await page.getByRole("banner").getByRole("button", { name: "Beatriz Fontes" }).click();
   await expect(page.getByRole("menuitem", { name: "Sair" })).toBeVisible();
+
+  await expectNoViolations(violations);
+});
+
+test("ca_16 /account/setup, aberto pelo link do convite, abre sem violação de CSP no console", async ({
+  page,
+}) => {
+  const violations = await watchViolations(page);
+  const { data: link, error } = await adminAuth().generateLink({
+    type: "invite",
+    email: uniqueEmail("enzo.paiva"),
+  });
+  if (error || !link.properties || !link.user) throw error ?? new Error("O Auth não gerou o link");
+  trackUser(link.user.id);
+
+  await page.goto(`/auth/confirm?token_hash=${link.properties.hashed_token}&type=invite`);
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.waitForURL("**/account/setup");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Defina sua senha");
+  await page.getByRole("button", { name: "Mostrar senha" }).click();
+  await expect(page.getByRole("button", { name: "Ocultar senha" })).toBeVisible();
 
   await expectNoViolations(violations);
 });

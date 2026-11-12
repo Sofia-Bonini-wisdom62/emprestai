@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Proposto |
+| Status | Aceito em 2026-11-12, pela pessoa, que escolheu a saída B ("Confirmo a B") e aprovou o `get-nonce` 1.0.1 como dependência direta |
 | Data | 2026-11-12 |
 | Turma | B |
 | Vínculo | [ADR-002](002-design-system.md), seção 5, gatilho de revisão "`Select`, `DropdownMenu`, `Sidebar` ou `ToggleGroup` é bloqueado"; [`docs/layout.md`](../layout.md), seção 11; spec 001, [`plan.md`](../specs/001-login/plan.md), Risco, e a T-12 (CA-16) |
@@ -37,17 +37,19 @@ Fatos conferidos no código instalado, em 2026-11-12:
 
 ## 2. Decisão
 
-**A decidir pela pessoa.** O agente recomenda a alternativa B.
+**Saída B**, escolhida pela pessoa em 2026-11-12, como o agente recomendou. O menu do usuário continua modal.
 
 | Alternativa | Como funciona | O que custa |
 |---|---|---|
 | **A. Menu não modal** (`modal={false}`) | O Radix não monta a trava de rolagem, e nenhum `<style>` é injetado | Muda o comportamento do menu: a página rola com o menu aberto, o resto da página não fica escondido do leitor de tela, o clique fora chega ao que foi clicado e o foco não volta ao gatilho. Não serve para o `Dialog`, que não tem modo sem trava |
-| **B. `setNonce` do `get-nonce`** (recomendada) | O layout raiz lê o nonce do request e o passa a um componente de cliente, que chama `setNonce(nonce)` antes de qualquer primitivo montar. Todo `<style>` do Radix sai com o nonce | O `get-nonce` 1.0.1 vira dependência direta, o que pede aprovação (`rules/operacao.md`). Vale também para o `Dialog` e o `Select` que vierem |
+| **B. `setNonce` do `get-nonce`** (escolhida) | Um módulo de cliente do layout raiz (`src/app/csp-nonce.tsx`) chama `setNonce(nonce)` quando carrega, antes de qualquer primitivo montar. Todo `<style>` do Radix sai com o nonce | O `get-nonce` 1.0.1 vira dependência direta, o que pede aprovação (`rules/operacao.md`). Vale também para o `Dialog` e o `Select` que vierem |
 | **C. Variável global `__webpack_nonce__`** | O mesmo componente de cliente define `globalThis.__webpack_nonce__ = nonce`, e o `get-nonce` a lê | Sem dependência nova, mas depende de um detalhe interno: o Turbopack deixar o nome intacto. Uma versão nova do bundler pode trocá-lo, e o `ca_16` só pega isso quando a tela abre o menu |
 | D. `'unsafe-inline'` no `style-src` | Libera todo estilo inline | Contraria o ADR-001, 2.10. Descartada |
 | E. Hash do estilo no `style-src` | Libera o `<style>` pelo hash do conteúdo | O conteúdo muda com a largura da barra de rolagem de cada máquina. Inviável |
 
 Nas alternativas B e C, o nonce chega ao navegador pela página, como já chega aos scripts do Next. Ele já está no HTML, então essa ida não expõe nada que um script injetado não alcançasse.
+
+Na implementação da B, o módulo lê o nonce dos scripts que o Next já escreveu na página (`script[nonce]`), e não de uma prop do layout. A CSP do documento fica fixa no carregamento, e um `router.refresh()` renderiza o layout de novo com o nonce de outro request, que essa CSP barraria.
 
 ## 3. Consequências
 
@@ -57,9 +59,9 @@ Nas alternativas B e C, o nonce chega ao navegador pela página, como já chega 
 
 ## 4. Antes de aceitar
 
-1. Escolher A, B ou C.
-2. Se for B, aprovar o `get-nonce` 1.0.1 como dependência direta.
-3. Com a escolha feita, a T-12 aplica a solução e mostra o `ca_16` do header, com o menu aberto, sem violação no console.
+1. Feito em 2026-11-12: a pessoa escolheu a B.
+2. Feito em 2026-11-12: o `get-nonce` 1.0.1 entrou como dependência direta, com versão exata (`docs/specs/001-login/plan.md`, tabela de dependências).
+3. A T-12 aplica a solução e mostra o `ca_16` do header, com o menu aberto, sem violação no console.
 
 ## 5. Gatilhos de revisão
 
