@@ -4,7 +4,7 @@ import { connection } from "next/server";
 
 import { TRPCProvider } from "@/trpc/provider";
 
-import { CspNonce } from "./csp-nonce";
+import { CspClient } from "./csp-client";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,7 +38,7 @@ export default async function RootLayout({
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <CspNonce />
+        <CspClient />
         <TRPCProvider>{children}</TRPCProvider>
       </body>
     </html>
