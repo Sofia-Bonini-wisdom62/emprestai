@@ -32,7 +32,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [ ] T-10 — Telas `/account/setup`, com o link "Sair", e `/forgot-password`, as duas na moldura do login
       CA: CA-06, CA-07, CA-20, CA-25, CA-26, CA-27, CA-28
       Verifica: `pnpm test:e2e` com `ca_07` (convite por `generateLink` até `/catalog`), `ca_06` (conta sem nome vai à tela antes de qualquer outra; nome vazio mostra "Informe seu nome."), `ca_25` (link usado e link vencido, com a validade reduzida na pilha), `ca_26` (senha curta), `ca_27` ("Sair"), `ca_20` (do "Esqueci minha senha" à senha nova) e `ca_28` na tela
-- [ ] T-11 — Header com o nome e "Sair", e as páginas provisórias de `/catalog` e `/operations/loans`, esta com o layout das telas de Operações que leva o Colaborador a `/catalog`
+- [x] T-11 — Header com o nome e "Sair", e as páginas provisórias de `/catalog` e `/operations/loans`, esta com o layout das telas de Operações que leva o Colaborador a `/catalog`
       CA: CA-01, CA-02, CA-11, CA-18, CA-21
       Verifica: `pnpm test:e2e` com `ca_01` e `ca_02` completos (header com o nome; `ca_02` com a conta do seed), `ca_11`, `ca_18` e a ida a `/login` de `ca_21`
 - [ ] T-12 — Cabeçalhos HTTP e CSP sem `unsafe-inline`, com nonce
