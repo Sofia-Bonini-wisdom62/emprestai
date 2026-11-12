@@ -34,6 +34,7 @@ Dependências, com a versão exata conferida no npm em 2026-11-11. A aprovação
 | `cn` | 0.5.2, do repositório `shadcn-ui/cn`, no lugar de `clsx` e `tailwind-merge` | decisão de 2026-11-11, na T-09 | T-09 |
 | `radix-ui` | 1.8.1, a base dos primitivos (`init -b radix`) | decisão de 2026-11-11, na T-09 | T-09 |
 | `tw-animate-css` | 1.4.0, que o `init` do shadcn/ui acrescenta | decisão de 2026-11-11, na T-09 | T-09 |
+| `get-nonce` | 1.0.1, do mesmo autor do `react-style-singleton`, que o `radix-ui` já trazia; passa a dependência direta para o cliente chamar `setNonce` | ADR-012, decisão de 2026-11-12, na T-12 | T-12 |
 
 O `init` também quer o pacote `shadcn` como dependência, só pelo CSS que o `globals.css` importa. Esse CSS está copiado em `src/app/shadcn.css`, com a licença MIT e a versão de origem, e o pacote não entra (decisão de 2026-11-11, na T-09).
 
