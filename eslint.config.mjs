@@ -42,6 +42,65 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "error",
     },
   },
+  // Skill imagens-equipamentos (spec 002, RN-01 e RN-08; ADR-011): a rede só passa pelo
+  // scripts/lib/pexels.ts, que tem a allowlist de host, e a chave só pelo
+  // scripts/lib/api-key.ts, a exceção do rules/secrets.md. Nenhum arquivo da skill importa
+  // outro cliente de rede nem roda processo.
+  {
+    files: [".claude/skills/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        ...["http", "https", "net", "tls", "dgram", "child_process"].flatMap(
+          (name) =>
+            [name, `node:${name}`].map((module) => ({
+              name: module,
+              message:
+                "Rede e processo só pelo scripts/lib/pexels.ts (spec 002, RN-01).",
+            })),
+        ),
+      ],
+    },
+  },
+  {
+    files: [".claude/skills/**/*.ts"],
+    ignores: [".claude/skills/imagens-equipamentos/scripts/lib/pexels.ts"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        {
+          name: "fetch",
+          message: "Rede só pelo scripts/lib/pexels.ts, com a allowlist de host (spec 002, RN-01).",
+        },
+      ],
+    },
+  },
+  {
+    files: [".claude/skills/**/*.ts"],
+    ignores: [".claude/skills/imagens-equipamentos/scripts/lib/api-key.ts"],
+    rules: {
+      // Repete as entradas do bloco geral, porque esta regra substitui a de lá nestes arquivos.
+      "no-restricted-properties": [
+        "error",
+        { object: "it", property: "only" },
+        { object: "test", property: "only" },
+        { object: "describe", property: "only" },
+        { object: "it", property: "skip" },
+        { object: "test", property: "skip" },
+        { object: "describe", property: "skip" },
+        {
+          object: "process",
+          property: "env",
+          message: "A chave só pelo scripts/lib/api-key.ts (rules/secrets.md; spec 002, RN-08).",
+        },
+        {
+          object: "process",
+          property: "loadEnvFile",
+          message: "A chave só pelo scripts/lib/api-key.ts (rules/secrets.md; spec 002, RN-08).",
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
