@@ -50,11 +50,12 @@ export function ForgotPasswordForm() {
     <div className="flex w-full max-w-[400px] flex-col gap-6">
       <h1 className="text-[28px]/9 font-semibold">Redefinir senha</h1>
 
-      {sent ? (
-        <p role="status" className="text-secondary-text">
-          {sent}
-        </p>
-      ) : (
+      {/* A região de aviso existe desde o começo, vazia: o leitor de tela anuncia o texto quando
+          ele entra, o que nem sempre acontece com uma região criada já com o texto. */}
+      <p role="status" className={sent ? "text-secondary-text" : "sr-only"}>
+        {sent}
+      </p>
+      {!sent && (
         <form method="post" onSubmit={onSubmit} className="flex flex-col gap-6">
           <Field>
             <FieldLabel htmlFor="email">E-mail</FieldLabel>
@@ -74,7 +75,7 @@ export function ForgotPasswordForm() {
 
       <Link
         href="/login"
-        className="w-fit text-[15px]/5 text-indigo-400 underline-offset-4 hover:text-indigo-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="inline-flex min-h-10 w-fit items-center text-[15px]/5 text-indigo-400 underline-offset-4 hover:text-indigo-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         Voltar ao login
       </Link>

@@ -92,19 +92,34 @@ export async function createServerAuthClient(responseHeaders?: Headers) {
   };
 }
 
+type AmrEntry = string | { method: string; timestamp: number };
+
+// O amr do token de acesso, lido do próprio JWT. Sem conferir a assinatura: quem chama já conferiu
+// esta sessão com getUser() no mesmo request (o account.me do createContext, RN-31).
+function amrOf(accessToken: string): AmrEntry[] {
+  const payload = accessToken.split(".")[1];
+  if (!payload) return [];
+  const claims: unknown = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  const amr = (claims as { amr?: unknown }).amr;
+  return Array.isArray(amr) ? (amr as AmrEntry[]) : [];
+}
+
 // Se esta sessão entrou pelo link do e-mail, pelo método mais recente nos claims do token (amr).
 // O link do convite e o da redefinição, validados em /auth/confirm/verify (RN-55), entram como
 // "otp", os dois, conferido no Auth v2.197.0 da pilha do E2E; entrar com senha entra como
-// "password". O app não tem outra entrada por código. Qualquer falha, e o limite do RN-48, viram
-// false.
+// "password". O app não tem outra entrada por código. O token sai do cookie, sem uma segunda ida
+// ao Auth, que poderia falhar e esconder o campo de senha do convite. Sem sessão, false.
 export async function sessionFromEmailLink(): Promise<boolean> {
   try {
     const server = await createServerAuthClient();
     if (!server) return false;
 
-    const result = await withAuthTimeout(server.client.auth.getClaims());
-    const amr = result?.data?.claims.amr;
-    if (!Array.isArray(amr) || amr.length === 0) return false;
+    const result = await withAuthTimeout(server.client.auth.getSession());
+    const accessToken = result?.data.session?.access_token;
+    if (!accessToken) return false;
+
+    const amr = amrOf(accessToken);
+    if (amr.length === 0) return false;
 
     // O amr pode trazer só o nome do método (RFC 8176), sem horário.
     const entries = amr.map((entry) =>

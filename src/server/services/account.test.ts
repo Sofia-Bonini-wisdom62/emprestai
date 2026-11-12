@@ -197,6 +197,10 @@ describe("destinationOf", () => {
   it("ca_31 sem papel, como no vínculo em mais de uma área (RN-46, RN-52), não há destino", () => {
     expect(destinationOf({ name: "Beatriz Fontes", role: null })).toBeNull();
   });
+
+  it("ca_07 a sessão do convite que ainda não passou por /account/setup, sem nome e sem vínculo, vai para lá", () => {
+    expect(destinationOf({ name: null, role: null })).toBe("/account/setup");
+  });
 });
 
 // O que /account/setup pede em cada entrada (RN-21; docs/layout.md, tela 7).

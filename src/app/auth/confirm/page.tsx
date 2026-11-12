@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
 import { AuthFrame } from "@/app/login/auth-frame";
-import { Button } from "@/components/ui/button";
 import { LINK_EXPIRED_QUERY } from "@/lib/auth-messages";
 
+import { ContinueForm } from "./continue-form";
 import { linkSchema } from "./link";
 
 type ConfirmPageProps = {
@@ -20,18 +20,7 @@ export default async function ConfirmPage({ searchParams }: ConfirmPageProps) {
 
   return (
     <AuthFrame>
-      <form
-        method="post"
-        action="/auth/confirm/verify"
-        className="flex w-full max-w-[400px] flex-col gap-6"
-      >
-        <h1 className="text-[28px]/9 font-semibold">Defina sua senha</h1>
-        <input type="hidden" name="token_hash" value={link.data.token_hash} />
-        <input type="hidden" name="type" value={link.data.type} />
-        <Button type="submit" size="lg">
-          Continuar
-        </Button>
-      </form>
+      <ContinueForm tokenHash={link.data.token_hash} type={link.data.type} />
     </AuthFrame>
   );
 }

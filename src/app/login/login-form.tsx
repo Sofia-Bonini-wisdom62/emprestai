@@ -76,7 +76,7 @@ export function LoginForm({ initialError }: { initialError: string | null }) {
         <div className="flex justify-end">
           <Link
             href="/forgot-password"
-            className="text-[15px]/5 text-indigo-400 underline-offset-4 hover:text-indigo-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="inline-flex min-h-10 items-center text-[15px]/5 text-indigo-400 underline-offset-4 hover:text-indigo-300 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             Esqueci minha senha
           </Link>

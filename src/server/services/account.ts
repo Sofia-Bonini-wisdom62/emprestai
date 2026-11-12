@@ -30,16 +30,17 @@ async function ensureFirstMembership(
   });
 }
 
-// Sem nome, a pessoa vai antes a /account/setup (CA-06). Sem papel, o que inclui
-// o vínculo em mais de uma área (RN-46), não há destino: quem chama recusa a
-// entrada sem dizer o motivo (RN-52). O /login usa a mesma regra para quem já
-// tem sessão (RN-23).
+// Sem nome, a pessoa vai antes a /account/setup (CA-06), tenha ou não papel: a
+// sessão do convite que ainda não passou por lá não tem vínculo. Com nome e sem
+// papel, o que inclui o vínculo em mais de uma área (RN-46), não há destino:
+// quem chama recusa a entrada sem dizer o motivo (RN-52). O /login usa a mesma
+// regra para quem já tem sessão (RN-23); o auth.signIn confere o vínculo antes.
 export function destinationOf(account: {
   name: string | null;
   role: MembershipRole | null;
 }): Destination | null {
-  if (!account.role) return null;
   if (!account.name) return "/account/setup";
+  if (!account.role) return null;
 
   return account.role === "operations" ? "/operations/loans" : "/catalog";
 }

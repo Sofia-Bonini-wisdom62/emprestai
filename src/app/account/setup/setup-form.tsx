@@ -125,7 +125,8 @@ export function SetupForm({ askPassword, askName }: Props) {
           )}
           Continuar
         </Button>
-        <Button type="button" variant="link" disabled={busy} onClick={leave}>
+        {/* 40px de alvo (seção 4) e sem recuo, alinhado ao título e aos rótulos (princípio 7). */}
+        <Button type="button" variant="link" disabled={busy} onClick={leave} className="h-10 px-0">
           Sair
         </Button>
       </div>
