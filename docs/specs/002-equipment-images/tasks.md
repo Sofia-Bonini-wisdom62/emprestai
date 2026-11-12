@@ -6,11 +6,11 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. A skill não a
       CA: CA-06, CA-10
       Verifica: `pnpm test` com `ca_06`, que lê o `.claude/settings.json`, e `ca_10`, que roda o hook num repositório git de teste, sem rede; `pnpm typecheck`, `pnpm lint` e `pnpm build` passando com o `include` novo
 - [x] T-02 — Leitura do cabeçalho JPEG em `scripts/lib/jpeg.ts`
-      CA: CA-02
-      Verifica: `pnpm test` com `ca_02` e `rn_12` a `rn_15` sobre cabeçalhos montados em bytes
+      CA: CA-02, CA-11
+      Verifica: `pnpm test` com `ca_02` e `ca_11` sobre cabeçalhos montados em bytes
 - [x] T-03 — Manifesto e conferência: `scripts/lib/manifest.ts` e `scripts/check.ts`, com as listas de objetos a enviar e a apagar
-      CA: CA-03, CA-09
-      Verifica: `pnpm test` com `ca_03` e `ca_09`
+      CA: CA-03, CA-09, CA-12
+      Verifica: `pnpm test` com `ca_03`, `ca_09` e `ca_12`
 - [ ] T-04 — Rede e chave: `scripts/lib/pexels.ts` e o módulo de entrada que lê a chave
       CA: CA-01, CA-07
       Verifica: `pnpm test` com `ca_01` e `ca_07`, com chave fictícia e `fetch` de mentira; `pnpm lint` reprovando `fetch` e `process.env` fora dos dois módulos
