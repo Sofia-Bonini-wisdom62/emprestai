@@ -8,7 +8,8 @@ export function createNonce() {
 
 type PolicyOptions = {
   // O next dev precisa de 'unsafe-eval' (React) e de estilo inline (as folhas que ele injeta); a
-  // produção, não. Com nonce, o navegador ignora 'unsafe-inline', então no dev o estilo fica sem nonce.
+  // produção, não (RN-61). Com nonce, o navegador ignora 'unsafe-inline', então no dev o estilo fica
+  // sem nonce.
   development: boolean;
   // Só sobre HTTPS: no E2E e no next start local, o app roda em http://127.0.0.1.
   https: boolean;

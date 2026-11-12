@@ -6,7 +6,7 @@ import {
 
 import { parseServerEnv } from "./src/env/schema";
 
-// Os cabeçalhos fixos de toda resposta (ADR-001, 2.10). A CSP não está aqui: o nonce é novo a cada
+// Os cabeçalhos fixos de toda resposta (ADR-001, 2.10; RN-62). A CSP não está aqui: o nonce é novo a cada
 // request, então ela nasce no proxy.ts (src/server/csp.ts).
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
