@@ -1,4 +1,15 @@
 {
+  "permissions": {
+    "deny": [
+      "mcp__3efacae1-0bd5-43e9-b21b-06a0e15499c3__*",
+      "mcp__cd63b4c8-e88c-449d-8d47-120629820758__*",
+      "mcp__7b70377e-6561-44af-b328-9a1533d0144c__*",
+      "mcp__e6d3977c-2db1-4b63-97c4-d36718977027__*",
+      "Edit(/.github/workflows/**)",
+      "Edit(/.claude/hooks/**)",
+      "Edit(/.claude/settings.json)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -7,6 +18,15 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/require-verification.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/protect-production-paths.mjs\""
           }
         ]
       }
