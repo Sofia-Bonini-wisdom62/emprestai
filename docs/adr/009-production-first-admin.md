@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Aceito em 2026-11-11, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), na revisão da spec 001 |
+| Status | Aceito em 2026-11-11, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), na revisão da spec 001. Trecho substituído pelo [ADR-013](013-production-equipment-data.md), em 2026-11-12: da seção 2, a linha "Escopo" e a linha Produção da tabela "Quem escreve nele" (as categorias e os equipamentos iniciais vêm do passo daquele ADR) |
 | Data | 2026-11-11 |
 | Turma | B |
 | Vínculo | [`docs/perguntas-prd.md`](../perguntas-prd.md), resposta 5b; [`docs/specs/001-login/spec.md`](../specs/001-login/spec.md), RN-04 e CA-24; [ADR-007](007-production-deploy-cli.md) |
