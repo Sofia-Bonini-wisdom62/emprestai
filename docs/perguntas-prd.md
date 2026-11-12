@@ -449,3 +449,91 @@ funcionalidade, não o número da pasta, que só sai quando a spec for criada.
     decidido: pela pessoa em 2026-11-11, aceitando a proposta do agente.
     custo anotado: uma ida ao Auth por chamada tRPC.
     vira RN em: login.
+
+<!-- A numeração segue de 32 para 33; este comentário separa as listas para o
+     Markdown não renumerar. -->
+
+As respostas 33 a 39 são da Entrega 3 da prática, dados iniciais. "Briefing" é
+o da seção 04 do enunciado, e "lista" é a dos 12 equipamentos da seção 03.
+Todas foram decididas pela pessoa em 2026-11-12 ("Aceito todas"), aceitando a
+proposta do agente entre as alternativas que ele levou, e viram RN na spec
+`docs/specs/003-seed-data/`.
+
+33. Quais equipamentos ficam em manutenção: só o TI-0004 e o TI-0007, como diz
+    o briefing, ou também o TI-0010, como diz a lista?
+    resposta: segue a lista. TI-0004, TI-0007 e TI-0010 em manutenção; os
+    outros 9, disponíveis. `prisma/data/equipment.json` continua igual à
+    lista (spec 002, RN-10 e CA-08).
+    alternativa descartada: seguir o briefing, com 10 disponíveis, o que
+    obrigaria a sobrescrever a situação do TI-0010 ou mudar o arquivo.
+    decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    vira RN em: dados iniciais.
+
+34. Como os 12 equipamentos chegam ao banco de produção, e o que uma rodada
+    nova faz com um equipamento que já existe?
+    resposta: por um passo novo no workflow de produção, depois do
+    `prisma migrate deploy`, ao lado do passo do ADR-009. Um script
+    versionado, com o Prisma Client, lê `prisma/data/equipment.json` e o
+    manifesto aprovado e grava na `default`. Cria o que falta; no que já
+    existe, atualiza só o objeto da imagem, e nunca a situação nem o nome.
+    alternativas descartadas: dado numa migration; a pessoa rodar o seed
+    contra a produção; SQL no painel; regravar tudo a cada rodada, que
+    desfaria os empréstimos da Entrega 4.
+    decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    consequência: o passo amplia o escopo do ADR-009 ("Nenhum outro dado") e
+    pede ADR novo, o ADR-013. A pessoa aplica a mudança do workflow à mão
+    (`rules/restrictions.md`, Escopo).
+    vira RN em: dados iniciais.
+
+35. Como nasce a conta do professor em produção, e onde fica a senha padrão
+    da turma?
+    resposta: a pessoa cria a conta no painel do Supabase de produção, em
+    Authentication > Users > Add user, com o e-mail do professor, a senha
+    padrão e o e-mail já confirmado. A senha não entra no git, no Actions nem
+    na conversa com o agente. No primeiro login, a conta vira Colaborador na
+    `default` e pede o nome (spec 001, RN-13 e CA-06).
+    alternativas descartadas: a senha no arquivo de dados, como pedia o
+    briefing, contra a seção 01 do enunciado e `rules/restrictions.md`; um
+    passo do workflow com a API de administrador do Auth, contra a resposta 5.
+    decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    fica com a pessoa: conferir no painel que a opção existe, como na
+    pergunta 24.
+    vira RN em: dados iniciais.
+
+36. O e-mail do professor pode entrar no git?
+    resposta: não. Ele só existe no painel de produção. Spec, testes e
+    `ENTREGA.md` dizem "a conta do professor".
+    alternativas descartadas: um secret do Actions, que a resposta 35 tornou
+    desnecessário; o e-mail no seed, com exceção em `rules/restrictions.md`.
+    decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    vira RN em: dados iniciais.
+
+37. A Entrega 3 instala o `sharp`, como pede o briefing, item 4?
+    resposta: não. Vale também aqui a decisão da spec 002 (RN-03): o tamanho
+    é pedido ao CDN do Pexels e conferido no próprio arquivo, e o
+    carregamento só grava patrimônio cuja foto passou nessa conferência.
+    alternativa descartada: instalar o `sharp`, dependência fora do ADR-001.
+    decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    vira RN em: dados iniciais.
+
+38. Quais campos o equipamento tem nesta spec, e os créditos da foto ficam no
+    banco?
+    resposta: só os cinco do briefing: patrimônio, nome, categoria, situação
+    e imagem, que é o nome do objeto no bucket. Número de série, local de
+    retirada e observações entram por migration na spec do cadastro, depois
+    das perguntas 12b, 18 e 19. Os créditos ficam só no manifesto versionado,
+    que a spec 002 confere.
+    alternativas descartadas: os oito campos da resposta 12 agora; os
+    créditos também em colunas do equipamento.
+    decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    vira RN em: dados iniciais.
+
+39. Quais categorias nascem com os dados iniciais, e com que nome?
+    resposta: as cinco da resposta 12, com esses nomes: Notebooks, Monitores,
+    Câmeras, Cabos e Projetores. As chaves da lista (`notebook`, `monitor`,
+    `cabo`, `camera`) se ligam a elas no carregamento, e Projetores nasce
+    vazia.
+    alternativas descartadas: só as quatro que a lista usa; as chaves da
+    lista como nome.
+    decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    vira RN em: dados iniciais.
