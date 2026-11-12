@@ -1,6 +1,6 @@
 # 004 — Tarefas
 
-Nenhuma tarefa começa antes de a pessoa aprovar este plano, com as cinco propostas, e de a migration da spec 003 estar na `main`. Cada tarefa é um commit e um PR, e para em `rules/checks.md` (`rules/restrictions.md`, Ritmo). Nenhuma acrescenta dependência. As tarefas seguem as recomendações das propostas; a que for recusada muda a tarefa antes de ela começar.
+O plano e as cinco propostas foram aprovados pela pessoa em 2026-11-12. Nenhuma tarefa começa antes de a migration da spec 003 estar na `main`, e cada "Pode implementar" libera uma tarefa só. Cada tarefa é um commit e um PR, e para em `rules/checks.md` (`rules/restrictions.md`, Ritmo). Nenhuma acrescenta dependência.
 
 - [ ] T-01 — Migration `add_loans_and_audit_events`: `loans` com o índice único parcial, `audit_events` com o trigger que recusa `UPDATE` e `DELETE`, RLS e as policies `deny_all`. O DDL vai à pessoa antes do `migrate dev`
       CA: CA-07, CA-12 (a parte do banco), CA-15 (a parte da RLS)

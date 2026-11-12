@@ -4,9 +4,9 @@
 
 A mudança entra por duas tabelas novas (`loans` e `audit_events`), dois services (`src/server/services/equipment.ts` e `src/server/services/loan.ts`), dois routers (`equipment` e `loan`, no `appRouter`) e três telas no grupo `(product)`: `/catalog`, `/catalog/[equipmentId]` e `/my-loans`. A regra de negócio, do RN-03 ao RN-09, mora só em `loan.ts`, dentro de uma transação. Router e tela só repassam (ADR-001, 2.3; `AGENTS.md`, seção 8). Todo procedimento é `tenantProcedure`, e a área sai do contexto, nunca do input (ADR-001, 2.6 e 2.7; spec 001, RN-15).
 
-## Propostas técnicas que o plano traz para aprovação
+## Propostas técnicas, aprovadas em 2026-11-12
 
-A spec deixa pontos de "como" para o plano, e a revisão do `revisor-plano`, em 2026-11-12, achou dois conflitos entre documentos que só a pessoa resolve (propostas 4 e 5). Cada proposta traz a alternativa e a recomendação. As propostas 2, 4 e 5 mudam a spec aprovada; aprovadas, entram nela como RN.
+A spec deixa pontos de "como" para o plano, e a revisão do `revisor-plano`, em 2026-11-12, achou dois conflitos entre documentos que só a pessoa resolve (propostas 4 e 5). A pessoa aprovou as cinco recomendações em 2026-11-12 ("Aprovo as cinco"). Elas estão na spec como RN-22 a RN-26; as alternativas ficam aqui como registro.
 
 1. **Como a foto chega ao navegador.** A CSP da spec 001 (`src/server/csp.ts`) tem `img-src 'self' blob: data:`, e o ADR-002 proíbe o atributo `style` em todo componente, inclusive o que um componente de terceiro escreve (ADR-002, seção 2; `docs/layout.md`, seção 11).
    - Recomendado: `<img>` com `width="800"` e `height="600"` e a classe de tamanho, e a origem da `EQUIPMENT_IMAGES_BASE_URL` (proposta 2) acrescentada ao `img-src`, só quando a variável existe. O `<img>` dispara a regra `@next/next/no-img-element` do `eslint-config-next`; a exceção entra no `eslint.config.mjs`, com a justificativa ao lado, restrita aos arquivos do card e do detalhe (`AGENTS.md`, seção 8; `rules/restrictions.md`, Ferramentas, que pede aprovação antes). Muda a CSP da spec 001, e o `e2e/csp.e2e.ts` passa a cobrir o catálogo e o detalhe com foto.
@@ -57,6 +57,6 @@ Componentes do shadcn/ui que entram, copiados para `src/components/ui/` sem depe
 - **Spec 002**, com o manifesto aprovado em `prisma/data/equipment-images.json`, para o seed gravar `image_object`. Sem ele, as fotos saem como ícone, e a tela funciona.
 - A pessoa:
   - aprovar o DDL da T-01 antes do `migrate dev`;
-  - aprovar as cinco propostas acima, com a exceção de lint da proposta 1 (`rules/restrictions.md`, Ferramentas);
+  - a exceção de lint da proposta 1 já está aprovada com o plano (`rules/restrictions.md`, Ferramentas);
   - cadastrar `EQUIPMENT_IMAGES_BASE_URL` no ambiente Production da Vercel, antes do deploy da T-05. É painel, então só a pessoa faz (`rules/restrictions.md`, Produção);
   - fazer em produção o teste de no máximo um item, com uma conta de teste dela (resposta 45), e a conferência da seção 07 da prática.

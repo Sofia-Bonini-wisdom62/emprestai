@@ -23,6 +23,8 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - **Auditoria** (ADR-010, seção 6, deixou o formato para esta spec). A tabela de RN-22. Alternativa descartada: um `metadata jsonb` com patrimônio e data prevista, que duplica dado do empréstimo.
 - **Item fora de uso** (pergunta 9b, aberta). Sai desta spec: nenhum dos 12 equipamentos está fora de uso.
 
+"Decisão do plano, de 2026-11-12" é a resposta da pessoa ("Aprovo as cinco") às cinco propostas técnicas de `plan.md`, depois da revisão do `revisor-plano`. Três delas mudam esta spec: a URL da foto (RN-24), a paginação (RN-25) e a landing de `/` (RN-23). As outras duas, a foto por `<img>` e o trigger da auditoria, entram nos RN-26 e RN-22.
+
 ## Regras
 
 - RN-01 — Solicitar cria o empréstimo na hora, sem aprovação de Operações nem fila. A retirada é física, no balcão de Operações, sem estado no sistema. Origem: resposta 2; briefing, "Decisão já tomada para a turma".
@@ -53,11 +55,14 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - RN-16 — Item que não está disponível mostra a situação no lugar do botão: "Com <nome> · volta até dd/mm/aaaa" no emprestado e "Em manutenção. Não pode ser pedido agora." no item em manutenção. No limite ou com atraso, o botão fica desabilitado com o motivo do RN-10 ao lado. Origem: `docs/layout.md`, seção 6, tela 3; respostas 14 e 16.
 - RN-17 — Depois de confirmar, a pessoa vai para `/my-loans`, com o aviso de resultado "Empréstimo confirmado. Retire o item no balcão de Operações e devolva até dd/mm/aaaa.". Origem: `docs/layout.md`, seção 7.1; resposta 44; decisão de 2026-11-12.
 - RN-18 — Meus empréstimos (`/my-loans`) lista só os empréstimos em aberto da pessoa, na seção "Itens com você", cada um com o nome, o patrimônio e a data prevista, sem botão "Devolver". Sem empréstimo: "Você não está com nenhum item", com link para o catálogo. Origem: PRD, item 1; briefing, item 8; `docs/layout.md`, seção 6, tela 4.
-- RN-19 — O header mostra "Você está com N de 3 itens" e os links "Catálogo" e "Meus empréstimos", para todo papel. Quem é de Operações continua caindo em `/operations/loans` depois de entrar (spec 001, RN-22) e chega ao catálogo por esses links. A navegação lateral do `docs/layout.md`, seção 7.1, fica para depois. Origem: `docs/layout.md`, seções 5 e 7.2; resposta 43; proposta do agente para a resposta 43 ter caminho, a confirmar na aprovação.
+- RN-19 — O header mostra "Você está com N de 3 itens" e os links "Catálogo" e "Meus empréstimos", para todo papel. Quem é de Operações continua caindo em `/operations/loans` depois de entrar (spec 001, RN-22) e chega ao catálogo por esses links. A navegação lateral do `docs/layout.md`, seção 7.1, fica para depois. Origem: `docs/layout.md`, seções 5 e 7.2; resposta 43; proposta do agente para a resposta 43 ter caminho, confirmada na aprovação da spec.
 - RN-20 — Datas em `America/Sao_Paulo`, no formato de `docs/layout.md`, seção 9. Origem: `docs/layout.md`, seção 9.
 - RN-21 — A área, a pessoa e o papel saem da sessão, nunca do input; o input de `loan.create` só traz o id do equipamento. Origem: ADR-001, 2.6; spec 001, RN-15.
-- RN-22 — Criar um empréstimo grava, na mesma transação, uma linha em `audit_events (id, tenant_id, actor_user_id, action, resource_type, resource_id, created_at)`, com `action = 'loan.create'` e `resource_type = 'loan'`. A tabela é append-only: `UPDATE` e `DELETE` nela falham, também para o papel com que a aplicação conecta, que é o dono das tabelas. A migration da tabela e da garantia passa por revisão humana (`rules/restrictions.md`, Bancos e schema). Origem: ADR-001, 2.10; ADR-010; decisão de 2026-11-12.
-- RN-23 — A raiz `/` passa a redirecionar para `/catalog`, e a landing provisória sai. Origem: spec 001, RN-33; `docs/layout.md`, seção 6.
+- RN-22 — Criar um empréstimo grava, na mesma transação, uma linha em `audit_events (id, tenant_id, actor_user_id, action, resource_type, resource_id, created_at)`, com `action = 'loan.create'` e `resource_type = 'loan'`. A tabela é append-only: `UPDATE` e `DELETE` nela falham, também para o papel com que a aplicação conecta, que é o dono das tabelas, por um trigger `BEFORE UPDATE OR DELETE` que levanta exceção. A migration da tabela e da garantia passa por revisão humana (`rules/restrictions.md`, Bancos e schema). Origem: ADR-001, 2.10; ADR-010; decisão de 2026-11-12; decisão do plano, de 2026-11-12.
+- RN-23 — A raiz `/` continua com a landing que mostra a saúde do banco, pública, como na spec 001 e nos AZ-05 e AZ-09 do andar zero. Quem entra pelo login cai no catálogo (spec 001, RN-22). Origem: decisão do plano, de 2026-11-12, que preferiu a spec 001, o `docs/andar-zero.md`, `rules/tests.md` e o `AGENTS.md` ao redirecionamento do `docs/layout.md`, seção 6.
+- RN-24 — A URL pública da foto é a `EQUIPMENT_IMAGES_BASE_URL` seguida do `image_object` do equipamento. A variável é de servidor, opcional e sem segredo. Em Production, é a URL pública do bucket `equipment-images`. Vazia, a API devolve `imageUrl: null`, e a tela mostra o ícone da categoria (RN-12). No `.env.local` ela fica vazia: nada no dev lê o projeto de produção. No E2E, ela aponta para um servidor local de teste que serve um JPEG fictício de 800×600. Origem: ADR-011, que deixa para esta spec de onde vêm as fotos no dev; ADR-004; decisão do plano, de 2026-11-12.
+- RN-25 — `equipment.list` pagina por cursor, 24 por página, em ordem de patrimônio, e a tela usa `useInfiniteQuery`. `loan.listMine` não pagina, porque o RN-03 a limita a 3 linhas: quando uma lista pagina, é por cursor, nunca por offset. Origem: ADR-001, 2.3; decisão do plano, de 2026-11-12.
+- RN-26 — A foto entra por `<img>` com `width="800"` e `height="600"`, sem `next/image`, que escreve `style` (ADR-002). A CSP acrescenta ao `img-src` só a origem da `EQUIPMENT_IMAGES_BASE_URL`, e só quando ela existe. A regra `@next/next/no-img-element` ganha uma exceção no `eslint.config.mjs`, com a justificativa, restrita aos arquivos do card e do detalhe. Origem: ADR-002; ADR-001, 2.10; `rules/restrictions.md`, Ferramentas; decisão do plano, de 2026-11-12.
 
 ## Critérios de aceitação
 
@@ -70,12 +75,12 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
 - CA-05 — Dado o TI-0005 `available`, e Beatriz e Enzo Paiva sem empréstimo, quando os dois chamam `loan.create` para o TI-0005 em transações simultâneas, então exatamente uma cria o empréstimo, a outra falha com `EQUIPMENT_UNAVAILABLE`, e o banco tem um único empréstimo em aberto do TI-0005. Contra o Postgres do Testcontainers, sem mock.
 - CA-06 — Dado Beatriz com 2 empréstimos em aberto, quando ela pede o TI-0005 e o TI-0006, os dois `available`, em transações simultâneas, então exatamente um pedido passa, o outro falha com `LOAN_LIMIT_REACHED`, e ela termina com 3 empréstimos em aberto.
 - CA-07 — Dado um empréstimo em aberto do TI-0005, quando um `INSERT` direto em `loans` cria outro em aberto para o TI-0005, então o banco recusa pelo índice único parcial.
-- CA-08 — Dado o banco com os 12 equipamentos da spec 003, quando Beatriz abre `/catalog`, então vê 12 cards, cada um com a foto do bucket `equipment-images` (a URL do equipamento), o nome, "categoria · patrimônio" e a pill da situação, e a página mostra o link "Fotos: Pexels" para `https://www.pexels.com`. O detalhe de qualquer um deles também mostra a foto e o crédito.
+- CA-08 — Dado o banco com os 12 equipamentos da spec 003, quando Beatriz abre `/catalog`, então vê 12 cards, cada um com a foto carregada da URL do RN-24 (no E2E, a do servidor de teste), o nome, "categoria · patrimônio" e a pill da situação, e a página mostra o link "Fotos: Pexels" para `https://www.pexels.com`. O detalhe de qualquer um deles também mostra a foto e o crédito.
 - CA-09 — Dado o TI-0001 emprestado a Beatriz com data prevista 26/11/2026, quando Enzo abre `/catalog`, então o card do TI-0001 mostra a pill "Emprestado", "Com Beatriz Fontes" e "Volta até 26/11"; e o detalhe mostra "Com Beatriz Fontes · volta até 26/11/2026" no lugar do botão.
 - CA-10 — Dado Beatriz com dois empréstimos em aberto e Enzo com um, quando ela abre `/my-loans`, então vê só os dois dela, cada um com nome, patrimônio e data prevista, sem botão "Devolver", e o header mostra "Você está com 2 de 3 itens". Sem empréstimo, a tela mostra "Você não está com nenhum item" e o link para o catálogo.
 - CA-11 — Dado Flávia Rocha, `operations` na `default`, sem empréstimo, quando ela entra, então cai em `/operations/loans`; pelo link "Catálogo" do header chega a `/catalog` e solicita o TI-0002 como no CA-01, sob o mesmo limite do CA-03.
 - CA-12 — Quando `loan.create` cria um empréstimo, então `audit_events` ganha uma linha com o id de Beatriz em `actor_user_id`, a área `default`, `action = 'loan.create'`, `resource_type = 'loan'` e o id do empréstimo. Quando o pedido é recusado (CA-02 a CA-06), nenhum empréstimo e nenhuma linha são gravados. `UPDATE` e `DELETE` em `audit_events`, pelo papel da aplicação, falham.
-- CA-13 — Sem sessão, `/catalog`, `/catalog/[equipmentId]` e `/my-loans` levam a `/login`, e `equipment.list`, `equipment.byId`, `loan.create` e `loan.listMine` respondem `UNAUTHORIZED`. `/` redireciona para `/catalog`.
+- CA-13 — Sem sessão, `/catalog`, `/catalog/[equipmentId]` e `/my-loans` levam a `/login`, e `equipment.list`, `equipment.byId`, `loan.create` e `loan.listMine` respondem `UNAUTHORIZED`. `/` continua mostrando a landing, sem sessão.
 - CA-14 — `loan.create` recusa, na validação do Zod, um input com `tenantId`, `userId` ou `dueOn`, e um `equipmentId` que não seja UUID.
 - CA-15 — **Isolamento:** dado as áreas A e B, cada uma com um equipamento `available` e um empréstimo em aberto, e Beatriz com vínculo só em A:
   - `equipment.list` e `equipment.byId` não devolvem o equipamento de B, e `equipment.byId` com o id dele responde `NOT_FOUND`;
@@ -99,6 +104,7 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
   - o quadro de regras na variante informativa e a linha "M de N equipamentos podem ser pedidos". A variante de bloqueio entra, no CA-04;
   - a navegação lateral (`docs/layout.md`, seção 7.1).
 - Fora de escopo, pela decisão de 2026-11-12: o item fora de uso no catálogo (pergunta 9b, aberta). A API devolve a situação, e a tela não trata o caso.
+- Fora de escopo, pela decisão do plano, de 2026-11-12: `/` redirecionar para o catálogo, como desenha o `docs/layout.md`, seção 6. Volta quando a pessoa decidir trocar os critérios AZ-05 e AZ-09 do andar zero.
 - Fora de escopo, por resposta: o teste da pessoa em produção, que pede no máximo um item, com uma conta de teste dela, e deixa ao menos 8 dos 9 disponíveis da spec 003 para o professor, que precisa de 4 (resposta 45).
 - Fora desta spec, da 003: quais equipamentos ficam em manutenção. A lista da Entrega 2 põe TI-0004, TI-0007 e TI-0010 em `manutencao`, e o briefing de dados iniciais, item 3, só TI-0004 e TI-0007. A spec 003 decide; esta só a cita.
 - Fora desta spec: atualizar o `docs/layout.md` com a foto no card e no detalhe (resposta 46) e com o limite de 3 já confirmado. Fica para o plano.
@@ -107,7 +113,7 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
 ## Contrato afetado
 
 - Endpoint:
-  - `equipment.list` — novo, `tenantProcedure`, `.input(z.void())`. Devolve os equipamentos da área: id, patrimônio, nome, categoria, situação, URL pública da imagem e, se emprestado, o nome de quem está com ele e a data prevista.
+  - `equipment.list` — novo, `tenantProcedure`. Input `{ cursor?: uuid, limit?: 1..24 }`, estrito; devolve `{ items, nextCursor }` (RN-25), só com equipamentos da área. Cada item traz id, patrimônio, nome, categoria, situação, URL pública da imagem e, se emprestado, o nome de quem está com ele e a data prevista.
   - `equipment.byId` — novo, `tenantProcedure`. Input `{ equipmentId: uuid }`, estrito. O mesmo formato. Equipamento de outra área é `NOT_FOUND`.
   - `loan.create` — novo, mutação `tenantProcedure`. Input `{ equipmentId: uuid }`, estrito. Devolve o empréstimo com a data prevista, ou falha com um dos códigos do RN-10 ou `NOT_FOUND`.
   - `loan.listMine` — novo, `tenantProcedure`, `.input(z.void())`. Os empréstimos em aberto da pessoa, a contagem, o limite e se há atraso, que o header, o detalhe e o quadro de bloqueio usam.
@@ -117,13 +123,13 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
   - `/catalog/[equipmentId]` — nova: foto, ficha, card "Solicitar empréstimo", diálogo de confirmação e crédito;
   - `/my-loans` — nova: "Itens com você", sem "Devolver";
   - header — ganha o contador e os links "Catálogo" e "Meus empréstimos";
-  - `/` — redireciona para `/catalog`.
+  - CSP (`src/server/csp.ts`) — o `img-src` ganha a origem do RN-26;
 - Tabela:
   - `loans` — nova: `id`, `tenant_id`, `equipment_id`, `user_id` (id do Auth, sem FK, como na spec 001, RN-18), `created_at` (a confirmação), `due_on` (data), `returned_at` (nulo nesta spec), com o índice único parcial do RN-09. RLS ligada, com a policy explícita `loans_deny_all` para `anon` e `authenticated`, no padrão das tabelas da spec 001 (`rules/migration.md`, passo 3).
   - `audit_events` — nova, no formato do RN-22, com a mesma RLS (`audit_events_deny_all`).
   - `equipments` — a da spec 003; esta spec só muda `status` de `available` para `loaned`, e lê `asset_tag`, `name`, a categoria em `equipment_categories` e `image_object`.
 - **Não pode mudar:**
-  - os procedimentos e as telas da spec 001, inclusive o destino de cada papel depois de entrar (RN-22 da 001);
+  - os procedimentos e as telas da spec 001, inclusive o destino de cada papel depois de entrar (RN-22 da 001) e a landing de `/` (RN-23);
   - o formato do equipamento e o seed da spec 003, inclusive a conta do professor, que chega à correção com zero empréstimos (prática, seção 01);
   - o manifesto e o bucket da spec 002;
   - o agente não escreve no banco nem no Storage do deploy.
