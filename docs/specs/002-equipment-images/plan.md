@@ -25,7 +25,10 @@ O critério de separação:
    - `.claude/**/*.ts` no `tsconfig.json`, porque o `**/*.ts` de hoje não casa pasta com ponto;
    - o bloco da skill no `eslint.config.mjs`, que só deixa o módulo de rede usar `fetch` e só o módulo de entrada ler a chave.
 2. **Leitura do JPEG** (`scripts/lib/jpeg.ts`): o SOI, a largura e a altura no SOF0, SOF1 ou SOF2 e a orientação EXIF, sem decodificar a imagem. Vem antes do download, que depende dela para recusar o arquivo.
-3. **Manifesto e conferência** (`scripts/lib/manifest.ts` e `scripts/check.ts`): o formato, as regras do RN-04 ao RN-06 e as listas de objetos a enviar e a apagar. Vem antes da busca, que lê o manifesto aprovado para não repetir trabalho.
+3. **Manifesto e conferência** (`scripts/lib/manifest.ts` e `scripts/check.ts`): o formato, as regras do RN-04 ao RN-06 e as listas de objetos a enviar e a apagar. Vem antes da busca, que lê o manifesto aprovado para não repetir trabalho. A linha de comando, decidida em 2026-11-12, é `check.ts <manifesto novo> [--approved <manifesto aprovado>]`:
+   - sem `--approved`, compara com `prisma/data/equipment-images.json`; na primeira rodada, sem esse arquivo, compara com um manifesto vazio;
+   - imprime o resumo de cada manifesto e as listas a enviar e a apagar, em ordem alfabética, ou os problemas, sem lista;
+   - sai com 0 quando os dois manifestos passam, com 1 quando algum reprova e com 2 quando o argumento ou o arquivo está errado, inclusive um `--approved` que não existe ou é uma pasta.
 4. **Rede e chave** (`scripts/lib/pexels.ts` e o módulo de entrada). O `fetch` e a chave entram como parâmetro, e a allowlist de host vive aqui. As mensagens não trazem a chave. Só o módulo de entrada lê a chave, com `util.parseEnv`, como exceção do `rules/secrets.md`.
 5. **Busca, download, conferência de origem e folha de contato** (`scripts/search.ts`, `scripts/download.ts`, o `--origin` do `scripts/check.ts` e `scripts/contact-sheet.ts`). Os testes usam fixtures de busca e de JPEG, sem nenhuma chamada de rede. A conferência de origem fica aqui, e não no passo 3, porque baixa de novo pelo módulo de rede do passo 4.
 6. **Instruções e dados**: o `SKILL.md`, os quatro `references/` e `prisma/data/equipment.json`, igual à lista da prática.
