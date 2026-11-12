@@ -15,7 +15,6 @@ import {
   createPasswordResetAuth,
   createRouterAuth,
   getSessionUser,
-  sessionLinkEntryAt,
   type SessionUser,
 } from "@/server/supabase";
 
@@ -69,6 +68,8 @@ export async function createContextForUser(
     session: { userId: user.id, email: user.email },
     tenantId: membership?.tenantId ?? null,
     role: membership?.role ?? null,
+    // Do mesmo token que o getUser() conferiu (getUserFromCookies), para o RN-59.
+    linkEntryAt: user.linkEntryAt ?? null,
   };
 }
 
@@ -81,13 +82,10 @@ export async function createContext(
   );
   // As chamadas ao Auth das procedures, com o limite de 3 s do RN-48.
   const auth = await createRouterAuth(opts?.resHeaders).catch(() => null);
-  // Só depois de o getUser() conferir a sessão (RN-31): o horário sai do token dela.
-  const linkEntryAt = context.session ? await sessionLinkEntryAt() : null;
 
   return {
     ...context,
     auth,
-    linkEntryAt,
     passwordReset: createPasswordResetAuth(),
     ip: opts?.req ? clientIp(opts.req.headers) : null,
     rateLimitRules: envRateLimitRules,

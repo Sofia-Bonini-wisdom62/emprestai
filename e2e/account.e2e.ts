@@ -277,6 +277,7 @@ test("ca_34 a sessão aberta com a senha não troca a senha sem a atual, nem pel
   });
   await expect(mutation(request, "auth.signIn", { email, password: "senha-nova-456" })).resolves.toMatchObject({
     status: 401,
+    body: failure("UNAUTHORIZED", 401, authMessages.invalidCredentials),
   });
 });
 
