@@ -7,7 +7,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. A skill não a
       Verifica: `pnpm test` com `ca_06`, que lê o `.claude/settings.json`, e `ca_10`, que roda o hook num repositório git de teste, sem rede; `pnpm typecheck`, `pnpm lint` e `pnpm build` passando com o `include` novo
 - [x] T-02 — Leitura do cabeçalho JPEG em `scripts/lib/jpeg.ts`
       CA: CA-02
-      Verifica: `pnpm test` com `ca_02` sobre cabeçalhos montados em bytes
+      Verifica: `pnpm test` com `ca_02` e `rn_12` a `rn_15` sobre cabeçalhos montados em bytes
 - [ ] T-03 — Manifesto e conferência: `scripts/lib/manifest.ts` e `scripts/check.ts`, com as listas de objetos a enviar e a apagar
       CA: CA-03, CA-09
       Verifica: `pnpm test` com `ca_03` e `ca_09`
