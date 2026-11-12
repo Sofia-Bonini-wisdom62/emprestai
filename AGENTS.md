@@ -77,7 +77,7 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 | Domínio | Código |
 |---|---|
 | equipamento | `equipment` |
-| patrimônio | `asset_tag` |
+| patrimônio | `assetTag` |
 | categoria do equipamento | `category` |
 | empréstimo | `loan` |
 | devolução | `return` |

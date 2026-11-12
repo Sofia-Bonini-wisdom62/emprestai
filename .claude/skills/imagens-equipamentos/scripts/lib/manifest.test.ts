@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { checkManifest, checkManifestText, type Manifest, objectLists } from "./manifest";
+import {
+  checkManifest,
+  checkManifestBytes,
+  checkManifestText,
+  type Manifest,
+  missingAssetTags,
+  objectLists,
+} from "./manifest";
 import { complete, photo, sha } from "./manifest.fixtures";
 
 // O manifesto completo com a foto da posição `index` trocada.
@@ -25,7 +32,7 @@ describe("checkManifest, CA-03 (spec 002, RN-04 a RN-06)", () => {
     expect(checkManifest(complete())).toEqual({ ok: true, manifest: complete() });
   });
 
-  it("ca_03 um manifesto completo gravado em UTF-8 com BOM também passa", () => {
+  it("ca_12 um manifesto completo gravado em UTF-8 com BOM também passa", () => {
     expect(checkManifestText(`\uFEFF${JSON.stringify(complete())}`)).toEqual({ ok: true, manifest: complete() });
   });
 
@@ -96,7 +103,7 @@ describe("checkManifest, CA-03 (spec 002, RN-04 a RN-06)", () => {
   });
 });
 
-describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () => {
+describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repetição", () => {
   it.each([
     ["sourceUrl", "a URL de origem do arquivo (sourceUrl)"],
     ["sha256", "o SHA-256 (sha256)"],
@@ -104,7 +111,7 @@ describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () =>
     ["assetTag", "o patrimônio (assetTag)"],
     ["pexelsId", "o id do Pexels (pexelsId)"],
     ["objectName", "o nome do objeto (objectName)"],
-  ])("rn_05 reprova a foto sem o campo %s", (field, description) => {
+  ])("ca_12 reprova a foto sem o campo %s", (field, description) => {
     const problems = checkManifest(withoutField(TI_0002, field));
     const photoLabel =
       field === "assetTag" ? "foto 3 (sem patrimônio, 222)" : field === "pexelsId" ? "foto 3 (TI-0002, sem id)" : label;
@@ -112,12 +119,26 @@ describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () =>
     expect(problems).toEqual({ ok: false, problems: [`${photoLabel}: falta ${description}`] });
   });
 
-  it("rn_05 reprova a foto sem o motivo do veredito", () => {
+  it("ca_12 reprova a foto sem o motivo do veredito", () => {
     const review = { verdict: "approved" };
 
     expect(checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), review }))).toEqual({
       ok: false,
       problems: [`${label}: falta o motivo do veredito (review.reason)`],
+    });
+  });
+
+  it.each([
+    ["photographer", "o fotógrafo (photographer)"],
+    ["review.reason", "o motivo do veredito (review.reason)"],
+  ])("ca_12 o campo %s só com espaços conta como campo que falta", (field, description) => {
+    const blank = field === "review.reason"
+      ? { ...photo("TI-0002", 222), review: { verdict: "approved", reason: "   " } }
+      : { ...photo("TI-0002", 222), [field]: "   " };
+
+    expect(checkManifest(withPhoto(TI_0002, blank))).toEqual({
+      ok: false,
+      problems: [`${label}: falta ${description}`],
     });
   });
 
@@ -128,14 +149,19 @@ describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () =>
     ["photoUrl", "página da foto", "a página da foto (photoUrl)"],
     ["photoUrl", "http://www.pexels.com/photo/222/", "a página da foto (photoUrl)"],
     ["photographerUrl", "javascript:alert(1)", "a página do fotógrafo (photographerUrl)"],
+    ["photographerUrl", "www.pexels.com/@fotografa-ficticia-222", "a página do fotógrafo (photographerUrl)"],
     ["sourceUrl", "pexels-photo-222.jpeg", "a URL de origem do arquivo (sourceUrl)"],
     ["sourceUrl", "data:image/jpeg;base64,AAAA", "a URL de origem do arquivo (sourceUrl)"],
     ["objectName", ["TI-0002-222.jpg"], "o nome do objeto (objectName)"],
     ["sha256", sha(222).toUpperCase().replace(/^0/, "A"), "o SHA-256 (sha256)"],
     ["sha256", "abc", "o SHA-256 (sha256)"],
+    ["sha256", "z".repeat(64), "o SHA-256 (sha256)"],
     ["downloadedAt", "ontem", "a data do download (downloadedAt)"],
     ["downloadedAt", "2026-13-45", "a data do download (downloadedAt)"],
-  ])("rn_05 reprova o campo %s com o valor %j", (field, value, description) => {
+    ["downloadedAt", "2026-02-30", "a data do download (downloadedAt)"],
+    ["downloadedAt", "2026-04-31T10:00:00Z", "a data do download (downloadedAt)"],
+    ["downloadedAt", "2026-11-12T25:99:00Z", "a data do download (downloadedAt)"],
+  ])("ca_12 reprova o campo %s com o valor %j", (field, value, description) => {
     const problems = checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), [field]: value }));
     const photoLabel = field === "pexelsId" ? "foto 3 (TI-0002, sem id)" : label;
 
@@ -145,14 +171,15 @@ describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () =>
   it.each([
     ["outro nome", { name: "CC0", url: "https://www.pexels.com/license/" }],
     ["outra URL", { name: "Pexels License", url: "https://www.pexels.com/" }],
-  ])("rn_05 reprova a licença com %s", (_, license) => {
+    ["um campo a mais", { name: "Pexels License", url: "https://www.pexels.com/license/", note: "x" }],
+  ])("ca_12 reprova a licença com %s", (_, license) => {
     expect(checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), license }))).toEqual({
       ok: false,
       problems: [`${label}: a licença (license) não é a "Pexels License", com https://www.pexels.com/license/`],
     });
   });
 
-  it("rn_05 reprova o veredito fora de approved e rejected", () => {
+  it("ca_12 reprova o veredito fora de approved e rejected", () => {
     const review = { verdict: "aprovada", reason: "ok" };
 
     expect(checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), review }))).toEqual({
@@ -161,7 +188,7 @@ describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () =>
     });
   });
 
-  it("rn_05 devolve todos os problemas de uma vez", () => {
+  it("ca_12 devolve todos os problemas de uma vez", () => {
     const incomplete = omit(photo("TI-0002", 222), "photographer", "sha256");
 
     expect(checkManifest(withPhoto(TI_0002, incomplete))).toEqual({
@@ -170,22 +197,58 @@ describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () =>
     });
   });
 
-  it("rn_05 a foto reprovada também precisa do crédito e da origem", () => {
-    const incomplete = omit(photo("TI-0001", 112, "rejected"), "photographer");
+  // A foto reprovada é a segunda do manifesto completo.
+  const rejected = () => photo("TI-0001", 112, "rejected");
+  const rejectedLabel = "foto 2 (TI-0001, 112)";
 
-    expect(checkManifest(withPhoto(1, incomplete))).toEqual({
+  it.each([
+    ["assetTag", omit(rejected(), "assetTag"), "foto 2 (sem patrimônio, 112): falta o patrimônio (assetTag)"],
+    ["pexelsId", omit(rejected(), "pexelsId"), "foto 2 (TI-0001, sem id): falta o id do Pexels (pexelsId)"],
+    ["photoUrl", omit(rejected(), "photoUrl"), `${rejectedLabel}: falta a página da foto (photoUrl)`],
+    ["photographer", omit(rejected(), "photographer"), `${rejectedLabel}: falta o fotógrafo (photographer)`],
+    ["photographerUrl", omit(rejected(), "photographerUrl"), `${rejectedLabel}: falta a página do fotógrafo (photographerUrl)`],
+    ["license", omit(rejected(), "license"), `${rejectedLabel}: falta a licença (license)`],
+    ["sourceUrl", omit(rejected(), "sourceUrl"), `${rejectedLabel}: falta a URL de origem do arquivo (sourceUrl)`],
+    ["sha256", omit(rejected(), "sha256"), `${rejectedLabel}: falta o SHA-256 (sha256)`],
+    ["downloadedAt", omit(rejected(), "downloadedAt"), `${rejectedLabel}: falta a data do download (downloadedAt)`],
+    [
+      "review.reason",
+      { ...rejected(), review: { verdict: "rejected" } },
+      `${rejectedLabel}: falta o motivo do veredito (review.reason)`,
+    ],
+  ])("ca_12 a foto reprovada também precisa de cada campo do RN-05: sem %s", (_, incomplete, problem) => {
+    expect(checkManifest(withPhoto(1, incomplete))).toEqual({ ok: false, problems: [problem] });
+  });
+
+  it.each([
+    ["num 29 de fevereiro de ano bissexto", "2028-02-29T10:00:00Z"],
+    ["sem a hora", "2026-11-12"],
+  ])("ca_12 a data do download %s passa", (_, downloadedAt) => {
+    const manifest = withPhoto(TI_0002, { ...photo("TI-0002", 222), downloadedAt });
+
+    expect(checkManifest(manifest)).toMatchObject({ ok: true });
+  });
+
+  it("ca_12 o arquivo com o BOM em bytes também passa, e o que não é UTF-8 é reprovado", () => {
+    const json = Buffer.from(JSON.stringify(complete()), "utf8");
+
+    expect(checkManifestBytes(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), json]))).toEqual({
+      ok: true,
+      manifest: complete(),
+    });
+    expect(checkManifestBytes(Buffer.from(JSON.stringify(complete()), "latin1"))).toEqual({
       ok: false,
-      problems: ["foto 2 (TI-0001, 112): falta o fotógrafo (photographer)"],
+      problems: ["o manifesto não está em UTF-8"],
     });
   });
 
-  it("rn_04 a mesma foto aprovada duas vezes no mesmo patrimônio só conta como duas aprovadas", () => {
+  it("ca_12 a mesma foto aprovada duas vezes no mesmo patrimônio só conta como duas aprovadas", () => {
     const manifest: Manifest = { photos: [...complete().photos, photo("TI-0002", 222)] };
 
     expect(checkManifest(manifest)).toEqual({ ok: false, problems: ["o patrimônio TI-0002 tem 2 fotos aprovadas"] });
   });
 
-  it("rn_04 uma foto reprovada não conta como repetição de uma aprovada", () => {
+  it("ca_12 uma foto reprovada não conta como repetição de uma aprovada", () => {
     // A foto 111, aprovada no TI-0001, aparece reprovada no TI-0002, que tem a sua aprovada.
     const manifest: Manifest = {
       photos: [...complete().photos, photo("TI-0002", 111, "rejected")],
@@ -198,12 +261,34 @@ describe("checkManifest, RN-04 e RN-05: os outros campos e a repetição", () =>
     ["não é JSON", "{ photos: ", "o manifesto não é um JSON válido"],
     ["não tem a lista de fotos", "{}", "o manifesto não tem a lista de fotos (photos)"],
     ["traz uma foto que não é objeto", '{"photos": [1]}', "foto 1: não é um objeto"],
-  ])("rn_05 reprova o manifesto que %s", (_, text, problem) => {
+  ])("ca_12 reprova o manifesto que %s", (_, text, problem) => {
     expect(checkManifestText(text)).toEqual({ ok: false, problems: [problem] });
   });
 });
 
-describe("objectLists, CA-09 (spec 002, RN-06)", () => {
+describe("missingAssetTags, CA-12 (spec 002, RN-16)", () => {
+  it("ca_12 aponta o patrimônio aprovado que ficou de fora do manifesto novo", () => {
+    const next: Manifest = { photos: [photo("TI-0001", 111), photo("TI-0003", 333)] };
+
+    expect(missingAssetTags(complete(), next)).toEqual([
+      "o patrimônio TI-0002 tem foto aprovada no manifesto aprovado e ficou de fora do manifesto novo (RN-16)",
+    ]);
+  });
+
+  it("ca_12 não aponta nada quando o manifesto novo traz todos os patrimônios, mesmo com outra foto", () => {
+    const next: Manifest = {
+      photos: [photo("TI-0001", 444), photo("TI-0002", 222), photo("TI-0003", 333), photo("TI-0004", 555)],
+    };
+
+    expect(missingAssetTags(complete(), next)).toEqual([]);
+  });
+
+  it("ca_12 sem manifesto aprovado, nenhum patrimônio fica de fora", () => {
+    expect(missingAssetTags({ photos: [] }, complete())).toEqual([]);
+  });
+});
+
+describe("objectLists, CA-09 e CA-12 (spec 002, RN-06)", () => {
   const approved: Manifest = { photos: [photo("TI-0001", 111)] };
 
   it("ca_09 trocar a foto lista o objeto antigo para apagar e o novo para enviar", () => {
@@ -224,10 +309,20 @@ describe("objectLists, CA-09 (spec 002, RN-06)", () => {
     expect(objectLists(approved, { photos: [photo("TI-0001", 111)] })).toEqual({ toUpload: [], toDelete: [] });
   });
 
-  it("rn_06 sem manifesto aprovado, só as fotos aprovadas vão para o envio, em ordem", () => {
+  it("ca_12 sem manifesto aprovado, só as fotos aprovadas vão para o envio", () => {
     expect(objectLists({ photos: [] }, complete())).toEqual({
       toUpload: ["TI-0001-111.jpg", "TI-0002-222.jpg", "TI-0003-333.jpg"],
       toDelete: [],
+    });
+  });
+
+  it("ca_12 as listas saem em ordem alfabética, qualquer que seja a ordem dos manifestos", () => {
+    const before: Manifest = { photos: [photo("TI-0003", 303), photo("TI-0001", 101), photo("TI-0002", 202)] };
+    const after: Manifest = { photos: [photo("TI-0002", 222), photo("TI-0003", 333), photo("TI-0001", 111)] };
+
+    expect(objectLists(before, after)).toEqual({
+      toUpload: ["TI-0001-111.jpg", "TI-0002-222.jpg", "TI-0003-333.jpg"],
+      toDelete: ["TI-0001-101.jpg", "TI-0002-202.jpg", "TI-0003-303.jpg"],
     });
   });
 });

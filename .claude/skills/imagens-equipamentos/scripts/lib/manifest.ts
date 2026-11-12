@@ -1,4 +1,5 @@
-// O manifesto das fotos dos equipamentos e a conferência dele (spec 002, RN-04 a RN-06).
+// O manifesto das fotos dos equipamentos e a conferência dele (spec 002, RN-04 a RN-06, RN-16
+// e RN-17, que fixa o formato de cada campo).
 // Cada foto baixada e revisada fica registrada, aprovada ou reprovada, com o crédito, a origem
 // do arquivo e o veredito. O manifesto aprovado vai para prisma/data/equipment-images.json,
 // que o seed lê (RN-10).
@@ -37,13 +38,22 @@ export const objectName = (assetTag: string, pexelsId: number) => `${assetTag}-$
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const isFilled = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
-const isMissing = (value: unknown) => value === undefined || value === null || value === "";
+// Um texto só com espaços conta como campo que falta (RN-17).
+const isMissing = (value: unknown) =>
+  value === undefined || value === null || (typeof value === "string" && value.trim() === "");
 // Só https: o crédito vira link na tela do catálogo, e um javascript: ali seria uma brecha.
 const isUrl = (value: unknown) => isFilled(value) && URL.canParse(value) && new URL(value).protocol === "https:";
 const isId = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) > 0;
 const isSha256 = (value: unknown) => typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
-const isDate = (value: unknown) =>
-  typeof value === "string" && /^\d{4}-\d{2}-\d{2}(T.+)?$/.test(value) && !Number.isNaN(Date.parse(value));
+// AAAA-MM-DD, com a hora opcional, e um dia que existe: o Date.parse leva 2026-02-30 para março
+// sem reclamar, então o dia é conferido de volta no calendário.
+function isDate(value: unknown) {
+  const match = typeof value === "string" ? /^(\d{4})-(\d{2})-(\d{2})(T.+)?$/.exec(value) : null;
+  if (!match || Number.isNaN(Date.parse(String(value)))) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
 
 // Os campos que o RN-05 exige em toda foto, aprovada ou reprovada, e como cada um se valida.
 const FIELDS: Array<[key: keyof Photo, description: string, valid: (value: unknown) => boolean]> = [
@@ -69,7 +79,12 @@ function checkPhoto(photo: Record<string, unknown>, label: string): string[] {
   const license = photo.license;
   if (isMissing(license)) {
     problems.push(`${label}: falta a licença (license)`);
-  } else if (!isRecord(license) || license.name !== LICENSE.name || license.url !== LICENSE.url) {
+  } else if (
+    !isRecord(license) ||
+    Object.keys(license).length !== 2 ||
+    license.name !== LICENSE.name ||
+    license.url !== LICENSE.url
+  ) {
     problems.push(`${label}: a licença (license) não é a "${LICENSE.name}", com ${LICENSE.url}`);
   }
 
@@ -159,8 +174,31 @@ export function checkManifestText(text: string): ManifestCheck {
   return checkManifest(data);
 }
 
-const approvedObjects = (manifest: Manifest) =>
-  new Set(manifest.photos.filter((photo) => photo.review.verdict === "approved").map((photo) => photo.objectName));
+// O arquivo como está no disco (RN-17). Lido como "utf8", um byte inválido viraria U+FFFD sem
+// aviso, e um manifesto em Latin-1 passaria com o nome do fotógrafo estragado.
+export function checkManifestBytes(bytes: Uint8Array): ManifestCheck {
+  let text: string;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return { ok: false, problems: ["o manifesto não está em UTF-8"] };
+  }
+  return checkManifestText(text);
+}
+
+const approvedPhotos = (manifest: Manifest) => manifest.photos.filter((photo) => photo.review.verdict === "approved");
+const approvedObjects = (manifest: Manifest) => new Set(approvedPhotos(manifest).map((photo) => photo.objectName));
+
+// RN-16: o manifesto novo não deixa de fora um patrimônio que tem foto aprovada no manifesto
+// aprovado. Assim, a lista a apagar só sai de troca de foto, e uma rodada parcial não manda
+// apagar foto ainda em uso.
+export function missingAssetTags(approved: Manifest, next: Manifest): string[] {
+  const present = new Set(next.photos.map((photo) => photo.assetTag));
+  return [...new Set(approvedPhotos(approved).map((photo) => photo.assetTag))]
+    .filter((assetTag) => !present.has(assetTag))
+    .sort()
+    .map((assetTag) => `o patrimônio ${assetTag} tem foto aprovada no manifesto aprovado e ficou de fora do manifesto novo (RN-16)`);
+}
 
 // RN-06: comparado ao manifesto aprovado, o que o manifesto novo põe no bucket e o que tira.
 // Repetir o processo com as mesmas fotos deixa as duas listas vazias.

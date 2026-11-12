@@ -177,7 +177,7 @@ describe("checkJpeg, CA-02 (spec 002, RN-03)", () => {
 });
 
 describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
-  it("rn_12 passam DQT, DHT, DRI, comentário, XMP, ICC, APP14, APP15 e bytes 0xFF de preenchimento", () => {
+  it("ca_11 passam DQT, DHT, DRI, comentário, XMP, ICC, APP14, APP15 e bytes 0xFF de preenchimento", () => {
     const extra = [
       0xff,
       0xff,
@@ -196,7 +196,12 @@ describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
     });
   });
 
-  it("rn_12 um SOF1 de 8 bits passa", () => {
+  // Cada APPn, de APP0 a APP15, e não só os que um codificador comum grava.
+  it.each(Array.from({ length: 16 }, (_, n) => n))("ca_11 passa o JPEG com um APP%i", (n) => {
+    expect(checkJpeg(jpeg({ extra: segment(0xe0 + n, text("teste")) }))).toMatchObject({ ok: true });
+  });
+
+  it("ca_11 um SOF1 de 8 bits passa", () => {
     expect(checkJpeg(jpeg({ sof: 0xc1 }))).toEqual({
       ok: true,
       info: { width: 800, height: 600, progressive: false, orientation: null },
@@ -223,20 +228,36 @@ describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
       new Uint8Array([...head, ...DQT, ...DHT, ...SOS, ...EOI]),
       "os dados da imagem começam antes do SOF",
     ],
-    ["o fim da imagem antes do SOS", new Uint8Array([...head, ...DQT, ...frame(), ...EOI]), "arquivo sem os dados da imagem (SOS)"],
-  ])("rn_12 é recusado: %s", (_, bytes, reason) => {
+    [
+      "o fim da imagem antes do SOS",
+      new Uint8Array([...head, ...DQT, ...frame(), ...DHT, ...EOI]),
+      "arquivo sem os dados da imagem (SOS)",
+    ],
+  ])("ca_11 é recusado: %s", (_, bytes, reason) => {
     expect(checkJpeg(bytes)).toEqual({ ok: false, reason });
+  });
+
+  // Cada valor de marcador fora da lista do RN-12, e não uma amostra. O D9 (fim da imagem) e o
+  // FF (preenchimento) têm caminho próprio, e os outros da lista passam ou são o SOS.
+  const listed = new Set([0xc0, 0xc1, 0xc2, 0xc4, 0xd9, 0xda, 0xdb, 0xdd, 0xfe, 0xff]);
+  const unlisted = Array.from({ length: 256 }, (_, value) => value)
+    .filter((value) => !listed.has(value) && !(value >= 0xe0 && value <= 0xef))
+    .map((value): [string, number] => [value.toString(16).padStart(2, "0"), value]);
+
+  it.each(unlisted)("ca_11 é recusado o marcador 0x%s, fora da lista do RN-12", (hex, value) => {
+    expect(checkJpeg(jpeg({ extra: [0xff, value, 0x00, 0x02] }))).toEqual({ ok: false, reason: marker(hex) });
   });
 });
 
 describe("checkJpeg, RN-13: o SOF", () => {
   it.each([
+    ["um SOF0 de 12 bits", { sof: 0xc0, precision: 12 }, "SOF com precisão de 12 bits, e não 8"],
     ["um SOF1 de 12 bits", { sof: 0xc1, precision: 12 }, "SOF com precisão de 12 bits, e não 8"],
     ["um SOF2 de 12 bits", { sof: 0xc2, precision: 12 }, "SOF com precisão de 12 bits, e não 8"],
     ["um SOF sem componentes", { components: 0 }, "SOF sem componentes"],
     ["um SOF com menos bytes que os componentes que declara", { components: 3, componentBytes: 1 }, "SOF com tamanho inválido"],
     ["um SOF com mais bytes que os componentes que declara", { components: 1, componentBytes: 2 }, "SOF com tamanho inválido"],
-  ])("rn_13 é recusado: %s", (_, build, reason) => {
+  ])("ca_11 é recusado: %s", (_, build, reason) => {
     expect(checkJpeg(jpeg(build))).toEqual({ ok: false, reason });
   });
 });
@@ -254,7 +275,7 @@ describe("checkJpeg, RN-14: o EXIF", () => {
     ["a IFD0 fora do segmento", patchedExif({ 16: 0x10 }), "EXIF com IFD0 fora do segmento"],
     ["a IFD0 com mais entradas do que traz", exif({ orientations: [6], count: 5 }), "EXIF com IFD0 truncada"],
     ["a IFD0 sem o ponteiro da próxima IFD", exif({ orientations: [6], next: false }), "EXIF com IFD0 truncada"],
-  ])("rn_14 é recusado: %s", (_, extra, reason) => {
+  ])("ca_11 é recusado: %s", (_, extra, reason) => {
     expect(checkJpeg(jpeg({ extra }))).toEqual({ ok: false, reason });
   });
 });
@@ -263,7 +284,7 @@ describe("checkJpeg, RN-15: o fim do arquivo", () => {
   it.each([
     ["cortado nos dados da imagem", (bytes: Uint8Array) => bytes.subarray(0, bytes.length - 4)],
     ["com bytes depois do fim da imagem", (bytes: Uint8Array) => new Uint8Array([...bytes, 0, 0])],
-  ])("rn_15 é recusado o arquivo que não termina em FF D9: %s", (_, change) => {
+  ])("ca_11 é recusado o arquivo que não termina em FF D9: %s", (_, change) => {
     expect(checkJpeg(change(jpeg()))).toEqual({
       ok: false,
       reason: "o arquivo não termina no fim da imagem (EOI): truncado ou com bytes a mais",
