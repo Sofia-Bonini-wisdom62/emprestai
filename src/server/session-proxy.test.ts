@@ -177,3 +177,33 @@ describe("handleSession com o Auth fora do ar", () => {
     },
   );
 });
+
+describe("handleSession e a CSP", () => {
+  const nonceOf = (policy: string | null) => /'nonce-([^']+)'/.exec(policy ?? "")?.[1];
+
+  it("ca_16 a resposta traz a CSP sem 'unsafe-inline', e o request leva a mesma para o Next pôr o nonce", async () => {
+    const response = await handleSession(request("/login"), unreachableAuth);
+
+    const policy = response.headers.get("content-security-policy");
+    expect(policy).not.toBeNull();
+    expect(policy).not.toContain("unsafe-inline");
+    expect(nonceOf(policy)).toBeDefined();
+    expect(response.headers.get("x-middleware-request-content-security-policy")).toBe(policy);
+  });
+
+  it("ca_16 cada request ganha um nonce novo", async () => {
+    const first = await handleSession(request("/login"), unreachableAuth);
+    const second = await handleSession(request("/login"), unreachableAuth);
+
+    expect(nonceOf(first.headers.get("content-security-policy"))).not.toBe(
+      nonceOf(second.headers.get("content-security-policy")),
+    );
+  });
+
+  it("ca_16 o redirecionamento a /login também leva a CSP", async () => {
+    const response = await handleSession(request("/catalog"), unreachableAuth);
+
+    expectRedirectToLogin(response);
+    expect(response.headers.get("content-security-policy")).toContain("'strict-dynamic'");
+  });
+});

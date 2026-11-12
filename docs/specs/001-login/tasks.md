@@ -35,7 +35,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. Os pacotes de 
 - [x] T-11 — Header com o nome e "Sair", e as páginas provisórias de `/catalog` e `/operations/loans`, esta com o layout das telas de Operações que leva o Colaborador a `/catalog`
       CA: CA-01, CA-02, CA-11, CA-18, CA-21
       Verifica: `pnpm test:e2e` com `ca_01` e `ca_02` completos (header com o nome; `ca_02` com a conta do seed), `ca_11`, `ca_18` e a ida a `/login` de `ca_21`
-- [ ] T-12 — Cabeçalhos HTTP e CSP sem `unsafe-inline`, com nonce
+- [x] T-12 — Cabeçalhos HTTP e CSP sem `unsafe-inline`, com nonce
       CA: CA-16
       Verifica: `pnpm test:e2e` com `ca_16` (o cabeçalho na resposta de `/login` e o console sem violação em `/login`, `/account/setup` e no header)
 - [x] T-13 — Script e passo do primeiro administrador no workflow de produção (ADR-009). Espera a aprovação para editar `.github/workflows/`
