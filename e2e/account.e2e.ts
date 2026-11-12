@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { type Browser, expect, type Page, test } from "@playwright/test";
+import { type Browser, type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import { authMessages, LINK_EXPIRED_QUERY } from "../src/lib/auth-messages";
@@ -18,7 +18,7 @@ import {
   uniqueEmail,
 } from "../tests/e2e/accounts";
 import { authRelayFromEnv, setAuthRelayMode } from "../tests/e2e/auth-relay";
-import { SHORT_LINK_SECONDS } from "../tests/e2e/global-setup";
+import { SHORT_LINK_SECONDS, SHORT_TOKEN_SECONDS } from "../tests/e2e/global-setup";
 import { seedTargetFromEnv } from "../tests/e2e/seed";
 
 // As telas /account/setup e /forgot-password da T-10 e o "Continuar" do link, contra o Auth de
@@ -253,4 +253,91 @@ test("ca_28 /forgot-password mostra a mesma mensagem do RN-42 para e-mail com e 
   }
 
   expect(shown).toEqual([authMessages.resetRequested, authMessages.resetRequested]);
+});
+
+test("ca_34 a sessão aberta com a senha não troca a senha sem a atual, nem pelo account.setup nem pela tela", async ({
+  page,
+  request,
+}) => {
+  const email = uniqueEmail("beatriz.fontes");
+  const userId = await createAccount(email, password);
+  sql(`INSERT INTO "profiles" ("id", "name") VALUES ('${userId}'::uuid, 'Beatriz Fontes');`);
+  await signInOnScreen(page, email, password);
+  await page.waitForURL("**/catalog");
+
+  // Com nome e sem entrada pelo link, a tela não tem o que pedir e leva ao destino do papel.
+  await page.goto("/account/setup");
+  expect(new URL(page.url()).pathname).toBe("/catalog");
+
+  await expect(
+    mutation(page.request, "account.setup", { password: "senha-nova-456" }),
+  ).resolves.toMatchObject({
+    status: 403,
+    body: failure("FORBIDDEN", 403, authMessages.setupFailed),
+  });
+  await expect(mutation(request, "auth.signIn", { email, password: "senha-nova-456" })).resolves.toMatchObject({
+    status: 401,
+  });
+});
+
+// O amr do token de acesso no cookie de sessão do @supabase/ssr, inteiro ou em pedaços (.0, .1).
+async function sessionToken(context: BrowserContext) {
+  const pieces = (await context.cookies())
+    .filter((cookie) => /^sb-.+-auth-token(\.\d+)?$/.test(cookie.name))
+    .sort((a, b) => Number(a.name.split(".")[1] ?? 0) - Number(b.name.split(".")[1] ?? 0));
+  const session = JSON.parse(
+    Buffer.from(pieces.map((cookie) => cookie.value).join("").replace(/^base64-/, ""), "base64url").toString("utf8"),
+  ) as { access_token: string };
+  const payload = JSON.parse(
+    Buffer.from(session.access_token.split(".")[1] ?? "", "base64url").toString("utf8"),
+  ) as { iat: number; amr: { method: string; timestamp: number }[] };
+  return { iat: payload.iat, otpAt: payload.amr.find((entry) => entry.method === "otp")?.timestamp };
+}
+
+test("ca_34 renovar a sessão do link não estende o prazo: o horário da entrada no token não muda", async ({
+  page,
+}) => {
+  // A pilha de token curto renova a sessão em segundos. A conta nasce nela, pelo repasse do Auth,
+  // e não entra no cleanupAccounts, que apaga só as da pilha comum.
+  const relay = authRelayFromEnv();
+  await setAuthRelayMode("short-token");
+  try {
+    const admin = createClient(relay.url, seedTargetFromEnv().secretKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    }).auth.admin;
+    const { data: link, error } = await admin.generateLink({
+      type: "invite",
+      email: uniqueEmail("enzo.paiva"),
+    });
+    if (error || !link.properties) throw error ?? new Error("O Auth não gerou o link");
+
+    await continueFrom(page, `/auth/confirm?token_hash=${link.properties.hashed_token}&type=invite`);
+    await page.waitForURL("**/account/setup");
+    const before = await sessionToken(page.context());
+    expect(before.otpAt).toBeGreaterThan(0);
+
+    // O token vence, e o proxy renova a sessão no request seguinte.
+    await page.waitForTimeout((SHORT_TOKEN_SECONDS + 2) * 1000);
+    await page.goto("/account/setup");
+    const after = await sessionToken(page.context());
+
+    expect(after.iat).toBeGreaterThan(before.iat);
+    expect(after.otpAt).toBe(before.otpAt);
+  } finally {
+    await setAuthRelayMode("primary");
+  }
+});
+
+test("ca_35 o pedido de redefinição sem resposta do servidor mostra a mensagem do RN-60 e mantém o formulário", async ({
+  page,
+}) => {
+  await page.route("**/api/trpc/auth.requestPasswordReset**", (route) => route.abort("failed"));
+
+  await page.goto("/forgot-password");
+  await page.getByLabel("E-mail").fill(uniqueEmail("beatriz.fontes"));
+  await page.getByRole("button", { name: "Enviar link" }).click();
+
+  await expect(formAlert(page)).toHaveText(authMessages.resetFailed);
+  await expect(page.getByLabel("E-mail")).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("");
 });
