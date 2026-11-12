@@ -152,6 +152,102 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
     resposta, `docs/layout.md` desenha a busca como filtro da tabela de
     empréstimos em aberto.
 
+<!-- A numeração pula de 21 para 40: as perguntas 33 a 39 ficam para a spec 003,
+     de dados iniciais, aberta ao mesmo tempo. Este comentário separa as listas
+     para o Markdown não renumerar. -->
+
+40. Quantos itens uma pessoa pode ter em aberto ao mesmo tempo: 3 ou 5?
+    tipo: negócio, conflito
+    por que importa: o PRD, linha 27, diz "no máximo 3 itens ao mesmo tempo",
+    e a resposta 2 conta todo empréstimo em aberto desde a confirmação. O
+    briefing de solicitar empréstimo da prática, item 4, diz "Quem já tem 5
+    empréstimos em aberto não pode solicitar outro". O PRD é a fonte da regra
+    de negócio, e o briefing é um pedido (prática, seção 01): o agente não
+    escolhe. Muda o RN e os CA-03, CA-06 e CA-09 da spec 004, o indicador de
+    três barras do `docs/layout.md`, seção 5, os textos "2 de 3" do layout e
+    o painel do login ("3 itens por pessoa", spec 001). Liga-se à 45: com 10
+    itens disponíveis em produção, o limite de 5 deixa o professor sem folga
+    se a pessoa gastar algum nos testes.
+
+41. O prazo de devolução é de 14 dias corridos ou de 14 dias úteis?
+    tipo: negócio, conflito
+    por que importa: a resposta 4 diz 14 dias corridos, contados da
+    confirmação, e o PRD, linha 28, diz "14 dias", sem tipo. O briefing de
+    solicitar empréstimo, item 3, diz "14 dias úteis depois". Com dias úteis,
+    o sistema precisa de um calendário de feriados (nacional, estadual,
+    municipal, ou o do balcão), que nenhum documento traz, e a 4b muda de
+    forma: o vencimento deixa de cair em fim de semana, mas ainda pode cair
+    num dia de balcão fechado. Muda o cálculo da data prevista, o CA-01 da
+    spec 004, a barra de prazo e o texto "14 dias corridos" do
+    `docs/layout.md`.
+
+42. Em que momento um empréstimo passa a estar em atraso?
+    tipo: negócio
+    por que importa: a data prevista aparece como dia ("Devolver até
+    dd/mm/aaaa", `docs/layout.md`). Se o atraso começa no dia seguinte, no
+    fuso de São Paulo, quem devolve no último dia está no prazo; se começa
+    exatamente 14 × 24 horas depois da confirmação, quem pediu às 17h está
+    atrasado às 17h01 do último dia. O atraso bloqueia pedir outro (PRD,
+    linha 29), então o instante decide quem é recusado. Sem resposta, a spec
+    004 não fecha o CA-04.
+
+43. Quem é de Operações também pode solicitar empréstimo?
+    tipo: negócio
+    por que importa: o briefing diz "o colaborador logado", e o PRD separa
+    Colaborador de Operações. A resposta 23 diz que Operações é um papel do
+    vínculo, e `docs/layout.md` deixa em aberto se quem é de Operações vê o
+    grupo Colaborador e o contador. Se pode, Operações cai em
+    `/operations/loans` (resposta 28) e precisa de um caminho até o catálogo;
+    se não pode, `loan.create` recusa o papel `operations`. A conta do
+    professor é `member` (spec 003), então a resposta não muda a correção.
+
+44. Qual é o local de retirada dos 12 equipamentos da prática?
+    tipo: negócio
+    por que importa: a resposta 12 dá a cada equipamento um campo "Local de
+    retirada", e a 19 (aberta) pergunta se há mais de um. A lista da prática
+    só traz patrimônio, nome, categoria e situação, e o briefing de dados
+    iniciais não fala de local. O detalhe, o diálogo e o aviso de resultado
+    do `docs/layout.md` ("Retire o item em <local de retirada>") precisam de
+    um valor. Sem resposta, a spec 004 mostra "balcão de Operações", o texto
+    da resposta 2, igual para todos; a spec 003 decide se o campo existe.
+
+45. Como a pessoa testa o empréstimo em produção, se a v1 desta entrega não
+    tem devolução nem cancelamento, e o agente não escreve em produção?
+    tipo: operação
+    por que importa: cada teste em produção deixa um equipamento `loaned`
+    para sempre, porque a devolução está fora do escopo do briefing e a 20
+    (cancelar) está aberta. São 10 disponíveis (ou 9, conforme a spec 003).
+    O professor precisa chegar ao limite (prática, seção 07): com limite 3,
+    ele usa 4 itens; com limite 5, usa 6. Saídas: a pessoa testa em produção
+    com no máximo tantos itens quanto sobram; ou só testa a fundo no dev e
+    no E2E, e em produção pede um item; ou a devolução entra nesta entrega,
+    contra o "Fora de escopo" do briefing; ou um passo idempotente do
+    workflow encerra os empréstimos de uma conta de teste, como o do ADR-009,
+    que a pessoa aplica à mão (`rules/restrictions.md`, Escopo).
+
+46. A foto do equipamento substitui o ícone da categoria no card do catálogo
+    e na área de imagem do detalhe?
+    tipo: aparência
+    por que importa: o briefing pede "imagem, nome, categoria e situação de
+    cada equipamento", e o `docs/layout.md` desenha o card com o ícone da
+    categoria no topo e o detalhe com uma área de 240px com o ícone em 48px.
+    A foto é 800×600 (spec 002). Muda o card, o detalhe e o `docs/layout.md`,
+    que guarda a aparência. Sem resposta, a spec 004 põe a foto em 4:3 no
+    topo do card e na área do detalhe, e o ícone fica só para equipamento
+    sem imagem.
+
+47. O "sem rodapé" do item 9 do briefing é só o crédito, ou também o rodapé
+    de cada card do catálogo ("Ver e solicitar"; "Com <pessoa>" e "Volta até
+    dd/mm")?
+    tipo: aparência, conflito
+    por que importa: o crédito "Fotos: Pexels" fica, por decisão da pessoa de
+    2026-11-11 (spec 002, "Fora de escopo"), contra o mesmo item 9. O
+    `docs/layout.md` também chama de rodapé a última linha do card, que no
+    item emprestado mostra quem está com ele e a data (resposta 14). Se o
+    briefing quer o card sem essa linha, ele contraria a resposta 14. Sem
+    resposta, a spec 004 lê "rodapé" como o rodapé da página e mantém o do
+    card.
+
 ---
 
 ## Respondidas, aguardando spec
