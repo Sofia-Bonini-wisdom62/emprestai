@@ -500,9 +500,9 @@ funcionalidade, não o número da pasta, que só sai quando a spec for criada.
 45. Como a pessoa testa o empréstimo em produção, se a v1 desta entrega não
     tem devolução nem cancelamento, e o agente não escreve em produção?
     resposta: a pessoa testa a fundo no dev e no E2E e, em produção, com uma
-    conta de teste dela, pede no máximo um item. Sobram ao menos 9
-    disponíveis, e o professor precisa de 4 para chegar ao limite de 3
-    (resposta 40) e ver a recusa.
+    conta de teste dela, pede no máximo um item. Dos 9 disponíveis da spec
+    003, sobram ao menos 8, e o professor precisa de 4 para chegar ao limite
+    de 3 (resposta 40) e ver a recusa.
     decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
     revisão da spec 004.
     custo anotado: o item pedido no teste fica emprestado até existir a

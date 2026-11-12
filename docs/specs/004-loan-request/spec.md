@@ -1,6 +1,6 @@
 # 004 — Solicitar empréstimo
 
-Status: rascunho
+Status: aprovada
 Atualizada em: 2026-11-12
 
 ## Objetivo
@@ -56,7 +56,7 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - RN-19 — O header mostra "Você está com N de 3 itens" e os links "Catálogo" e "Meus empréstimos", para todo papel. Quem é de Operações continua caindo em `/operations/loans` depois de entrar (spec 001, RN-22) e chega ao catálogo por esses links. A navegação lateral do `docs/layout.md`, seção 7.1, fica para depois. Origem: `docs/layout.md`, seções 5 e 7.2; resposta 43; proposta do agente para a resposta 43 ter caminho, a confirmar na aprovação.
 - RN-20 — Datas em `America/Sao_Paulo`, no formato de `docs/layout.md`, seção 9. Origem: `docs/layout.md`, seção 9.
 - RN-21 — A área, a pessoa e o papel saem da sessão, nunca do input; o input de `loan.create` só traz o id do equipamento. Origem: ADR-001, 2.6; spec 001, RN-15.
-- RN-22 — Criar um empréstimo grava, na mesma transação, uma linha em `audit_events (id, tenant_id, actor_user_id, action, resource_type, resource_id, created_at)`, com `action = 'loan.create'` e `resource_type = 'loan'`. A tabela é append-only: o papel com que a aplicação conecta não tem `UPDATE` nem `DELETE` nela. A migration da tabela e da garantia passa por revisão humana (`rules/restrictions.md`, Bancos e schema). Origem: ADR-001, 2.10; ADR-010; decisão de 2026-11-12.
+- RN-22 — Criar um empréstimo grava, na mesma transação, uma linha em `audit_events (id, tenant_id, actor_user_id, action, resource_type, resource_id, created_at)`, com `action = 'loan.create'` e `resource_type = 'loan'`. A tabela é append-only: `UPDATE` e `DELETE` nela falham, também para o papel com que a aplicação conecta, que é o dono das tabelas. A migration da tabela e da garantia passa por revisão humana (`rules/restrictions.md`, Bancos e schema). Origem: ADR-001, 2.10; ADR-010; decisão de 2026-11-12.
 - RN-23 — A raiz `/` passa a redirecionar para `/catalog`, e a landing provisória sai. Origem: spec 001, RN-33; `docs/layout.md`, seção 6.
 
 ## Critérios de aceitação
@@ -99,7 +99,7 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
   - o quadro de regras na variante informativa e a linha "M de N equipamentos podem ser pedidos". A variante de bloqueio entra, no CA-04;
   - a navegação lateral (`docs/layout.md`, seção 7.1).
 - Fora de escopo, pela decisão de 2026-11-12: o item fora de uso no catálogo (pergunta 9b, aberta). A API devolve a situação, e a tela não trata o caso.
-- Fora de escopo, por resposta: o teste da pessoa em produção, que pede no máximo um item, com uma conta de teste dela, e deixa ao menos 9 disponíveis para o professor (resposta 45).
+- Fora de escopo, por resposta: o teste da pessoa em produção, que pede no máximo um item, com uma conta de teste dela, e deixa ao menos 8 dos 9 disponíveis da spec 003 para o professor, que precisa de 4 (resposta 45).
 - Fora desta spec, da 003: quais equipamentos ficam em manutenção. A lista da Entrega 2 põe TI-0004, TI-0007 e TI-0010 em `manutencao`, e o briefing de dados iniciais, item 3, só TI-0004 e TI-0007. A spec 003 decide; esta só a cita.
 - Fora desta spec: atualizar o `docs/layout.md` com a foto no card e no detalhe (resposta 46) e com o limite de 3 já confirmado. Fica para o plano.
 - Não decidido: nada.
@@ -119,9 +119,9 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
   - header — ganha o contador e os links "Catálogo" e "Meus empréstimos";
   - `/` — redireciona para `/catalog`.
 - Tabela:
-  - `loans` — nova: `id`, `tenant_id`, `equipment_id`, `user_id` (id do Auth, sem FK, como na spec 001, RN-18), `created_at` (a confirmação), `due_on` (data), `returned_at` (nulo nesta spec), com o índice único parcial do RN-09. RLS ligada e sem policy para `anon` e `authenticated`, como as tabelas da spec 001.
-  - `audit_events` — nova, no formato do RN-22, com a mesma RLS.
-  - equipamento — a da spec 003; esta spec só muda a situação de `available` para `loaned`.
+  - `loans` — nova: `id`, `tenant_id`, `equipment_id`, `user_id` (id do Auth, sem FK, como na spec 001, RN-18), `created_at` (a confirmação), `due_on` (data), `returned_at` (nulo nesta spec), com o índice único parcial do RN-09. RLS ligada, com a policy explícita `loans_deny_all` para `anon` e `authenticated`, no padrão das tabelas da spec 001 (`rules/migration.md`, passo 3).
+  - `audit_events` — nova, no formato do RN-22, com a mesma RLS (`audit_events_deny_all`).
+  - `equipments` — a da spec 003; esta spec só muda `status` de `available` para `loaned`, e lê `asset_tag`, `name`, a categoria em `equipment_categories` e `image_object`.
 - **Não pode mudar:**
   - os procedimentos e as telas da spec 001, inclusive o destino de cada papel depois de entrar (RN-22 da 001);
   - o formato do equipamento e o seed da spec 003, inclusive a conta do professor, que chega à correção com zero empréstimos (prática, seção 01);
