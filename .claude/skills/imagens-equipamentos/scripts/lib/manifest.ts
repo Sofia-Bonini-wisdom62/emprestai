@@ -45,8 +45,15 @@ const isMissing = (value: unknown) =>
 const isUrl = (value: unknown) => isFilled(value) && URL.canParse(value) && new URL(value).protocol === "https:";
 const isId = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) > 0;
 const isSha256 = (value: unknown) => typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
-const isDate = (value: unknown) =>
-  typeof value === "string" && /^\d{4}-\d{2}-\d{2}(T.+)?$/.test(value) && !Number.isNaN(Date.parse(value));
+// AAAA-MM-DD, com a hora opcional, e um dia que existe: o Date.parse leva 2026-02-30 para março
+// sem reclamar, então o dia é conferido de volta no calendário.
+function isDate(value: unknown) {
+  const match = typeof value === "string" ? /^(\d{4})-(\d{2})-(\d{2})(T.+)?$/.exec(value) : null;
+  if (!match || Number.isNaN(Date.parse(String(value)))) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
 
 // Os campos que o RN-05 exige em toda foto, aprovada ou reprovada, e como cada um se valida.
 const FIELDS: Array<[key: keyof Photo, description: string, valid: (value: unknown) => boolean]> = [
@@ -72,7 +79,12 @@ function checkPhoto(photo: Record<string, unknown>, label: string): string[] {
   const license = photo.license;
   if (isMissing(license)) {
     problems.push(`${label}: falta a licença (license)`);
-  } else if (!isRecord(license) || license.name !== LICENSE.name || license.url !== LICENSE.url) {
+  } else if (
+    !isRecord(license) ||
+    Object.keys(license).length !== 2 ||
+    license.name !== LICENSE.name ||
+    license.url !== LICENSE.url
+  ) {
     problems.push(`${label}: a licença (license) não é a "${LICENSE.name}", com ${LICENSE.url}`);
   }
 
@@ -160,6 +172,18 @@ export function checkManifestText(text: string): ManifestCheck {
     return { ok: false, problems: ["o manifesto não é um JSON válido"] };
   }
   return checkManifest(data);
+}
+
+// O arquivo como está no disco (RN-17). Lido como "utf8", um byte inválido viraria U+FFFD sem
+// aviso, e um manifesto em Latin-1 passaria com o nome do fotógrafo estragado.
+export function checkManifestBytes(bytes: Uint8Array): ManifestCheck {
+  let text: string;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return { ok: false, problems: ["o manifesto não está em UTF-8"] };
+  }
+  return checkManifestText(text);
 }
 
 const approvedPhotos = (manifest: Manifest) => manifest.photos.filter((photo) => photo.review.verdict === "approved");

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { checkManifest, checkManifestText, type Manifest, missingAssetTags, objectLists } from "./manifest";
+import {
+  checkManifest,
+  checkManifestBytes,
+  checkManifestText,
+  type Manifest,
+  missingAssetTags,
+  objectLists,
+} from "./manifest";
 import { complete, photo, sha } from "./manifest.fixtures";
 
 // O manifesto completo com a foto da posição `index` trocada.
@@ -25,7 +32,7 @@ describe("checkManifest, CA-03 (spec 002, RN-04 a RN-06)", () => {
     expect(checkManifest(complete())).toEqual({ ok: true, manifest: complete() });
   });
 
-  it("ca_03 um manifesto completo gravado em UTF-8 com BOM também passa", () => {
+  it("ca_12 um manifesto completo gravado em UTF-8 com BOM também passa", () => {
     expect(checkManifestText(`\uFEFF${JSON.stringify(complete())}`)).toEqual({ ok: true, manifest: complete() });
   });
 
@@ -149,6 +156,9 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
     ["sha256", "abc", "o SHA-256 (sha256)"],
     ["downloadedAt", "ontem", "a data do download (downloadedAt)"],
     ["downloadedAt", "2026-13-45", "a data do download (downloadedAt)"],
+    ["downloadedAt", "2026-02-30", "a data do download (downloadedAt)"],
+    ["downloadedAt", "2026-04-31T10:00:00Z", "a data do download (downloadedAt)"],
+    ["downloadedAt", "2026-11-12T25:99:00Z", "a data do download (downloadedAt)"],
   ])("ca_12 reprova o campo %s com o valor %j", (field, value, description) => {
     const problems = checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), [field]: value }));
     const photoLabel = field === "pexelsId" ? "foto 3 (TI-0002, sem id)" : label;
@@ -159,6 +169,7 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
   it.each([
     ["outro nome", { name: "CC0", url: "https://www.pexels.com/license/" }],
     ["outra URL", { name: "Pexels License", url: "https://www.pexels.com/" }],
+    ["um campo a mais", { name: "Pexels License", url: "https://www.pexels.com/license/", note: "x" }],
   ])("ca_12 reprova a licença com %s", (_, license) => {
     expect(checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), license }))).toEqual({
       ok: false,
@@ -184,12 +195,36 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
     });
   });
 
-  it("ca_12 a foto reprovada também precisa do crédito e da origem", () => {
-    const incomplete = omit(photo("TI-0001", 112, "rejected"), "photographer");
+  it.each([
+    ["photographer", "o fotógrafo (photographer)"],
+    ["sourceUrl", "a URL de origem do arquivo (sourceUrl)"],
+    ["sha256", "o SHA-256 (sha256)"],
+    ["downloadedAt", "a data do download (downloadedAt)"],
+  ])("ca_12 a foto reprovada também precisa do crédito e da origem: sem %s", (field, description) => {
+    const incomplete = omit(photo("TI-0001", 112, "rejected"), field);
 
     expect(checkManifest(withPhoto(1, incomplete))).toEqual({
       ok: false,
-      problems: ["foto 2 (TI-0001, 112): falta o fotógrafo (photographer)"],
+      problems: [`foto 2 (TI-0001, 112): falta ${description}`],
+    });
+  });
+
+  it("ca_12 a data do download num 29 de fevereiro de ano bissexto passa", () => {
+    const manifest = withPhoto(TI_0002, { ...photo("TI-0002", 222), downloadedAt: "2028-02-29T10:00:00Z" });
+
+    expect(checkManifest(manifest)).toMatchObject({ ok: true });
+  });
+
+  it("ca_12 o arquivo com o BOM em bytes também passa, e o que não é UTF-8 é reprovado", () => {
+    const json = Buffer.from(JSON.stringify(complete()), "utf8");
+
+    expect(checkManifestBytes(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), json]))).toEqual({
+      ok: true,
+      manifest: complete(),
+    });
+    expect(checkManifestBytes(Buffer.from(JSON.stringify(complete()), "latin1"))).toEqual({
+      ok: false,
+      problems: ["o manifesto não está em UTF-8"],
     });
   });
 
@@ -239,7 +274,7 @@ describe("missingAssetTags, CA-12 (spec 002, RN-16)", () => {
   });
 });
 
-describe("objectLists, CA-09 (spec 002, RN-06)", () => {
+describe("objectLists, CA-09 e CA-12 (spec 002, RN-06)", () => {
   const approved: Manifest = { photos: [photo("TI-0001", 111)] };
 
   it("ca_09 trocar a foto lista o objeto antigo para apagar e o novo para enviar", () => {
@@ -260,10 +295,20 @@ describe("objectLists, CA-09 (spec 002, RN-06)", () => {
     expect(objectLists(approved, { photos: [photo("TI-0001", 111)] })).toEqual({ toUpload: [], toDelete: [] });
   });
 
-  it("ca_12 sem manifesto aprovado, só as fotos aprovadas vão para o envio, em ordem", () => {
+  it("ca_12 sem manifesto aprovado, só as fotos aprovadas vão para o envio", () => {
     expect(objectLists({ photos: [] }, complete())).toEqual({
       toUpload: ["TI-0001-111.jpg", "TI-0002-222.jpg", "TI-0003-333.jpg"],
       toDelete: [],
+    });
+  });
+
+  it("ca_12 as listas saem em ordem alfabética, qualquer que seja a ordem dos manifestos", () => {
+    const before: Manifest = { photos: [photo("TI-0003", 303), photo("TI-0001", 101), photo("TI-0002", 202)] };
+    const after: Manifest = { photos: [photo("TI-0002", 222), photo("TI-0003", 333), photo("TI-0001", 111)] };
+
+    expect(objectLists(before, after)).toEqual({
+      toUpload: ["TI-0001-111.jpg", "TI-0002-222.jpg", "TI-0003-333.jpg"],
+      toDelete: ["TI-0001-101.jpg", "TI-0002-202.jpg", "TI-0003-303.jpg"],
     });
   });
 });

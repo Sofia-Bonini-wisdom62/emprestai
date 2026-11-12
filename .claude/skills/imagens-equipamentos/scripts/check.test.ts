@@ -1,19 +1,19 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
 
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
-import { check, main } from "./check";
+import { APPROVED_MANIFEST, check, main } from "./check";
 import type { Manifest } from "./lib/manifest";
 import { complete, photo } from "./lib/manifest.fixtures";
 
-const file = (path: string, manifest: Manifest) => ({ path, text: JSON.stringify(manifest) });
+const file = (path: string, manifest: Manifest) => ({ path, bytes: Buffer.from(JSON.stringify(manifest), "utf8") });
 
 const approved: Manifest = { photos: [photo("TI-0001", 111)] };
 const swapped: Manifest = { photos: [photo("TI-0001", 111, "rejected"), photo("TI-0001", 222)] };
 
-describe("check, a conferência dos dois manifestos (CA-03 e CA-09)", () => {
+describe("check, a conferência dos dois manifestos (CA-03, CA-09 e CA-12)", () => {
   it("ca_09 imprime o objeto antigo entre os a apagar e o novo entre os a enviar", () => {
     expect(check(file("novo.json", swapped), file("aprovado.json", approved))).toEqual({
       ok: true,
@@ -37,8 +37,26 @@ describe("check, a conferência dos dois manifestos (CA-03 e CA-09)", () => {
     ]);
   });
 
+  it("ca_12 um manifesto que não está em UTF-8 é reprovado, sem estragar o crédito em silêncio", () => {
+    const latin1 = { path: "novo.json", bytes: Buffer.from(JSON.stringify(complete()), "latin1") };
+
+    expect(check(latin1, file("aprovado.json", approved))).toEqual({
+      ok: false,
+      lines: ["O manifesto novo.json não passou na conferência:", "  - o manifesto não está em UTF-8"],
+    });
+  });
+
+  it("ca_12 sem --approved, o manifesto aprovado é o prisma/data/equipment-images.json da raiz", () => {
+    // A raiz é a pasta de onde o Vitest roda; o realpath iguala os caminhos curtos do Windows.
+    const root = resolve(APPROVED_MANIFEST, "..", "..", "..");
+
+    expect(isAbsolute(APPROVED_MANIFEST)).toBe(true);
+    expect(APPROVED_MANIFEST.endsWith(join("prisma", "data", "equipment-images.json"))).toBe(true);
+    expect(realpathSync.native(root)).toBe(realpathSync.native(process.cwd()));
+  });
+
   it("ca_12 sem manifesto aprovado, tudo o que o manifesto novo aprova vai para o envio", () => {
-    const missing = { path: "/repo/prisma/data/equipment-images.json", text: null };
+    const missing = { path: "/repo/prisma/data/equipment-images.json", bytes: null };
 
     expect(check(file("novo.json", complete()), missing).lines).toEqual([
       "Manifesto novo.json: 4 fotos, 3 aprovadas.",

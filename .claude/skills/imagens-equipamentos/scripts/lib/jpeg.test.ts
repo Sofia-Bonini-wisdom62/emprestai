@@ -223,14 +223,30 @@ describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
       new Uint8Array([...head, ...DQT, ...DHT, ...SOS, ...EOI]),
       "os dados da imagem começam antes do SOF",
     ],
-    ["o fim da imagem antes do SOS", new Uint8Array([...head, ...DQT, ...frame(), ...EOI]), "arquivo sem os dados da imagem (SOS)"],
+    [
+      "o fim da imagem antes do SOS",
+      new Uint8Array([...head, ...DQT, ...frame(), ...DHT, ...EOI]),
+      "arquivo sem os dados da imagem (SOS)",
+    ],
   ])("ca_11 é recusado: %s", (_, bytes, reason) => {
     expect(checkJpeg(bytes)).toEqual({ ok: false, reason });
+  });
+
+  // Cada valor de marcador fora da lista do RN-12, e não uma amostra. O D9 (fim da imagem) e o
+  // FF (preenchimento) têm caminho próprio, e os outros da lista passam ou são o SOS.
+  const listed = new Set([0xc0, 0xc1, 0xc2, 0xc4, 0xd9, 0xda, 0xdb, 0xdd, 0xfe, 0xff]);
+  const unlisted = Array.from({ length: 256 }, (_, value) => value)
+    .filter((value) => !listed.has(value) && !(value >= 0xe0 && value <= 0xef))
+    .map((value): [string, number] => [value.toString(16).padStart(2, "0"), value]);
+
+  it.each(unlisted)("ca_11 é recusado o marcador 0x%s, fora da lista do RN-12", (hex, value) => {
+    expect(checkJpeg(jpeg({ extra: [0xff, value, 0x00, 0x02] }))).toEqual({ ok: false, reason: marker(hex) });
   });
 });
 
 describe("checkJpeg, RN-13: o SOF", () => {
   it.each([
+    ["um SOF0 de 12 bits", { sof: 0xc0, precision: 12 }, "SOF com precisão de 12 bits, e não 8"],
     ["um SOF1 de 12 bits", { sof: 0xc1, precision: 12 }, "SOF com precisão de 12 bits, e não 8"],
     ["um SOF2 de 12 bits", { sof: 0xc2, precision: 12 }, "SOF com precisão de 12 bits, e não 8"],
     ["um SOF sem componentes", { components: 0 }, "SOF sem componentes"],
