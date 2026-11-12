@@ -17,12 +17,18 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
 
 "Decisão de 2026-11-11" é a resposta da pessoa ("Aprovo todas") à lista do desenho da skill: a estrutura, os nove requisitos com a garantia de cada um e as treze decisões. Inclui também a resposta dela ("Hook no git push") sobre a rota do shell até a produção, dada no mesmo dia, na revisão deste rascunho.
 
-"Decisão de 2026-11-12" é a resposta da pessoa ("Aceito todas") à recomendação de registrar aqui as quatro recusas que a revisão da T-02 acrescentou ao leitor de JPEG (RN-12 a RN-15). As RN-12 a RN-14 fecham arquivos montados que passariam pelo RN-03 e que o navegador mostraria com outro tamanho ou girados, ou nem abriria. A RN-15 pega o arquivo cortado ou com bytes a mais. Os testes citados ficam em `.claude/skills/imagens-equipamentos/scripts/lib/jpeg.test.ts`.
+"Decisão de 2026-11-12" é a resposta da pessoa ("Aceito todas") à recomendação de registrar aqui as quatro recusas que a revisão da T-02 acrescentou ao leitor de JPEG (RN-12 a RN-15). As RN-12 a RN-14 fecham arquivos montados que passariam pelo RN-03 e que o navegador mostraria com outro tamanho ou girados, ou nem abriria. A RN-15 pega o arquivo cortado ou com bytes a mais. No mesmo dia, a pessoa deu a mesma resposta ("Aceito todas") às seis recomendações da revisão da T-03:
+- a leitura do RN-04 só com fotos aprovadas;
+- o RN-16;
+- o RN-17;
+- os CA-11 e CA-12, que põem os testes das RN-12 a RN-17 no padrão de nomes de `rules/tests.md`;
+- os detalhes da linha de comando no plano;
+- o termo `assetTag` no glossário do `AGENTS.md`.
 
 - RN-01 — As imagens vêm só da API do Pexels: a busca em `api.pexels.com` e o arquivo em `images.pexels.com`, com a chave da pessoa. Nenhuma outra origem de imagem. Origem: contrato da Entrega 2, "Fonte".
 - RN-02 — Nenhuma foto com pessoa, marca ou logo legível, texto ou tela com conteúdo chega ao sistema. Tela apagada passa; interface, texto ou logo legível reprova; na dúvida, reprova. Quem garante é a revisão visual, primeiro do agente, foto a foto, e depois da pessoa, na folha de contato. Origem: contrato, "Direito de imagem"; decisão de 2026-11-11.
 - RN-03 — Toda imagem é um JPEG de exatamente 800×600, sem orientação EXIF diferente de 1. O tamanho é pedido ao CDN do Pexels (`fit=crop&w=800&h=600`) e conferido no próprio arquivo, sem biblioteca de imagem. Origem: contrato, "Mesmo tamanho"; decisão de 2026-11-11. No teste do CDN de 2026-11-11, três fotos públicas da documentação vieram em 800×600, orientação 1 e bytes iguais em dois downloads.
-- RN-04 — A mesma foto do Pexels, pelo id ou pelo SHA-256, não aparece em dois equipamentos. Origem: contrato, "Sem repetição".
+- RN-04 — A mesma foto do Pexels, pelo id ou pelo SHA-256, não aparece em dois equipamentos. Contam só as fotos aprovadas, que são as que chegam ao bucket: uma foto reprovada não aparece em equipamento. A mesma foto aprovada duas vezes no mesmo patrimônio cai na regra de uma foto aprovada por patrimônio (CA-03). Os ids já usados do CA-04 são os das fotos aprovadas. Origem: contrato, "Sem repetição"; decisão de 2026-11-12.
 - RN-05 — O manifesto registra, por equipamento:
   - patrimônio e id do Pexels;
   - página da foto, fotógrafo e página do fotógrafo;
@@ -50,15 +56,26 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
   - um segmento com tamanho menor que 2;
   - um segundo SOF, o SOS antes do SOF e o fim da imagem antes do SOS.
 
-  Origem: decisão de 2026-11-12. Prova: "rn_12 passam DQT, DHT, DRI, comentário, XMP, ICC, APP14, APP15 e bytes 0xFF de preenchimento", "rn_12 um SOF1 de 8 bits passa" e "rn_12 é recusado: %s". Todo JPEG que passa nos testes traz DQT e DHT.
-- RN-13 — O SOF é de 8 bits, declara ao menos um componente e traz exatamente 3 bytes por componente declarado. Origem: decisão de 2026-11-12; o navegador não abre JPEG de 12 bits. Prova: "rn_13 é recusado: %s".
+  Origem: decisão de 2026-11-12. Prova: CA-11.
+- RN-13 — O SOF é de 8 bits, declara ao menos um componente e traz exatamente 3 bytes por componente declarado. Origem: decisão de 2026-11-12; o navegador não abre JPEG de 12 bits. Prova: CA-11.
 - RN-14 — A orientação só vale de um EXIF sem ambiguidade. São recusados:
   - um segundo APP1 com EXIF;
   - a orientação repetida na IFD0, ou de tipo diferente de SHORT;
   - o EXIF malformado: sem o byte 0 depois de `Exif\0`, com o TIFF de menos de 8 bytes, com a ordem de bytes que não é II nem MM, sem a marca 42, com a IFD0 fora do segmento ou truncada. A IFD0 truncada é a que não cabe no segmento com a contagem, os 12 bytes de cada entrada e o ponteiro de 4 bytes da próxima IFD, como define o TIFF 6.0.
 
-  Origem: decisão de 2026-11-12; os decodificadores leem o primeiro EXIF. Prova: "rn_14 é recusado: %s".
-- RN-15 — Os dois últimos bytes do JPEG são o fim da imagem (EOI, FF D9). O leitor não percorre os dados da imagem. Por isso é essa conferência que recusa, com o mesmo motivo, o arquivo cortado nos dados e o arquivo com bytes a mais depois do fim. Ela não pega um arquivo que termine em outro FF D9, como dois JPEG colados; quem garante que o arquivo é o do CDN é a conferência de origem do CA-05. Origem: decisão de 2026-11-12. Prova: "rn_15 é recusado o arquivo que não termina em FF D9: %s".
+  Origem: decisão de 2026-11-12; os decodificadores leem o primeiro EXIF. Prova: CA-11.
+- RN-15 — Os dois últimos bytes do JPEG são o fim da imagem (EOI, FF D9). O leitor não percorre os dados da imagem. Por isso é essa conferência que recusa, com o mesmo motivo, o arquivo cortado nos dados e o arquivo com bytes a mais depois do fim. Ela não pega um arquivo que termine em outro FF D9, como dois JPEG colados; quem garante que o arquivo é o do CDN é a conferência de origem do CA-05. Origem: decisão de 2026-11-12. Prova: CA-11.
+- RN-16 — O manifesto novo não deixa de fora um patrimônio que tem foto aprovada no manifesto aprovado; a conferência reprova o manifesto novo que o deixe. Assim, a lista a apagar do RN-06 só sai de troca de foto, e uma rodada parcial não manda apagar foto ainda em uso. Origem: decisão de 2026-11-12. Prova: CA-12.
+- RN-17 — O manifesto é um JSON em UTF-8, com ou sem BOM, com a lista `photos` e um objeto por foto. Em cada foto:
+  - as URLs (página da foto, página do fotógrafo e origem do arquivo) são completas e em `https`, porque o crédito vira link na tela;
+  - o id do Pexels é um inteiro positivo;
+  - o SHA-256 tem 64 caracteres hexadecimais minúsculos;
+  - a data do download vem como AAAA-MM-DD, com a hora opcional, e é uma data válida;
+  - o veredito é `approved` ou `rejected`, sempre com o motivo;
+  - o nome do objeto é texto, e a licença é exatamente a do RN-05;
+  - um texto só com espaços conta como campo que falta.
+
+  Origem: decisão de 2026-11-12. Prova: CA-12.
 
 ## Critérios de aceitação
 
@@ -90,6 +107,15 @@ Só o que o `pnpm test` prova, sem rede e sem a chave. Ficam fora dele, e por is
 - CA-08 — `prisma/data/equipment.json` tem os 12 equipamentos da prática, com os patrimônios de TI-0001 a TI-0012 únicos. `prisma/data/equipment-images.json`, o manifesto aprovado, passa na conferência do CA-03 com os 12 patrimônios.
 - CA-09 — Dado um manifesto aprovado com `TI-0001-111.jpg` e um manifesto novo com `TI-0001-222.jpg` para o mesmo patrimônio, a conferência lista `TI-0001-111.jpg` entre os objetos a apagar e `TI-0001-222.jpg` entre os a enviar. Com os dois manifestos iguais, as duas listas saem vazias.
 - CA-10 — Num repositório git de teste, com um commit à frente da `origin/main`, o hook do RN-07 nega `git push` e `gh pr create`, pelo Bash e pelo PowerShell, quando o commit toca `.github/workflows/ci.yml`, `.claude/hooks/x.mjs` ou `.claude/settings.json`. A mensagem pede que a pessoa faça a mudança. Quando o commit só toca `docs/`, o hook deixa passar, e ele também deixa passar comandos que não são push nem abertura de PR.
+- CA-11 — Com cabeçalhos JPEG montados em bytes, todos com DQT e DHT, como os de um codificador comum:
+  - passam o JPEG com DRI, comentário, XMP, ICC, APP14, APP15 e bytes 0xFF de preenchimento, e o SOF1 de 8 bits (RN-12);
+  - são recusados, um caso de cada vez e com o motivo exato, cada marcador, SOF, EXIF e fim de arquivo que as RN-12 a RN-15 recusam.
+- CA-12 — Dado o manifesto completo do CA-03, a conferência reprova, um caso de cada vez e com a mensagem exata:
+  - cada campo do RN-05 que falta, inclusive numa foto reprovada, e o texto só com espaços;
+  - cada formato fora do RN-17;
+  - o manifesto novo que deixa de fora um patrimônio com foto aprovada no manifesto aprovado (RN-16).
+
+  Ela passa o manifesto gravado com BOM e a foto reprovada que repete o id de uma aprovada em outro patrimônio (RN-04). Os problemas de campo de uma foto saem de uma vez, e a mesma foto aprovada duas vezes no mesmo patrimônio só conta como duas aprovadas. Sem manifesto aprovado, todas as fotos aprovadas vão para a lista de envio, em ordem alfabética (RN-06). Pela linha de comando, um `--approved` que não existe ou que é uma pasta sai com 2, sem lista.
 
 ## Fora de escopo / não decidido
 

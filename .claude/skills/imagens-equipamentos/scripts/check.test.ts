@@ -37,7 +37,7 @@ describe("check, a conferência dos dois manifestos (CA-03 e CA-09)", () => {
     ]);
   });
 
-  it("rn_06 sem manifesto aprovado, tudo o que o manifesto novo aprova vai para o envio", () => {
+  it("ca_12 sem manifesto aprovado, tudo o que o manifesto novo aprova vai para o envio", () => {
     const missing = { path: "/repo/prisma/data/equipment-images.json", text: null };
 
     expect(check(file("novo.json", complete()), missing).lines).toEqual([
@@ -58,6 +58,18 @@ describe("check, a conferência dos dois manifestos (CA-03 e CA-09)", () => {
     expect(check(file("novo.json", unapproved), file("aprovado.json", approved))).toEqual({
       ok: false,
       lines: ["O manifesto novo.json não passou na conferência:", "  - o patrimônio TI-0001 não tem foto aprovada"],
+    });
+  });
+
+  it("ca_12 reprova o manifesto novo que deixa de fora um patrimônio aprovado, sem listar nada", () => {
+    const before: Manifest = { photos: [photo("TI-0001", 111), photo("TI-0002", 222)] };
+
+    expect(check(file("novo.json", approved), file("aprovado.json", before))).toEqual({
+      ok: false,
+      lines: [
+        "O manifesto novo.json não passou na conferência:",
+        "  - o patrimônio TI-0002 tem foto aprovada no manifesto aprovado e ficou de fora do manifesto novo (RN-16)",
+      ],
     });
   });
 
@@ -109,7 +121,7 @@ describe("main, a linha de comando da conferência", () => {
     expect(lines()).toContain("  - o patrimônio TI-0001 não tem foto aprovada");
   });
 
-  it("ca_09 com --approved apontando um arquivo que não existe, sai com 2 sem listar nada", () => {
+  it("ca_12 com --approved apontando um arquivo que não existe, sai com 2 sem listar nada", () => {
     const lines = output();
     const missing = join(dir, "nao-existe.json");
 
@@ -117,7 +129,7 @@ describe("main, a linha de comando da conferência", () => {
     expect(lines()).toEqual([`O manifesto aprovado ${missing} não existe.`]);
   });
 
-  it("ca_09 com --approved apontando uma pasta, sai com 2 sem listar nada", () => {
+  it("ca_12 com --approved apontando uma pasta, sai com 2 sem listar nada", () => {
     const lines = output();
 
     expect(main([write("novo.json", swapped), "--approved", dir])).toBe(2);

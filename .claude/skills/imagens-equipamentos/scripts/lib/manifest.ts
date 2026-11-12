@@ -1,4 +1,5 @@
-// O manifesto das fotos dos equipamentos e a conferência dele (spec 002, RN-04 a RN-06).
+// O manifesto das fotos dos equipamentos e a conferência dele (spec 002, RN-04 a RN-06, RN-16
+// e RN-17, que fixa o formato de cada campo).
 // Cada foto baixada e revisada fica registrada, aprovada ou reprovada, com o crédito, a origem
 // do arquivo e o veredito. O manifesto aprovado vai para prisma/data/equipment-images.json,
 // que o seed lê (RN-10).
@@ -37,7 +38,9 @@ export const objectName = (assetTag: string, pexelsId: number) => `${assetTag}-$
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const isFilled = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
-const isMissing = (value: unknown) => value === undefined || value === null || value === "";
+// Um texto só com espaços conta como campo que falta (RN-17).
+const isMissing = (value: unknown) =>
+  value === undefined || value === null || (typeof value === "string" && value.trim() === "");
 // Só https: o crédito vira link na tela do catálogo, e um javascript: ali seria uma brecha.
 const isUrl = (value: unknown) => isFilled(value) && URL.canParse(value) && new URL(value).protocol === "https:";
 const isId = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) > 0;
@@ -159,8 +162,19 @@ export function checkManifestText(text: string): ManifestCheck {
   return checkManifest(data);
 }
 
-const approvedObjects = (manifest: Manifest) =>
-  new Set(manifest.photos.filter((photo) => photo.review.verdict === "approved").map((photo) => photo.objectName));
+const approvedPhotos = (manifest: Manifest) => manifest.photos.filter((photo) => photo.review.verdict === "approved");
+const approvedObjects = (manifest: Manifest) => new Set(approvedPhotos(manifest).map((photo) => photo.objectName));
+
+// RN-16: o manifesto novo não deixa de fora um patrimônio que tem foto aprovada no manifesto
+// aprovado. Assim, a lista a apagar só sai de troca de foto, e uma rodada parcial não manda
+// apagar foto ainda em uso.
+export function missingAssetTags(approved: Manifest, next: Manifest): string[] {
+  const present = new Set(next.photos.map((photo) => photo.assetTag));
+  return [...new Set(approvedPhotos(approved).map((photo) => photo.assetTag))]
+    .filter((assetTag) => !present.has(assetTag))
+    .sort()
+    .map((assetTag) => `o patrimônio ${assetTag} tem foto aprovada no manifesto aprovado e ficou de fora do manifesto novo (RN-16)`);
+}
 
 // RN-06: comparado ao manifesto aprovado, o que o manifesto novo põe no bucket e o que tira.
 // Repetir o processo com as mesmas fotos deixa as duas listas vazias.

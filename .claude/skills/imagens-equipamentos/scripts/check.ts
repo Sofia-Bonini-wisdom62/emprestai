@@ -1,5 +1,6 @@
-// A conferência do manifesto (spec 002, CA-03 e CA-09). Confere o manifesto novo e o aprovado
-// e imprime os objetos que a pessoa envia e apaga no bucket equipment-images, pelo painel.
+// A conferência do manifesto (spec 002, CA-03, CA-09 e CA-12). Confere o manifesto novo e o
+// aprovado e imprime os objetos que a pessoa envia e apaga no bucket equipment-images, pelo
+// painel. A linha de comando está no plan.md, passo 3.
 // Uso, da raiz do repositório:
 //   node --import ./prisma/resolve-ts.mjs .claude/skills/imagens-equipamentos/scripts/check.ts \
 //     <manifesto novo> [--approved <manifesto aprovado>]
@@ -9,7 +10,13 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 
-import { checkManifestText, type Manifest, type ManifestCheck, objectLists } from "./lib/manifest";
+import {
+  checkManifestText,
+  type Manifest,
+  type ManifestCheck,
+  missingAssetTags,
+  objectLists,
+} from "./lib/manifest";
 
 export const APPROVED_MANIFEST = "prisma/data/equipment-images.json";
 
@@ -47,6 +54,12 @@ export function check(next: ManifestFile, approved: ManifestFile | MissingFile):
     );
   }
   if (!nextCheck.ok || !approvedCheck.ok) return { ok: false, lines };
+
+  const missing = missingAssetTags(approvedCheck.manifest, nextCheck.manifest);
+  if (missing.length > 0) {
+    lines.push(`O manifesto ${next.path} não passou na conferência:`, ...missing.map((p) => `  - ${p}`));
+    return { ok: false, lines };
+  }
 
   const { toUpload, toDelete } = objectLists(approvedCheck.manifest, nextCheck.manifest);
   lines.push(

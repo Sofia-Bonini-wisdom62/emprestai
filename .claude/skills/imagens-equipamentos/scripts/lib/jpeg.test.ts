@@ -177,7 +177,7 @@ describe("checkJpeg, CA-02 (spec 002, RN-03)", () => {
 });
 
 describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
-  it("rn_12 passam DQT, DHT, DRI, comentário, XMP, ICC, APP14, APP15 e bytes 0xFF de preenchimento", () => {
+  it("ca_11 passam DQT, DHT, DRI, comentário, XMP, ICC, APP14, APP15 e bytes 0xFF de preenchimento", () => {
     const extra = [
       0xff,
       0xff,
@@ -196,7 +196,7 @@ describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
     });
   });
 
-  it("rn_12 um SOF1 de 8 bits passa", () => {
+  it("ca_11 um SOF1 de 8 bits passa", () => {
     expect(checkJpeg(jpeg({ sof: 0xc1 }))).toEqual({
       ok: true,
       info: { width: 800, height: 600, progressive: false, orientation: null },
@@ -224,7 +224,7 @@ describe("checkJpeg, RN-12: os marcadores antes dos dados da imagem", () => {
       "os dados da imagem começam antes do SOF",
     ],
     ["o fim da imagem antes do SOS", new Uint8Array([...head, ...DQT, ...frame(), ...EOI]), "arquivo sem os dados da imagem (SOS)"],
-  ])("rn_12 é recusado: %s", (_, bytes, reason) => {
+  ])("ca_11 é recusado: %s", (_, bytes, reason) => {
     expect(checkJpeg(bytes)).toEqual({ ok: false, reason });
   });
 });
@@ -236,7 +236,7 @@ describe("checkJpeg, RN-13: o SOF", () => {
     ["um SOF sem componentes", { components: 0 }, "SOF sem componentes"],
     ["um SOF com menos bytes que os componentes que declara", { components: 3, componentBytes: 1 }, "SOF com tamanho inválido"],
     ["um SOF com mais bytes que os componentes que declara", { components: 1, componentBytes: 2 }, "SOF com tamanho inválido"],
-  ])("rn_13 é recusado: %s", (_, build, reason) => {
+  ])("ca_11 é recusado: %s", (_, build, reason) => {
     expect(checkJpeg(jpeg(build))).toEqual({ ok: false, reason });
   });
 });
@@ -254,7 +254,7 @@ describe("checkJpeg, RN-14: o EXIF", () => {
     ["a IFD0 fora do segmento", patchedExif({ 16: 0x10 }), "EXIF com IFD0 fora do segmento"],
     ["a IFD0 com mais entradas do que traz", exif({ orientations: [6], count: 5 }), "EXIF com IFD0 truncada"],
     ["a IFD0 sem o ponteiro da próxima IFD", exif({ orientations: [6], next: false }), "EXIF com IFD0 truncada"],
-  ])("rn_14 é recusado: %s", (_, extra, reason) => {
+  ])("ca_11 é recusado: %s", (_, extra, reason) => {
     expect(checkJpeg(jpeg({ extra }))).toEqual({ ok: false, reason });
   });
 });
@@ -263,7 +263,7 @@ describe("checkJpeg, RN-15: o fim do arquivo", () => {
   it.each([
     ["cortado nos dados da imagem", (bytes: Uint8Array) => bytes.subarray(0, bytes.length - 4)],
     ["com bytes depois do fim da imagem", (bytes: Uint8Array) => new Uint8Array([...bytes, 0, 0])],
-  ])("rn_15 é recusado o arquivo que não termina em FF D9: %s", (_, change) => {
+  ])("ca_11 é recusado o arquivo que não termina em FF D9: %s", (_, change) => {
     expect(checkJpeg(change(jpeg()))).toEqual({
       ok: false,
       reason: "o arquivo não termina no fim da imagem (EOI): truncado ou com bytes a mais",
