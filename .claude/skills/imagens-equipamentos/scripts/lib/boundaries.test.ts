@@ -49,13 +49,21 @@ describe("a fronteira da rede, CA-13 (spec 002, RN-01)", { timeout: 60_000 }, ()
   });
 
   it("ca_13 fora do pexels.ts, nenhum arquivo da skill chega à rede por um caminho que o lint não vê", () => {
-    const pattern = /\b(globalThis|global)\.fetch|\bimport\(|from ["'](node:)?(http2|undici)["']/;
+    const pattern = new RegExp(
+      [
+        String.raw`\b(globalThis|global)(\.fetch|\[)`,
+        String.raw`\bimport\(`,
+        String.raw`\bcreateRequire\b`,
+        String.raw`\b(WebSocket|EventSource)\b`,
+        String.raw`from ["'](node:)?(http2|undici|dns|cluster|worker_threads)["']`,
+      ].join("|"),
+    );
 
     expect(matching(pattern, [NETWORK])).toEqual([]);
   });
 });
 
-describe("a fronteira da chave, CA-07 (spec 002, RN-08)", { timeout: 60_000 }, () => {
+describe("a fronteira da chave, CA-07 e CA-13 (spec 002, RN-08)", { timeout: 60_000 }, () => {
   it.each([
     ["process.env", ENV],
     ["process.loadEnvFile", LOAD],
@@ -93,7 +101,7 @@ describe("a fronteira da chave, CA-07 (spec 002, RN-08)", { timeout: 60_000 }, (
   });
 
   it("ca_13 só o pexels.ts tira a chave do ApiKey, para o cabeçalho da busca", () => {
-    expect(matching(/\.reveal\(/, [NETWORK, ENTRY])).toEqual([]);
+    expect(matching(/\.reveal\(/, [NETWORK])).toEqual([]);
   });
 
   it("ca_13 o próprio api-key.ts lê o arquivo por util.parseEnv, sem carregar o ambiente", () => {

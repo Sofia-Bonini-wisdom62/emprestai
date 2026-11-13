@@ -24,6 +24,7 @@ afterAll(() => {
 // Caracteres que uma colagem traz sem a pessoa ver, montados pelo código para ficarem visíveis aqui.
 const CURLY = String.fromCharCode(0x201c);
 const ZERO_WIDTH = String.fromCharCode(0x200b);
+const NBSP = String.fromCharCode(0xa0);
 
 const invalid = (path: string) =>
   `A PEXELS_API_KEY no ${path} tem espaço, quebra de linha ou caractere fora do ASCII visível, como aspas curvas. Confira se a chave foi colada inteira.`;
@@ -58,6 +59,8 @@ describe("readApiKey, CA-13 (spec 002, RN-08 e RN-19)", () => {
 
     expect(shown).not.toContain(KEY);
     expect(String(apiKey)).toBe("[PEXELS_API_KEY]");
+    expect(JSON.stringify({ apiKey })).toBe('{"apiKey":"[PEXELS_API_KEY]"}');
+    expect(inspect(apiKey)).toBe("ApiKey [PEXELS_API_KEY]");
   });
 
   it.each([
@@ -70,6 +73,9 @@ describe("readApiKey, CA-13 (spec 002, RN-08 e RN-19)", () => {
     ["com espaço no meio da chave", () => envFile("espaco.env", `PEXELS_API_KEY="${KEY} ${KEY}"\n`), invalid],
     ["com aspas curvas de uma colagem", () => envFile("aspas.env", `PEXELS_API_KEY=${CURLY}${KEY}${CURLY}\n`), invalid],
     ["com um espaço invisível", () => envFile("invisivel.env", `PEXELS_API_KEY=${KEY}${ZERO_WIDTH}\n`), invalid],
+    ["com espaço na ponta, entre aspas", () => envFile("ponta.env", `PEXELS_API_KEY="${KEY} "\n`), invalid],
+    ["com quebra de linha na ponta, entre aspas", () => envFile("quebra.env", `PEXELS_API_KEY="${KEY}\\n"\n`), invalid],
+    ["com espaço sem quebra na ponta, entre aspas", () => envFile("nbsp.env", `PEXELS_API_KEY="${KEY}${NBSP}"\n`), invalid],
   ])("ca_13 o erro %s não traz a chave", (_, makePath, expected) => {
     const path = makePath();
     const { message, shown } = errorOf(path);

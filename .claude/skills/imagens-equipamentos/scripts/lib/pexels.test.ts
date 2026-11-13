@@ -49,7 +49,7 @@ async function errorOf(promise: Promise<unknown>) {
 const FILE = "https://images.pexels.com/photos/111/pexels-photo-111.jpeg?fit=crop&w=800&h=600";
 
 const refused = (reason: string) =>
-  `download do Pexels: o pedido não saiu, porque ${reason}. Só vale https://images.pexels.com, sem porta nem usuário (RN-01).`;
+  `download do Pexels: o pedido não saiu, porque ${reason}. Só vale https://images.pexels.com, sem porta nem usuário (RN-01 e RN-18).`;
 
 const LIMIT =
   "busca no Pexels: o limite de pedidos do Pexels acabou (429). São 200 por hora e 20.000 por mês (ADR-011); tente de novo mais tarde.";
@@ -137,7 +137,8 @@ describe("os detalhes da rede, CA-13 (spec 002, RN-18)", () => {
   it.each([
     ["http, e não https", "http://images.pexels.com/foto.jpg", "a URL não é https"],
     ["uma porta", "https://images.pexels.com:8443/foto.jpg", "a URL tem a porta 8443"],
-    ["usuário na URL", "https://usuario:segredo123@images.pexels.com/foto.jpg", "a URL tem usuário ou senha"],
+    ["usuário e senha na URL", "https://usuario:segredo123@images.pexels.com/foto.jpg", "a URL tem usuário ou senha"],
+    ["só o usuário na URL", "https://usuario@images.pexels.com/foto.jpg", "a URL tem usuário ou senha"],
   ])("ca_13 o download com %s falha antes de sair, com o motivo", async (_, url, reason) => {
     const { calls, fetch } = fakeFetch();
 

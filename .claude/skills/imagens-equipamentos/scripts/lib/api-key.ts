@@ -43,7 +43,9 @@ export function readApiKey(path: string = ENV_FILE): ApiKey {
   if (!existsSync(path)) {
     throw new ApiKeyError(`O ${path} não existe. Copie o .env.example para .env.local e preencha a ${NAME}.`);
   }
-  const value = parseEnv(readFileSync(path, "utf8"))[NAME]?.trim();
+  // Sem aparar: o parseEnv já tira os espaços em volta de um valor sem aspas, e o que sobra nas
+  // pontas, entre aspas, cai na regra do ASCII visível do RN-19.
+  const value = parseEnv(readFileSync(path, "utf8"))[NAME];
   if (!value) {
     throw new ApiKeyError(`A ${NAME} está vazia ou ausente no ${path}. Preencha com a sua chave do Pexels.`);
   }

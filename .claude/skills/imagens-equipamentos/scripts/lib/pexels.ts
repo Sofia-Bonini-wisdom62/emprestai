@@ -44,7 +44,7 @@ async function readBody<T>(read: () => Promise<T>, what: string, key: ApiKey | n
 async function request(fetchFn: Fetch, url: URL, host: string, key: ApiKey | null, what: string) {
   const reason = refusal(url, host);
   if (reason) {
-    throw new PexelsError(`${what}: o pedido não saiu, porque ${reason}. Só vale https://${host}, sem porta nem usuário (RN-01).`);
+    throw new PexelsError(`${what}: o pedido não saiu, porque ${reason}. Só vale https://${host}, sem porta nem usuário (RN-01 e RN-18).`);
   }
 
   let response: Response;
