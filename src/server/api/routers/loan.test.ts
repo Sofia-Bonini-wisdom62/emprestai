@@ -1,6 +1,6 @@
-// loan.create (spec 004, T-03): a parte da API do CA-01 e do CA-11, os CA-02 a CA-06, a defesa
-// do índice (CA-07), a auditoria (CA-12), o UNAUTHORIZED do CA-13, o input estrito (CA-14) e o
-// isolamento (CA-15). A tela é da T-06.
+// loan.create (spec 004, T-03) e loan.listMine (T-04): a parte da API do CA-01, do CA-10 e do
+// CA-11, os CA-02 a CA-06, a defesa do índice (CA-07), a auditoria (CA-12), o UNAUTHORIZED do
+// CA-13, o input estrito (CA-14) e o isolamento (CA-15). As telas são da T-05 à T-07.
 //
 // audit_events é append-only (RN-22), e a FK dela segura a área: nenhum caso apaga o que criou.
 // Cada caso usa uma área nova, com nomes únicos, no banco efêmero do Testcontainers.
@@ -516,5 +516,88 @@ describe("banco fora do ar", () => {
       message: "INTERNAL_SERVER_ERROR",
     });
     await expect(create).rejects.not.toHaveProperty("cause.message");
+  });
+});
+
+describe("loan.listMine", () => {
+  it("ca_10 traz só os empréstimos em aberto da pessoa, com nome, patrimônio, data e a contagem", async () => {
+    const area = await createArea();
+    await giveLoan(area, "beatriz", "TI-0002", "2026-11-28");
+    await giveLoan(area, "beatriz", "TI-0001", "2026-11-26");
+    await giveLoan(area, "enzo", "TI-0003");
+
+    const mine = await caller(area, "beatriz").loan.listMine();
+
+    expect(mine).toEqual({
+      items: [
+        {
+          id: expect.any(String),
+          equipmentId: area.equipment["TI-0001"],
+          assetTag: "TI-0001",
+          name: "Equipamento TI-0001",
+          dueOn: "2026-11-26",
+          overdue: false,
+        },
+        {
+          id: expect.any(String),
+          equipmentId: area.equipment["TI-0002"],
+          assetTag: "TI-0002",
+          name: "Equipamento TI-0002",
+          dueOn: "2026-11-28",
+          overdue: false,
+        },
+      ],
+      count: 2,
+      limit: 3,
+      hasOverdue: false,
+    });
+  });
+
+  it("ca_10 sem empréstimo, a lista vem vazia, com o limite", async () => {
+    const area = await createArea();
+
+    await expect(caller(area, "enzo").loan.listMine()).resolves.toEqual({
+      items: [],
+      count: 0,
+      limit: 3,
+      hasOverdue: false,
+    });
+  });
+
+  it("ca_04 o empréstimo vencido aparece em atraso a partir do dia seguinte", async () => {
+    const area = await createArea();
+    await giveLoan(area, "caio", "TI-0001", "2026-11-26");
+
+    const onDueDay = await caller(area, "caio", {
+      now: () => new Date("2026-11-27T02:30:00Z"),
+    }).loan.listMine();
+    const dayAfter = await caller(area, "caio", {
+      now: () => new Date("2026-11-27T03:30:00Z"),
+    }).loan.listMine();
+
+    expect(onDueDay.hasOverdue).toBe(false);
+    expect(dayAfter).toMatchObject({ hasOverdue: true, items: [{ overdue: true }] });
+  });
+
+  it("ca_13 sem sessão, responde UNAUTHORIZED", async () => {
+    await expect(createCaller({ db, session: null }).loan.listMine()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  it("ca_15 não traz os empréstimos da mesma pessoa em outra área", async () => {
+    const areaA = await createArea();
+    const areaB = await createArea();
+    await db.membership.create({
+      data: { tenantId: areaB.tenantId, userId: areaA.userIds.beatriz, role: "member" },
+    });
+    const inB = { ...areaB, userIds: { ...areaB.userIds, beatriz: areaA.userIds.beatriz } };
+    await giveLoan(inB, "beatriz", "TI-0001", "2026-11-01");
+    await giveLoan(areaA, "beatriz", "TI-0002");
+
+    const mine = await caller(areaA, "beatriz").loan.listMine();
+
+    expect(mine).toMatchObject({ count: 1, hasOverdue: false });
+    expect(mine.items.map((item) => item.equipmentId)).toEqual([areaA.equipment["TI-0002"]]);
   });
 });

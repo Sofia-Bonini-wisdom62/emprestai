@@ -11,7 +11,7 @@ O plano e as cinco propostas foram aprovados pela pessoa em 2026-11-12. Nenhuma 
 - [x] T-03 — `loan.create`, em `src/server/services/loan.ts` e `src/server/api/routers/loan.ts`: a transação do RN-09, os códigos do RN-10, a auditoria do RN-22 e o relógio injetado
       CA: CA-01 (a parte da API), CA-02, CA-03, CA-04, CA-05, CA-06, CA-11 (a parte da API), CA-12, CA-13 (o procedimento), CA-14, CA-15
       Verifica: `pnpm test` com `ca_01` (relógio em 12/11/2026 às 22h30 de São Paulo, data prevista 26/11/2026), `ca_02` a `ca_06`, `ca_11` (Flávia, `operations`, cria o empréstimo e recebe `LOAN_LIMIT_REACHED` com 3 em aberto), `ca_12`, `ca_13` (`UNAUTHORIZED` sem sessão), `ca_14` e `ca_15`, contra o Postgres do Testcontainers; o `ca_05` e o `ca_06` com duas conexões e uma barreira
-- [ ] T-04 — `loan.listMine` e o header com o contador e os links "Catálogo" e "Meus empréstimos"
+- [x] T-04 — `loan.listMine` e o header com o contador e os links "Catálogo" e "Meus empréstimos"
       CA: CA-10 (a parte da API e do header), CA-13 (o procedimento), CA-15
       Verifica: `pnpm test` com `ca_10`, `ca_13` (`UNAUTHORIZED` sem sessão) e `ca_15` por `createCaller`; `pnpm test:e2e` com `ca_10` (o contador "Você está com 2 de 3 itens" no header)
 - [ ] T-05 — `/catalog` com os cards, `card.tsx` e `badge.tsx` do shadcn/ui, o `<img>` com a exceção de lint, a origem do bucket no `img-src`, o crédito do Pexels e o servidor de imagem fictícia do E2E em `tests/e2e/`; `docs/layout.md` com a foto e o limite de 3
