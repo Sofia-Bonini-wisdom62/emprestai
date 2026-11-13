@@ -518,8 +518,8 @@ proposta do agente entre as alternativas que ele levou, e viram RN na spec
     atualizada: em 2026-11-13, pela troca do Pexels pelo Pixabay, decidida
     pela pessoa ("Confirmo a troca"). O Pixabay não corta pela URL, e o
     `sharp` entra, aprovado por ela, para a skill da spec 002 recortar a foto
-    em 800×600. A versão exata e o `devDependencies` são recomendação do
-    ADR-011. O carregamento desta entrega continua sem usá-lo: grava o nome
+    em 800×600. A versão exata e o `devDependencies` também foram aceitos
+    por ela ("Aceito todas", no #56; ADR-011). O carregamento desta entrega continua sem usá-lo: grava o nome
     do objeto cuja foto a spec 002 já conferiu.
     vira RN em: dados iniciais.
 

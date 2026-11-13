@@ -6,7 +6,7 @@
 | Data | 2026-11-11; troca do Pexels pelo Pixabay em 2026-11-13 |
 | Turma | B |
 | Vínculo | [`docs/specs/002-equipment-images/spec.md`](../specs/002-equipment-images/spec.md); Entrega 2 da prática, contrato da skill `imagens-equipamentos` |
-| Substitui | Nenhum trecho de ADR: o [ADR-001](001-stack.md) não decide integração de imagem nem Storage. Acrescenta à stack do ADR-001 uma dependência de desenvolvimento, só para a skill: o `sharp`, aprovado pela pessoa na troca de 2026-11-13. O `devDependencies` e a versão exata 0.35.5 são recomendação deste ADR. Ao aceitar, mudam duas rules: em [`rules/restrictions.md`](../../rules/restrictions.md), seção Escopo, e em [`rules/operacao.md`](../../rules/operacao.md), linha dos workflows, `.github/workflows/` e `.claude/settings.json` passam a ser editados pela pessoa, à mão, a partir do texto que o agente prepara; o `vercel.json` continua "pedir antes" |
+| Substitui | Nenhum trecho de ADR: o [ADR-001](001-stack.md) não decide integração de imagem nem Storage. Acrescenta à stack do ADR-001 uma dependência de desenvolvimento, só para a skill: o `sharp`, aprovado pela pessoa na troca de 2026-11-13. O `devDependencies` e a versão exata 0.35.5 também foram aceitos por ela, em 2026-11-13 ("Aceito todas", no #56). Ao aceitar, mudam duas rules: em [`rules/restrictions.md`](../../rules/restrictions.md), seção Escopo, e em [`rules/operacao.md`](../../rules/operacao.md), linha dos workflows, `.github/workflows/` e `.claude/settings.json` passam a ser editados pela pessoa, à mão, a partir do texto que o agente prepara; o `vercel.json` continua "pedir antes" |
 | Decide | De onde vêm as fotos dos equipamentos, como chegam a 800×600, onde ficam, quem as publica e como o agente fica impedido de publicá-las |
 
 ---
@@ -79,7 +79,7 @@ O pacote não tem script de instalação. O binário vem pronto, por plataforma,
   - O `sharp` já está no lockfile, na mesma versão, como dependência opcional do `next`. Ao entrar em `devDependencies` com a versão exata, ele não deve acrescentar pacote ao lockfile, e a tarefa que o instalar confere isso no diff.
   - Ele não roda script na instalação (seção 1.3).
   - Quem gera o arquivo, o `sharp`, não é quem o confere, o leitor de JPEG.
-  - A escolha do `sharp` é da pessoa, na troca de 2026-11-13. O `devDependencies` e a versão exata são recomendação deste ADR.
+  - A escolha do `sharp` é da pessoa, na troca de 2026-11-13. O `devDependencies` e a versão exata também, no mesmo dia ("Aceito todas", no #56).
 - **Cache de 24 h** — é exigência da API. Também evita repetir o mesmo pedido na rodada.
 - **Chave na URL** — é o único jeito que a API documenta. Com isso, a chave corre o risco de aparecer em qualquer registro de URL. Por isso só o módulo de rede monta a URL da busca, e nenhuma mensagem da skill traz essa URL nem o corpo da resposta.
 - **Crédito na tela** — a documentação pede o crédito onde aparecem resultados de busca, e esse lugar é a folha de contato. O catálogo mostra fotos já baixadas, não resultados de busca, e a licença não exige atribuição. O crédito fica na tela pelo que a pessoa confirmou na troca de 2026-11-13 (seção 1.1), como o contrato da prática pedia para o Pexels ("Crédito na tela"). A implementação é da spec 004 (RN-14).
@@ -146,7 +146,7 @@ O pacote não tem script de instalação. O binário vem pronto, por plataforma,
 
 ## 6. Antes de aceitar
 
-- Com a chave da pessoa, a rodada real (T-07 da spec 002) confirma duas coisas:
+- Com a chave da pessoa, a rodada real (T-07 da spec 002) confirma duas coisas. A pessoa decidiu, em 2026-11-13 ("Aceito todas", no #56), que a do host fica para a T-07, na primeira busca real:
   - o `largeImageURL` vem de `pixabay.com` ou de `cdn.pixabay.com`, sem redirecionamento;
   - a conferência de origem passa nas fotos aprovadas, o que prova que dois downloads do mesmo `largeImageURL` dão os mesmos bytes.
 - A troca fica registrada no `ENTREGA.md`, com o print do Pexels pausado.

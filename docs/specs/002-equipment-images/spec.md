@@ -46,13 +46,22 @@ O que a troca não detalha é recomendação do PR de documento da troca e vale 
 - a conferência de origem (RN-20);
 - os casos novos dos CA-01, CA-05, CA-07 e CA-13, e o CA-14.
 
+"Escolhas do #56" é a resposta da pessoa ("Aceito todas", em 2026-11-13) às cinco escolhas desse PR, como o agente as recomendou:
+- o `sharp` 0.35.5 em `devDependencies` (RN-08);
+- a qualidade 80 do JPEG gerado (RN-03);
+- a conferência de origem (RN-20);
+- renomear o `scripts/lib/pexels.ts` para `scripts/lib/pixabay.ts` na T-04;
+- conferir o host do `largeImageURL` na T-07, na primeira busca real. Até lá, a lista de hosts aceita o que a documentação mostra (RN-01).
+
+O resto da lista acima vale com a aprovação do PR.
+
 O que a documentação do Pixabay diz está no ADR-011, seção 1.2.
 
 - RN-01 — As imagens vêm só da API do Pixabay, com a chave da pessoa: a busca em `https://pixabay.com/api/` e o arquivo do `largeImageURL` de um resultado dela, em `pixabay.com` ou `cdn.pixabay.com`. Nenhuma outra origem de imagem. A busca pede só fotos (`image_type=photo`) na horizontal (`orientation=horizontal`). De cada resultado, ela guarda o id, a página da foto (`pageURL`), o autor (`user` e `user_id`), as tags e o `largeImageURL`; as tags servem à escolha e não vão para o manifesto. Origem: troca de 2026-11-13, que substitui o Pexels do contrato da Entrega 2, "Fonte". Os hosts são os dos exemplos da documentação da API, lida em 2026-11-13: a busca e o `largeImageURL` em `pixabay.com`, e o `previewURL` em `cdn.pixabay.com`.
 - RN-02 — Nenhuma foto com pessoa, marca ou logo legível, texto ou tela com conteúdo chega ao sistema. Tela apagada passa; interface, texto ou logo legível reprova; na dúvida, reprova. Quem garante é a revisão visual, primeiro do agente, foto a foto, e depois da pessoa, na folha de contato. Origem: contrato, "Direito de imagem"; decisão de 2026-11-11.
 - RN-03 — Toda imagem é um JPEG de exatamente 800×600, sem orientação EXIF diferente de 1.
   - O download baixa o `largeImageURL`, que tem até 1280 px no lado maior.
-  - O `sharp` gera o arquivo: aplica a orientação EXIF, reduz e recorta pelo centro até 800×600, sem ampliar, e grava um JPEG baseline com qualidade 80, sem metadados.
+  - O `sharp` gera o arquivo: aplica a orientação EXIF, reduz e recorta pelo centro até 800×600, sem ampliar, e grava um JPEG baseline com qualidade 80 (escolhas do #56), sem metadados.
   - A origem com menos de 800 px de largura ou de 600 px de altura, medida depois de aplicar a orientação EXIF, é recusada, sem arquivo gravado e sem entrada no manifesto da rodada.
   - Os mesmos bytes de origem, com a mesma versão do `sharp` e na mesma máquina, dão o mesmo arquivo. É isso que deixa a conferência de origem recortar de novo e comparar (RN-20).
   - O arquivo gerado é conferido pelo leitor de JPEG das RN-12 a RN-15, que não usa biblioteca de imagem: quem gera não é quem confere.
@@ -76,7 +85,7 @@ O que a documentação do Pixabay diz está no ADR-011, seção 1.2.
   - A pessoa cria o bucket e envia os arquivos pelo painel.
 
   Origem: contrato, "Produção"; prática, seção 01; decisão de 2026-11-11; documentação de permissões do Claude Code, lida em 2026-11-11.
-- RN-08 — A `PIXABAY_API_KEY` vive só no `.env.local`. Só o módulo de entrada da skill a lê, sem carregar o resto do arquivo, e nenhuma mensagem a mostra. A skill acrescenta uma dependência só, o `sharp`, aprovado pela pessoa na troca de 2026-11-13. Ele entra em `devDependencies` e na versão exata 0.35.5, a que já está no lockfile (ADR-011). Origem: contrato, "Segredos e dependências"; `rules/secrets.md`; decisão de 2026-11-11; troca de 2026-11-13.
+- RN-08 — A `PIXABAY_API_KEY` vive só no `.env.local`. Só o módulo de entrada da skill a lê, sem carregar o resto do arquivo, e nenhuma mensagem a mostra. A skill acrescenta uma dependência só, o `sharp`, aprovado pela pessoa na troca de 2026-11-13. Ele entra em `devDependencies` e na versão exata 0.35.5, a que já está no lockfile (ADR-011; escolhas do #56). Origem: contrato, "Segredos e dependências"; `rules/secrets.md`; decisão de 2026-11-11; troca de 2026-11-13.
 - RN-09 — A skill só roda quando a pessoa a invoca, e para antes de liberar a lista de envio até a pessoa aprovar a folha de contato. A folha só sai de um manifesto que passa na conferência do manifesto (CA-03 e CA-12). O `SKILL.md` só a gera depois de a conferência de origem sair com 0 (RN-20). A folha mostra pelo arquivo local as fotos da rodada:
   - a entrada cujo nome de objeto não está no manifesto aprovado;
   - a foto aprovada da lista de envio do RN-06, a mesma que o RN-20 confere.
@@ -126,7 +135,7 @@ O que a documentação do Pixabay diz está no ADR-011, seção 1.2.
 
   Origem: decisão de 2026-11-13; troca de 2026-11-13. Prova: CA-07, CA-13 e CA-14.
 - RN-19 — A `PIXABAY_API_KEY` só tem ASCII visível, de `!` a `~`. Espaço, quebra de linha, aspas curvas ou espaço invisível de uma colagem são recusados com mensagem própria, sem o valor, porque iriam codificados na URL da busca, e o erro sairia como chave inválida. Origem: decisão de 2026-11-13; troca de 2026-11-13. Prova: CA-13.
-- RN-20 — A conferência de origem roda na rodada do download, na mesma máquina e antes da folha de contato. Ela confere só as fotos aprovadas da lista de envio do RN-06, as aprovadas cujo nome de objeto não está aprovado no manifesto aprovado. Cada uma é baixada de novo da URL gravada no manifesto e recortada pelo `sharp` como no RN-03. O SHA-256 gravado no manifesto, o do arquivo local e o do recorte refeito têm de ser iguais. A foto aprovada cujo nome de objeto já está aprovado no manifesto aprovado tem de ser igual, campo a campo, à entrada de lá. Ela não é baixada de novo, porque foi conferida na rodada dela e a URL pode ter expirado. Se algum campo diferir, a conferência reprova o manifesto novo, sem rede. Com qualquer recusa, a conferência sai com 1, e a folha de contato não é gerada até o agente trocar a foto por outro candidato ou, depois do prazo do RN-18, refazer a busca e o download dessa foto, que gravam no manifesto a URL de origem, o SHA-256 e a data novos, e conferir de novo. Origem: recomendação do PR de documento da troca de 2026-11-13; ADR-011, seção 4. Prova: CA-05.
+- RN-20 — A conferência de origem roda na rodada do download, na mesma máquina e antes da folha de contato. Ela confere só as fotos aprovadas da lista de envio do RN-06, as aprovadas cujo nome de objeto não está aprovado no manifesto aprovado. Cada uma é baixada de novo da URL gravada no manifesto e recortada pelo `sharp` como no RN-03. O SHA-256 gravado no manifesto, o do arquivo local e o do recorte refeito têm de ser iguais. A foto aprovada cujo nome de objeto já está aprovado no manifesto aprovado tem de ser igual, campo a campo, à entrada de lá. Ela não é baixada de novo, porque foi conferida na rodada dela e a URL pode ter expirado. Se algum campo diferir, a conferência reprova o manifesto novo, sem rede. Com qualquer recusa, a conferência sai com 1, e a folha de contato não é gerada até o agente trocar a foto por outro candidato ou, depois do prazo do RN-18, refazer a busca e o download dessa foto, que gravam no manifesto a URL de origem, o SHA-256 e a data novos, e conferir de novo. Origem: escolhas do #56, em 2026-11-13; ADR-011, seção 4. Prova: CA-05.
 
 ## Critérios de aceitação
 

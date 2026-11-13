@@ -52,7 +52,7 @@ Os scripts rodam a partir da raiz com `node --import ./prisma/resolve-ts.mjs`, o
 A troca de 2026-11-13 chegou com os passos 1 a 3 e a primeira versão do passo 4 já na `main`. O que fica e o que é refeito:
 - **Ficam:** o passo 1, menos a chave, que muda no PR de documento da troca, e o caminho do `pexels.ts` no bloco da skill do ESLint, que muda no passo 4; o passo 2, o leitor de JPEG, que agora confere o que o `sharp` gera; e a lógica do passo 3.
 - **Passo 4, refeito:**
-  - o `scripts/lib/pexels.ts` vira `scripts/lib/pixabay.ts`, com os hosts, a chave na URL e as mensagens do Pixabay. Renomear o arquivo é "pedir antes";
+  - o `scripts/lib/pexels.ts` vira `scripts/lib/pixabay.ts`, com os hosts, a chave na URL e as mensagens do Pixabay. Renomear o arquivo foi aprovado pela pessoa em 2026-11-13 (escolhas do #56);
   - o `api-key.ts` passa a ler a `PIXABAY_API_KEY`;
   - o `manifest.ts` troca o id e a licença do Pexels pelos do Pixabay, no campo `pixabayId` e no nome `<patrimonio>-<idPixabay>.jpg`. Os campos `photoUrl`, `photographer` e `photographerUrl` ficam com o mesmo nome e passam a guardar a página da foto, o autor e a página do autor do RN-05;
   - o bloco da skill no `eslint.config.mjs` troca o caminho do `pexels.ts` no `ignores` da regra do `fetch` e as mensagens pelo `pixabay.ts`;
