@@ -2,6 +2,7 @@ import { accountRouter } from "@/server/api/routers/account";
 import { authRouter } from "@/server/api/routers/auth";
 import { equipmentRouter } from "@/server/api/routers/equipment";
 import { healthRouter } from "@/server/api/routers/health";
+import { loanRouter } from "@/server/api/routers/loan";
 import { createTRPCRouter } from "@/server/api/trpc";
 
 export const appRouter = createTRPCRouter({
@@ -9,6 +10,7 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   equipment: equipmentRouter,
   health: healthRouter,
+  loan: loanRouter,
 });
 
 export type AppRouter = typeof appRouter;

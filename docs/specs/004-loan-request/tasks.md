@@ -8,7 +8,7 @@ O plano e as cinco propostas foram aprovados pela pessoa em 2026-11-12. Nenhuma 
 - [x] T-02 — `equipment.list`, com cursor, e `equipment.byId`, em `src/server/services/equipment.ts` e `src/server/api/routers/equipment.ts`; `EQUIPMENT_IMAGES_BASE_URL` em `src/env/` e no `.env.example`
       CA: CA-08 (a parte da API), CA-09 (a parte da API), CA-13 (os dois procedimentos), CA-15
       Verifica: `pnpm test` com `ca_08` (`imageUrl` montada com a variável, e `null` sem ela; a segunda página pelo cursor), `ca_09` (o nome de quem pegou e a data), `ca_13` (`UNAUTHORIZED` sem sessão) e `ca_15` (o equipamento de B não aparece e responde `NOT_FOUND`), por `createCaller`
-- [ ] T-03 — `loan.create`, em `src/server/services/loan.ts` e `src/server/api/routers/loan.ts`: a transação do RN-09, os códigos do RN-10, a auditoria do RN-22 e o relógio injetado
+- [x] T-03 — `loan.create`, em `src/server/services/loan.ts` e `src/server/api/routers/loan.ts`: a transação do RN-09, os códigos do RN-10, a auditoria do RN-22 e o relógio injetado
       CA: CA-01 (a parte da API), CA-02, CA-03, CA-04, CA-05, CA-06, CA-11 (a parte da API), CA-12, CA-13 (o procedimento), CA-14, CA-15
       Verifica: `pnpm test` com `ca_01` (relógio em 12/11/2026 às 22h30 de São Paulo, data prevista 26/11/2026), `ca_02` a `ca_06`, `ca_11` (Flávia, `operations`, cria o empréstimo e recebe `LOAN_LIMIT_REACHED` com 3 em aberto), `ca_12`, `ca_13` (`UNAUTHORIZED` sem sessão), `ca_14` e `ca_15`, contra o Postgres do Testcontainers; o `ca_05` e o `ca_06` com duas conexões e uma barreira
 - [ ] T-04 — `loan.listMine` e o header com o contador e os links "Catálogo" e "Meus empréstimos"
