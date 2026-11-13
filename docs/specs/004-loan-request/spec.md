@@ -25,6 +25,8 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 
 "Decisão do plano, de 2026-11-12" é a resposta da pessoa ("Aprovo as cinco") às cinco propostas técnicas de `plan.md`, depois da revisão do `revisor-plano`. Três delas mudam esta spec: a URL da foto (RN-24), a paginação (RN-25) e a landing de `/` (RN-23). As outras duas, a foto por `<img>` e o trigger da auditoria, entram nos RN-26 e RN-22.
 
+"Decisão da verificação, de 2026-11-13" é a resposta da pessoa ("Pode fazer as três") às recomendações do agente sobre a rodada 1 do `verificador-spec` (`verificacao.md`): o aviso de resultado só com empréstimo de verdade (RN-17, CA-16), e o item fora de uso no detalhe e a pill de atraso em Meus empréstimos, que a implementação já tinha, entram como regra (RN-27 e RN-28, CA-17).
+
 ## Regras
 
 - RN-01 — Solicitar cria o empréstimo na hora, sem aprovação de Operações nem fila. A retirada é física, no balcão de Operações, sem estado no sistema. Origem: resposta 2; briefing, "Decisão já tomada para a turma".
@@ -53,7 +55,7 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - RN-14 — A página do catálogo e a do detalhe mostram "Fotos: Pixabay", com link para `https://pixabay.com`. Origem: contrato da skill, "Crédito na tela"; decisão da pessoa de 2026-11-11, registrada na spec 002, "Fora de escopo", de manter o crédito; resposta 47; decisão da pessoa de 2026-11-13 ("Confirmo a troca"), tomada depois de o Pexels pausar a emissão de chaves, que troca a fonte das fotos do Pexels pelo Pixabay e, com ela, o texto e o link do crédito. As fotos continuam servidas do nosso bucket, nunca do Pixabay, então a CSP do RN-26 não muda. Contraria o item 9 do briefing ("sem rodapé nem texto de crédito").
 - RN-15 — Solicitar fica no detalhe (`/catalog/[equipmentId]`), no card "Solicitar empréstimo", que mostra "Devolver até dd/mm/aaaa" e "Retire no balcão de Operações". O pedido passa por um diálogo de confirmação com a data prevista, o local e a contagem resultante ("depois deste, você fica com N de 3 itens"). O detalhe mostra a foto na área de imagem, o nome, a pill, a categoria e o patrimônio. Origem: `docs/layout.md`, seção 6, tela 3, e seção 7.1; respostas 44 e 46.
 - RN-16 — Item que não está disponível mostra a situação no lugar do botão: "Com <nome> · volta até dd/mm/aaaa" no emprestado e "Em manutenção. Não pode ser pedido agora." no item em manutenção. No limite ou com atraso, o botão fica desabilitado com o motivo do RN-10 ao lado. Origem: `docs/layout.md`, seção 6, tela 3; respostas 14 e 16.
-- RN-17 — Depois de confirmar, a pessoa vai para `/my-loans`, com o aviso de resultado "Empréstimo confirmado. Retire o item no balcão de Operações e devolva até dd/mm/aaaa.". Origem: `docs/layout.md`, seção 7.1; resposta 44; decisão de 2026-11-12.
+- RN-17 — Depois de confirmar, a pessoa vai para `/my-loans`, com o aviso de resultado "Empréstimo confirmado. Retire o item no balcão de Operações e devolva até dd/mm/aaaa.". A data vem na URL, e o aviso só aparece se a pessoa tem um empréstimo em aberto com essa data prevista; outra data na URL não mostra nada. Origem: `docs/layout.md`, seção 7.1; resposta 44; decisão de 2026-11-12; decisão da verificação, de 2026-11-13.
 - RN-18 — Meus empréstimos (`/my-loans`) lista só os empréstimos em aberto da pessoa, na seção "Itens com você", cada um com o nome, o patrimônio e a data prevista, sem botão "Devolver". Sem empréstimo: "Você não está com nenhum item", com link para o catálogo. Origem: PRD, item 1; briefing, item 8; `docs/layout.md`, seção 6, tela 4.
 - RN-19 — O header mostra "Você está com N de 3 itens" e os links "Catálogo" e "Meus empréstimos", para todo papel. Quem é de Operações continua caindo em `/operations/loans` depois de entrar (spec 001, RN-22) e chega ao catálogo por esses links. A navegação lateral do `docs/layout.md`, seção 7.1, fica para depois. Origem: `docs/layout.md`, seções 5 e 7.2; resposta 43; proposta do agente para a resposta 43 ter caminho, confirmada na aprovação da spec.
 - RN-20 — Datas em `America/Sao_Paulo`, no formato de `docs/layout.md`, seção 9. Origem: `docs/layout.md`, seção 9.
@@ -63,6 +65,8 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - RN-24 — A URL pública da foto é a `EQUIPMENT_IMAGES_BASE_URL` seguida do `image_object` do equipamento. A variável é de servidor, opcional e sem segredo. Em Production, é a URL pública do bucket `equipment-images`. Vazia, a API devolve `imageUrl: null`, e a tela mostra o ícone da categoria (RN-12). No `.env.local` ela fica vazia: nada no dev lê o projeto de produção. No E2E, ela aponta para um servidor local de teste que serve um JPEG fictício de 800×600. Origem: ADR-011, que deixa para esta spec de onde vêm as fotos no dev; ADR-004; decisão do plano, de 2026-11-12.
 - RN-25 — `equipment.list` pagina por cursor, 24 por página, em ordem de patrimônio, e a tela usa `useInfiniteQuery`. `loan.listMine` não pagina, porque o RN-03 a limita a 3 linhas: quando uma lista pagina, é por cursor, nunca por offset. Origem: ADR-001, 2.3; decisão do plano, de 2026-11-12.
 - RN-26 — A foto entra por `<img>` com `width="800"` e `height="600"`, sem `next/image`, que escreve `style` (ADR-002). A CSP acrescenta ao `img-src` só a origem da `EQUIPMENT_IMAGES_BASE_URL`, e só quando ela existe. A regra `@next/next/no-img-element` ganha uma exceção no `eslint.config.mjs`, com a justificativa, restrita aos arquivos do card e do detalhe. Origem: ADR-002; ADR-001, 2.10; `rules/restrictions.md`, Ferramentas; decisão do plano, de 2026-11-12.
+- RN-27 — No detalhe, o item `out_of_service` mostra a pill "Fora de uso" e, no lugar do botão, "Este equipamento não está disponível.", o texto do RN-10. O catálogo não trata o caso à parte (pergunta 9b). Origem: RN-07; decisão da verificação, de 2026-11-13.
+- RN-28 — Em Meus empréstimos, o empréstimo em atraso (RN-05) ganha a pill "Em atraso" ao lado da data prevista. Origem: `docs/layout.md`, seção 5 (pill `overdue`) e seção 8 (estado nunca só por cor); decisão da verificação, de 2026-11-13.
 
 ## Critérios de aceitação
 
@@ -89,6 +93,8 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
   - o contador, o limite e o atraso de Beatriz não contam o empréstimo de B;
   - nenhum card nem detalhe de A mostra o nome de quem pegou o item de B;
   - os papéis `anon` e `authenticated` não leem nenhuma linha de `loans` nem de `audit_events`.
+- CA-16 — Dado Beatriz sem empréstimo com data prevista 01/01/2030, quando ela abre `/my-loans?confirmado=2030-01-01`, então a tela não mostra "Empréstimo confirmado".
+- CA-17 — Dado Caio com um empréstimo de data prevista já passada, quando ele abre `/my-loans`, então a linha dele mostra a pill "Em atraso"; e dado o TI-0007 em `out_of_service`, quando Beatriz abre o detalhe dele, então vê a pill "Fora de uso" e "Este equipamento não está disponível." no lugar do botão.
 
 ## Fora de escopo / não decidido
 
@@ -103,7 +109,7 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
   - os chips de categoria e o "Mostrar só o que está livre";
   - o quadro de regras na variante informativa e a linha "M de N equipamentos podem ser pedidos". A variante de bloqueio entra, no CA-04;
   - a navegação lateral (`docs/layout.md`, seção 7.1).
-- Fora de escopo, pela decisão de 2026-11-12: o item fora de uso no catálogo (pergunta 9b, aberta). A API devolve a situação, e a tela não trata o caso.
+- Fora de escopo, pela decisão de 2026-11-12: o item fora de uso no catálogo (pergunta 9b, aberta). A API devolve a situação, e o catálogo não trata o caso; o detalhe segue o RN-27.
 - Fora de escopo, pela decisão do plano, de 2026-11-12: `/` redirecionar para o catálogo, como desenha o `docs/layout.md`, seção 6. Volta quando a pessoa decidir trocar os critérios AZ-05 e AZ-09 do andar zero.
 - Fora de escopo, por resposta: o teste da pessoa em produção, que pede no máximo um item, com uma conta de teste dela, e deixa ao menos 8 dos 9 disponíveis da spec 003 para o professor, que precisa de 4 (resposta 45).
 - Fora desta spec, da 003: quais equipamentos ficam em manutenção. A lista da Entrega 2 põe TI-0004, TI-0007 e TI-0010 em `manutencao`, e o briefing de dados iniciais, item 3, só TI-0004 e TI-0007. A spec 003 decide; esta só a cita.

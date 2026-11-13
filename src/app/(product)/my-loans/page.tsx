@@ -24,10 +24,14 @@ export default async function MyLoansPage({
   const { confirmado } = await searchParams;
   const loans = await currentLoans();
   const items = loans?.items ?? [];
+  // O aviso só confirma o que existe: um empréstimo em aberto da pessoa com a data da URL (RN-17;
+  // CA-16). Uma data qualquer na URL não mostra nada.
+  const confirmedOn =
+    isDate(confirmado) && items.some((loan) => loan.dueOn === confirmado) ? confirmado : null;
 
   return (
     <div className="flex flex-col gap-8">
-      {isDate(confirmado) ? (
+      {confirmedOn ? (
         <p
           role="status"
           aria-live="polite"
@@ -35,7 +39,7 @@ export default async function MyLoansPage({
         >
           <CircleCheck aria-hidden="true" className="size-5 shrink-0 text-status-available" />
           Empréstimo confirmado. Retire o item no balcão de Operações e devolva até{" "}
-          {formatFullDate(confirmado)}.
+          {formatFullDate(confirmedOn)}.
         </p>
       ) : null}
 

@@ -160,6 +160,28 @@ test("ca_10 sem empréstimo, Meus empréstimos mostra o estado vazio com o link 
   await page.waitForURL("**/catalog");
 });
 
+test("ca_16 uma data qualquer na URL não mostra o aviso de resultado", async ({ page }) => {
+  await newPerson(page, "Beatriz Fontes");
+
+  await page.goto("/my-loans?confirmado=2030-01-01");
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Meus empréstimos");
+  await expect(page.getByText("Empréstimo confirmado")).toHaveCount(0);
+});
+
+test("ca_17 o empréstimo em atraso mostra a pill \"Em atraso\" em Meus empréstimos", async ({
+  page,
+}) => {
+  const userId = await newPerson(page, "Caio Moreira");
+  const [late] = giveLoans(userId, ["2020-01-01"]);
+
+  await page.goto("/my-loans");
+
+  const row = withYou(page).getByRole("listitem").filter({ hasText: late!.name });
+  await expect(row).toContainText("Em atraso");
+  await expect(row).toContainText("Devolver até 01/01");
+});
+
 test("ca_13 sem sessão, /my-loans leva a /login", async ({ page }) => {
   await page.goto("/my-loans");
 

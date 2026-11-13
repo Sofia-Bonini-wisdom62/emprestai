@@ -36,7 +36,7 @@ test.beforeAll(() => {
   `);
 });
 
-type Status = "available" | "loaned" | "maintenance";
+type Status = "available" | "loaned" | "maintenance" | "out_of_service";
 
 // Cada sql() sobe o Prisma CLI, o que leva alguns segundos nesta máquina: os casos preparam o
 // banco com poucas chamadas, e os que preparam mais de um empréstimo têm limite maior.
@@ -164,6 +164,17 @@ test("ca_02 o item em manutenção mostra o motivo no lugar do botão", async ({
   await page.goto(`/catalog/${equipment.id}`);
 
   await expect(requestCard(page)).toContainText("Em manutenção. Não pode ser pedido agora.");
+  await expect(requestCard(page).getByRole("button")).toHaveCount(0);
+});
+
+test("ca_17 o item fora de uso mostra a pill e o motivo no lugar do botão", async ({ page }) => {
+  await newBeatriz(page);
+  const equipment = createEquipment("out_of_service");
+
+  await page.goto(`/catalog/${equipment.id}`);
+
+  await expect(page.getByRole("main")).toContainText("Fora de uso");
+  await expect(requestCard(page)).toContainText("Este equipamento não está disponível.");
   await expect(requestCard(page).getByRole("button")).toHaveCount(0);
 });
 
