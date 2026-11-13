@@ -132,6 +132,16 @@ describe("equipment.list", () => {
     expect(second.nextCursor).toBeNull();
   });
 
+  it("ca_08 aceita a direção que o useInfiniteQuery manda junto com o cursor", async () => {
+    const first = await asBeatriz().equipment.list({ direction: "forward" });
+    const second = await asBeatriz().equipment.list({
+      cursor: first.nextCursor!,
+      direction: "forward",
+    });
+
+    expect(second.items.map((item) => item.assetTag)).toEqual(["TI-0025", "TI-0026"]);
+  });
+
   it("ca_08 sem a base das fotos, imageUrl é null", async () => {
     const page = await asBeatriz({ equipmentImagesBaseUrl: null }).equipment.list({ limit: 2 });
 
