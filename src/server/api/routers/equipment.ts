@@ -16,6 +16,9 @@ export const equipmentRouter = createTRPCRouter({
       z.strictObject({
         cursor: z.uuid().optional(),
         limit: z.number().int().min(1).max(EQUIPMENT_PAGE_SIZE).optional(),
+        // O useInfiniteQuery do tRPC manda a direção junto com o cursor. O catálogo só anda para a
+        // frente, e o service ignora o campo; sem ele aqui, o strictObject recusaria a tela.
+        direction: z.enum(["forward", "backward"]).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -24,7 +27,7 @@ export const equipmentRouter = createTRPCRouter({
         return await listEquipment(
           ctx.db,
           ctx.tenantId,
-          input,
+          { cursor: input.cursor, limit: input.limit },
           ctx.equipmentImagesBaseUrl ?? null,
         );
       } catch {

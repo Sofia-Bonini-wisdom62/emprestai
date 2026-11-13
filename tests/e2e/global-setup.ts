@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { type App, startApp } from "./app";
 import { generateAuthKeys } from "./auth-keys";
 import { type AuthRelay, startAuthRelay } from "./auth-relay";
+import { type ImageServer, startImageServer } from "./image-server";
 import { runSeed, type SeedTarget } from "./seed";
 import { type AuthStack, freePort, startAuthStack } from "./stack";
 
@@ -51,9 +52,11 @@ export default async function globalSetup() {
   };
 
   let relay: AuthRelay | undefined;
+  let images: ImageServer | undefined;
   let app: App;
   try {
     runSeed(seedTarget);
+    images = await startImageServer();
     relay = await startAuthRelay({
       primary: stack.gatewayUrl,
       "short-token": shortTokenStack.gatewayUrl,
@@ -72,9 +75,12 @@ export default async function globalSetup() {
         RATE_LIMIT_USER_WINDOW_SECONDS: "60",
         RATE_LIMIT_IP_MAX: "1000",
         RATE_LIMIT_IP_WINDOW_SECONDS: "60",
+        // As fotos do servidor de teste, no lugar do bucket (spec 004, RN-24).
+        EQUIPMENT_IMAGES_BASE_URL: images.baseUrl,
       },
     });
   } catch (error) {
+    await images?.stop();
     await relay?.stop();
     await stopStacks();
     throw error;
@@ -94,10 +100,12 @@ export default async function globalSetup() {
   process.env.E2E_AUTH_RELAY_CONTROL_URL = relay.controlUrl;
 
   const startedRelay = relay;
+  const startedImages = images;
   return async () => {
     try {
       await app.stop();
     } finally {
+      await startedImages.stop();
       await startedRelay.stop();
       await stopStacks();
     }

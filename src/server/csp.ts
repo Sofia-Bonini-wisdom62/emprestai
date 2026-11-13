@@ -13,6 +13,8 @@ type PolicyOptions = {
   development: boolean;
   // Só sobre HTTPS: no E2E e no next start local, o app roda em http://127.0.0.1.
   https: boolean;
+  // A origem do bucket das fotos, só quando a EQUIPMENT_IMAGES_BASE_URL existe (spec 004, RN-26).
+  imagesOrigin?: string | null;
 };
 
 export function contentSecurityPolicy(nonce: string, options: PolicyOptions) {
@@ -20,7 +22,7 @@ export function contentSecurityPolicy(nonce: string, options: PolicyOptions) {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${options.development ? " 'unsafe-eval'" : ""}`,
     options.development ? "style-src 'self' 'unsafe-inline'" : `style-src 'self' 'nonce-${nonce}'`,
-    "img-src 'self' blob: data:",
+    `img-src 'self' blob: data:${options.imagesOrigin ? ` ${options.imagesOrigin}` : ""}`,
     // A fonte vem do próprio domínio pelo next/font (docs/layout.md, seção 11).
     "font-src 'self'",
     "object-src 'none'",

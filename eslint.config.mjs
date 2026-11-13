@@ -42,6 +42,14 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "error",
     },
   },
+  // A foto do equipamento entra por <img> (spec 004, RN-26; plano da 004, proposta 1, aprovada
+  // pela pessoa em 2026-11-12): o next/image escreve style no <img>, que o ADR-002 proíbe, e a CSP
+  // sem 'unsafe-inline' bloquearia. A exceção vale só no arquivo que desenha a foto, usado pelo card
+  // e pelo detalhe.
+  {
+    files: ["src/components/equipment/equipment-photo.tsx"],
+    rules: { "@next/next/no-img-element": "off" },
+  },
   // Skill imagens-equipamentos (spec 002, RN-01 e RN-08; ADR-011): a rede só passa pelo
   // scripts/lib/pexels.ts, que tem a allowlist de host, e a chave só pelo
   // scripts/lib/api-key.ts, a exceção do rules/secrets.md. Nenhum arquivo da skill importa
