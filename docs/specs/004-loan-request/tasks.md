@@ -2,7 +2,7 @@
 
 O plano e as cinco propostas foram aprovados pela pessoa em 2026-11-12. Nenhuma tarefa começa antes de a migration da spec 003 estar na `main`, e cada "Pode implementar" libera uma tarefa só. Cada tarefa é um commit e um PR, e para em `rules/checks.md` (`rules/restrictions.md`, Ritmo). Nenhuma acrescenta dependência.
 
-- [ ] T-01 — Migration `add_loans_and_audit_events`: `loans` com o índice único parcial, `audit_events` com o trigger que recusa `UPDATE` e `DELETE`, RLS e as policies `deny_all`. O DDL vai à pessoa antes do `migrate dev`
+- [x] T-01 — Migration `add_loans_and_audit_events`: `loans` com o índice único parcial, `audit_events` com o trigger que recusa `UPDATE` e `DELETE`, RLS e as policies `deny_all`. O DDL vai à pessoa antes do `migrate dev`
       CA: CA-07, CA-12 (a parte do banco), CA-15 (a parte da RLS)
       Verifica: `pnpm test` com `ca_07` (o `INSERT` duplicado recusado), `ca_12` (`UPDATE` e `DELETE` em `audit_events` falham como `postgres`) e `ca_15` (`SET LOCAL ROLE anon` e `authenticated` leem zero linhas, um controle com a RLS desligada e a conferência em `pg_policies`); `pnpm prisma migrate deploy` no banco de dev
 - [ ] T-02 — `equipment.list`, com cursor, e `equipment.byId`, em `src/server/services/equipment.ts` e `src/server/api/routers/equipment.ts`; `EQUIPMENT_IMAGES_BASE_URL` em `src/env/` e no `.env.example`
