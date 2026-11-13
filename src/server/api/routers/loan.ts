@@ -2,11 +2,25 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, DomainRefusal, tenantProcedure } from "@/server/api/trpc";
-import { createLoan, loanRefusalMessages } from "@/server/services/loan";
+import { createLoan, listMyOpenLoans, loanRefusalMessages } from "@/server/services/loan";
 
 // Solicitar empréstimo (spec 004). A área e a pessoa saem da sessão; o input só traz o
 // equipamento, e strictObject recusa tenantId, userId ou dueOn (RN-21; CA-14).
 export const loanRouter = createTRPCRouter({
+  // Os empréstimos em aberto da pessoa da sessão, nesta área (RN-18 e RN-19).
+  listMine: tenantProcedure.input(z.void()).query(async ({ ctx }) => {
+    try {
+      return await listMyOpenLoans(ctx.db, {
+        tenantId: ctx.tenantId,
+        userId: ctx.session.userId,
+        now: (ctx.now ?? (() => new Date()))(),
+      });
+    } catch {
+      // Sem repassar o erro do banco: a mensagem do driver pode trazer host e usuário.
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
+
   create: tenantProcedure
     .input(z.strictObject({ equipmentId: z.uuid() }))
     .mutation(async ({ ctx, input }) => {

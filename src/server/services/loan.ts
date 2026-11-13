@@ -127,3 +127,59 @@ export async function createLoan(
     throw error;
   }
 }
+
+export type MyOpenLoan = {
+  id: string;
+  equipmentId: string;
+  assetTag: string;
+  name: string;
+  dueOn: string;
+  overdue: boolean;
+};
+
+export type MyOpenLoans = {
+  items: MyOpenLoan[];
+  count: number;
+  limit: number;
+  hasOverdue: boolean;
+};
+
+// Os empréstimos em aberto da pessoa nesta área, do vencimento mais próximo ao mais distante. Sem
+// paginação: o RN-03 os limita a 3 (RN-25). O header, o detalhe e Meus empréstimos leem daqui a
+// contagem, o limite e o atraso (RN-16, RN-18 e RN-19).
+export async function listMyOpenLoans(
+  db: PrismaClient,
+  input: { tenantId: string; userId: string; now: Date },
+): Promise<MyOpenLoans> {
+  const today = calendarDateInSaoPaulo(input.now);
+  const loans = await db.loan.findMany({
+    where: { tenantId: input.tenantId, userId: input.userId, returnedAt: null },
+    select: {
+      id: true,
+      equipmentId: true,
+      dueOn: true,
+      equipment: { select: { assetTag: true, name: true } },
+    },
+    orderBy: [{ dueOn: "asc" }, { createdAt: "asc" }],
+  });
+
+  const items = loans.map((loan) => {
+    const dueOn = loan.dueOn.toISOString().slice(0, 10);
+    return {
+      id: loan.id,
+      equipmentId: loan.equipmentId,
+      assetTag: loan.equipment.assetTag,
+      name: loan.equipment.name,
+      dueOn,
+      // Em atraso a partir do dia seguinte à data prevista (RN-05).
+      overdue: dueOn < today,
+    };
+  });
+
+  return {
+    items,
+    count: items.length,
+    limit: LOAN_LIMIT,
+    hasOverdue: items.some((item) => item.overdue),
+  };
+}
