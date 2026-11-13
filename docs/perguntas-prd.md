@@ -35,16 +35,6 @@ confirmadas pelo usuário", e o `prisma/schema.prisma` do repositório dela
 
 ## Abertas
 
-4b. O que acontece quando o vencimento cai num dia em que o balcão está
-    fechado?
-    tipo: negócio
-    por que importa: os 14 dias são corridos (pergunta 4), então o vencimento
-    pode cair em fim de semana ou feriado. O PRD põe a devolução no balcão de
-    Operações; se ele está fechado no dia, a pessoa entra em atraso sem ter
-    onde devolver, e atraso bloqueia pegar outro item. Liga-se à pergunta 3: o
-    colaborador também registra a devolução sozinho, em Meus empréstimos. Sem
-    resposta, `docs/layout.md` mostra a data calculada, sem ajuste.
-
 7. O que acontece quando um item volta danificado ou incompleto? O PRD diz que
    "equipamento em manutenção não aparece como disponível", mas não diz quem
    coloca o item nesse estado, nem quando.
@@ -190,8 +180,19 @@ funcionalidade, não o número da pasta, que só sai quando a spec for criada.
    do repositório do Guilherme.
    custo anotado, aceito pela pessoa: a retirada é no balcão, então a pessoa
    perde os dias entre confirmar e buscar o item.
-   fica aberto: a 4b, vencimento em dia de balcão fechado.
+   a 4b, vencimento em dia de balcão fechado, foi respondida logo abaixo.
    vira RN em: solicitar empréstimo.
+
+4b. O que acontece quando o vencimento cai num dia em que o balcão está
+    fechado?
+    resposta: nada muda. A data prevista é a confirmação mais 14 dias
+    corridos, sem ajuste para fim de semana, feriado ou balcão fechado.
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    custo anotado: quem tem o vencimento num dia de balcão fechado precisa
+    devolver antes, ou registrar a devolução em Meus empréstimos (resposta 3),
+    para não entrar em atraso.
+    vira RN em: solicitar empréstimo (spec 004).
 
 5. Quem cria as contas de login, e existe tela para isso na v1?
    resposta: o administrador cria as contas por convite, fora do emprestai,
@@ -537,3 +538,81 @@ proposta do agente entre as alternativas que ele levou, e viram RN na spec
     lista como nome.
     decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
     vira RN em: dados iniciais.
+
+As respostas 40 a 47 são da Entrega 4 da prática, solicitar empréstimo. Todas
+foram decididas pela pessoa em 2026-11-12 e viram RN, ou item de "Fora de
+escopo", na spec `docs/specs/004-loan-request/`.
+
+40. Quantos itens uma pessoa pode ter em aberto ao mesmo tempo: 3 ou 5?
+    resposta: 3, como no PRD, linha 27. O briefing de solicitar empréstimo da
+    prática, item 4, pedia 5; o PRD é a fonte da regra de negócio, e o
+    briefing é um pedido (prática, seção 01).
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    vira RN em: solicitar empréstimo (spec 004).
+
+41. O prazo de devolução é de 14 dias corridos ou de 14 dias úteis?
+    resposta: 14 dias corridos, contados da confirmação, como na resposta 4. O
+    briefing, item 3, pedia 14 dias úteis.
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    motivo: dias úteis exigiriam um calendário de feriados que nenhum
+    documento traz.
+    vira RN em: solicitar empréstimo (spec 004).
+
+42. Em que momento um empréstimo passa a estar em atraso?
+    resposta: a partir do dia seguinte à data prevista, no fuso
+    `America/Sao_Paulo`. Quem devolve no último dia está no prazo.
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    vira RN em: solicitar empréstimo (spec 004), e vale para Meus empréstimos
+    e para a tela de Operações.
+
+43. Quem é de Operações também pode solicitar empréstimo?
+    resposta: sim. Qualquer pessoa com vínculo na área solicita, com o papel
+    `member` ou `operations`, sob as mesmas regras de limite e atraso.
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    vira RN em: solicitar empréstimo (spec 004).
+
+44. Qual é o local de retirada dos 12 equipamentos da prática?
+    resposta: o balcão de Operações, o mesmo para todos, como na resposta 2.
+    O detalhe, o diálogo e o aviso de resultado mostram o texto fixo "balcão
+    de Operações".
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    ainda liga-se à pergunta 19, aberta: se um dia houver mais de um local, o
+    texto fixo vira o campo do equipamento.
+    vira RN em: solicitar empréstimo (spec 004).
+
+45. Como a pessoa testa o empréstimo em produção, se a v1 desta entrega não
+    tem devolução nem cancelamento, e o agente não escreve em produção?
+    resposta: a pessoa testa a fundo no dev e no E2E e, em produção, com uma
+    conta de teste dela, pede no máximo um item. Dos 9 disponíveis da spec
+    003, sobram ao menos 8, e o professor precisa de 4 para chegar ao limite
+    de 3 (resposta 40) e ver a recusa.
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    custo anotado: o item pedido no teste fica emprestado até existir a
+    devolução.
+    vira: item de "Fora de escopo" da spec 004, não RN.
+
+46. A foto do equipamento substitui o ícone da categoria no card do catálogo
+    e na área de imagem do detalhe?
+    resposta: sim. A foto entra em 4:3 no topo do card e na área de imagem do
+    detalhe; o ícone da categoria fica só para equipamento sem imagem.
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    fica para depois: atualizar o `docs/layout.md`, que ainda desenha o
+    ícone.
+    vira RN em: solicitar empréstimo (spec 004), no catálogo e no detalhe.
+
+47. O "sem rodapé" do item 9 do briefing é só o crédito, ou também o rodapé
+    de cada card do catálogo?
+    resposta: só o rodapé da página. O card mantém a última linha do
+    `docs/layout.md` ("Ver e solicitar"; "Com <pessoa>" e "Volta até dd/mm"),
+    que a resposta 14 pede. O crédito "Fotos: Pexels" fica, pela decisão de
+    2026-11-11 (spec 002, "Fora de escopo").
+    decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
+    revisão da spec 004.
+    vira RN em: solicitar empréstimo (spec 004).
