@@ -11,7 +11,7 @@ Nenhuma tarefa começa antes de a spec e o plano serem aprovados. A skill não a
 - [x] T-03 — Manifesto e conferência: `scripts/lib/manifest.ts` e `scripts/check.ts`, com as listas de objetos a enviar e a apagar
       CA: CA-03, CA-09, CA-12
       Verifica: `pnpm test` com `ca_03`, `ca_09` e `ca_12`
-- [ ] T-04 — Rede e chave: `scripts/lib/pexels.ts` e o módulo de entrada que lê a chave
+- [x] T-04 — Rede e chave: `scripts/lib/pexels.ts` e o módulo de entrada que lê a chave
       CA: CA-01, CA-07
       Verifica: `pnpm test` com `ca_01` e `ca_07`, com chave fictícia e `fetch` de mentira; `pnpm lint` reprovando `fetch` e `process.env` fora dos dois módulos
 - [ ] T-05 — Busca, download, conferência de origem e folha de contato: `scripts/search.ts`, `scripts/download.ts`, o `--origin` do `scripts/check.ts` e `scripts/contact-sheet.ts`, com fixtures
