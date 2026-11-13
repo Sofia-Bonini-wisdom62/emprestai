@@ -49,7 +49,9 @@ describe("a fronteira da rede, CA-01 (spec 002, RN-01)", { timeout: 60_000 }, ()
   });
 
   it("ca_01 fora do pexels.ts, nenhum arquivo da skill chega à rede por um caminho que o lint não vê", () => {
-    expect(matching(/globalThis\.fetch|\bimport\(|from ["'](node:)?(http2|undici)["']/, [NETWORK])).toEqual([]);
+    const pattern = /\b(globalThis|global)\.fetch|\bimport\(|from ["'](node:)?(http2|undici)["']/;
+
+    expect(matching(pattern, [NETWORK])).toEqual([]);
   });
 });
 
@@ -66,14 +68,32 @@ describe("a fronteira da chave, CA-07 (spec 002, RN-08)", { timeout: 60_000 }, (
     expect(await rulesFor(ENV, `${LIB}/pexels.ts`)).toContain("no-restricted-properties");
   });
 
-  it("ca_07 a skill só tem scripts em .ts, que o lint da skill cobre", () => {
-    expect(SCRIPTS.filter((file) => extname(file) !== ".ts")).toEqual([]);
+  it("ca_07 o código da skill só está em .ts, que o lint da skill cobre", () => {
+    // Fixture em .json ou .jpg pode existir; código em outra extensão escaparia do lint.
+    const code = [".js", ".mjs", ".cjs", ".mts", ".cts", ".jsx", ".tsx"];
+
+    expect(SCRIPTS.filter((file) => code.includes(extname(file)))).toEqual([]);
   });
 
   it("ca_07 fora do api-key.ts, nenhum arquivo da skill lê o ambiente nem o .env.local", () => {
-    const pattern = /parseEnv|loadEnvFile|dotenv|\.env\.local["'`]|\bENV_FILE\b|globalThis\.process|from ["'](node:)?process["']/;
+    const pattern = new RegExp(
+      [
+        String.raw`\bprocess\.env\b`,
+        String.raw`process\[["'\x60]env`,
+        String.raw`Reflect\.get\(\s*process`,
+        String.raw`\b(globalThis|global)\.process`,
+        String.raw`from ["'](node:)?process["']`,
+        String.raw`parseEnv|loadEnvFile|dotenv`,
+        String.raw`\.env\.local["'\x60]`,
+        String.raw`\bENV_FILE\b`,
+      ].join("|"),
+    );
 
     expect(matching(pattern, [ENTRY])).toEqual([]);
+  });
+
+  it("ca_07 só o pexels.ts tira a chave do ApiKey, para o cabeçalho da busca", () => {
+    expect(matching(/\.reveal\(/, [NETWORK, ENTRY])).toEqual([]);
   });
 
   it("ca_07 o próprio api-key.ts lê o arquivo por util.parseEnv, sem carregar o ambiente", () => {
