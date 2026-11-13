@@ -34,21 +34,21 @@ const SOURCES = SCRIPTS.filter((file) => file.endsWith(".ts") && !file.endsWith(
 const matching = (pattern: RegExp, except: string[]) =>
   SOURCES.filter((file) => !except.includes(file) && pattern.test(readFileSync(file, "utf8")));
 
-describe("a fronteira da rede, CA-01 (spec 002, RN-01)", { timeout: 60_000 }, () => {
+describe("a fronteira da rede, CA-13 (spec 002, RN-01)", { timeout: 60_000 }, () => {
   it.each([
     ["o fetch global", FETCH, "no-restricted-globals"],
     ["um cliente de rede", 'import { request } from "node:https";\nexport { request };\n', "no-restricted-imports"],
     ["um processo filho", 'import { spawn } from "node:child_process";\nexport { spawn };\n', "no-restricted-imports"],
-  ])("ca_01 o lint reprova %s num arquivo da skill", async (_, code, rule) => {
+  ])("ca_13 o lint reprova %s num arquivo da skill", async (_, code, rule) => {
     expect(await rulesFor(code, `${LIB}/qualquer.ts`)).toContain(rule);
   });
 
-  it("ca_01 o lint deixa o fetch só no pexels.ts", async () => {
+  it("ca_13 o lint deixa o fetch só no pexels.ts", async () => {
     expect(await rulesFor(FETCH, `${LIB}/pexels.ts`)).not.toContain("no-restricted-globals");
     expect(await rulesFor(FETCH, `${LIB}/api-key.ts`)).toContain("no-restricted-globals");
   });
 
-  it("ca_01 fora do pexels.ts, nenhum arquivo da skill chega à rede por um caminho que o lint não vê", () => {
+  it("ca_13 fora do pexels.ts, nenhum arquivo da skill chega à rede por um caminho que o lint não vê", () => {
     const pattern = /\b(globalThis|global)\.fetch|\bimport\(|from ["'](node:)?(http2|undici)["']/;
 
     expect(matching(pattern, [NETWORK])).toEqual([]);
@@ -92,11 +92,11 @@ describe("a fronteira da chave, CA-07 (spec 002, RN-08)", { timeout: 60_000 }, (
     expect(matching(pattern, [ENTRY])).toEqual([]);
   });
 
-  it("ca_07 só o pexels.ts tira a chave do ApiKey, para o cabeçalho da busca", () => {
+  it("ca_13 só o pexels.ts tira a chave do ApiKey, para o cabeçalho da busca", () => {
     expect(matching(/\.reveal\(/, [NETWORK, ENTRY])).toEqual([]);
   });
 
-  it("ca_07 o próprio api-key.ts lê o arquivo por util.parseEnv, sem carregar o ambiente", () => {
+  it("ca_13 o próprio api-key.ts lê o arquivo por util.parseEnv, sem carregar o ambiente", () => {
     const source = readFileSync(ENTRY, "utf8");
 
     expect(source).toContain("parseEnv(readFileSync(");

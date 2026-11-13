@@ -42,8 +42,8 @@ function errorOf(path: string) {
   throw new Error("readApiKey deveria ter falhado");
 }
 
-describe("readApiKey, CA-07 (spec 002, RN-08)", () => {
-  it("ca_07 lê só a PEXELS_API_KEY do arquivo, entre outras variáveis", () => {
+describe("readApiKey, CA-13 (spec 002, RN-08 e RN-19)", () => {
+  it("ca_13 lê só a PEXELS_API_KEY do arquivo, entre outras variáveis", () => {
     const path = envFile(
       "completo.env",
       ["DATABASE_URL=postgresql://exemplo", `PEXELS_API_KEY=${KEY}`, "SUPABASE_SECRET_KEY=outra-ficticia", ""].join("\n"),
@@ -52,7 +52,7 @@ describe("readApiKey, CA-07 (spec 002, RN-08)", () => {
     expect(readApiKey(path).reveal()).toBe(KEY);
   });
 
-  it("ca_07 a chave impressa, em texto ou em JSON não aparece", () => {
+  it("ca_13 a chave impressa, em texto ou em JSON não aparece", () => {
     const apiKey = new ApiKey(KEY);
     const shown = [String(apiKey), `${apiKey}`, JSON.stringify({ apiKey }), inspect(apiKey), inspect({ apiKey })].join("\n");
 
@@ -70,7 +70,7 @@ describe("readApiKey, CA-07 (spec 002, RN-08)", () => {
     ["com espaço no meio da chave", () => envFile("espaco.env", `PEXELS_API_KEY="${KEY} ${KEY}"\n`), invalid],
     ["com aspas curvas de uma colagem", () => envFile("aspas.env", `PEXELS_API_KEY=${CURLY}${KEY}${CURLY}\n`), invalid],
     ["com um espaço invisível", () => envFile("invisivel.env", `PEXELS_API_KEY=${KEY}${ZERO_WIDTH}\n`), invalid],
-  ])("ca_07 o erro %s não traz a chave", (_, makePath, expected) => {
+  ])("ca_13 o erro %s não traz a chave", (_, makePath, expected) => {
     const path = makePath();
     const { message, shown } = errorOf(path);
 
@@ -78,7 +78,7 @@ describe("readApiKey, CA-07 (spec 002, RN-08)", () => {
     expect(shown).not.toContain(KEY);
   });
 
-  it("ca_07 o arquivo padrão é o .env.local da raiz do repositório", () => {
+  it("ca_13 o arquivo padrão é o .env.local da raiz do repositório", () => {
     // A raiz é a pasta de onde o Vitest roda; o realpath iguala os caminhos curtos do Windows.
     expect(basename(ENV_FILE)).toBe(".env.local");
     expect(realpathSync.native(dirname(ENV_FILE))).toBe(realpathSync.native(resolve(".")));
