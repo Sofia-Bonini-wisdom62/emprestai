@@ -515,6 +515,12 @@ proposta do agente entre as alternativas que ele levou, e viram RN na spec
     carregamento só grava patrimônio cuja foto passou nessa conferência.
     alternativa descartada: instalar o `sharp`, dependência fora do ADR-001.
     decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    atualizada: em 2026-11-13, pela troca do Pexels pelo Pixabay, decidida
+    pela pessoa ("Confirmo a troca"). O Pixabay não corta pela URL, e o
+    `sharp` entra, aprovado por ela, para a skill da spec 002 recortar a foto
+    em 800×600. A versão exata e o `devDependencies` são recomendação do
+    ADR-011. O carregamento desta entrega continua sem usá-lo: grava o nome
+    do objeto cuja foto a spec 002 já conferiu.
     vira RN em: dados iniciais.
 
 38. Quais campos o equipamento tem nesta spec, e os créditos da foto ficam no
@@ -615,4 +621,7 @@ escopo", na spec `docs/specs/004-loan-request/`.
     2026-11-11 (spec 002, "Fora de escopo").
     decidido: pela pessoa em 2026-11-12, aceitando a recomendação do agente na
     revisão da spec 004.
+    atualizada: em 2026-11-13, pela troca do Pexels pelo Pixabay, decidida
+    pela pessoa ("Confirmo a troca"): o crédito que fica é "Fotos: Pixabay",
+    com link (spec 002, "Fora de escopo"; ADR-011).
     vira RN em: solicitar empréstimo (spec 004).
