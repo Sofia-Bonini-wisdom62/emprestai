@@ -35,6 +35,9 @@ export const serverEnvSchema = z.object({
   RATE_LIMIT_USER_MAX: positiveIntOr(5),
   RATE_LIMIT_USER_WINDOW_SECONDS: positiveIntOr(900),
   PORT: optionalPositiveInt,
+  // Base pública das fotos no bucket equipment-images (spec 004, RN-24). Sem segredo e opcional:
+  // vazia, a API devolve imageUrl null, e a tela mostra o ícone da categoria.
+  EQUIPMENT_IMAGES_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
 });
 
 export function parseServerEnv() {

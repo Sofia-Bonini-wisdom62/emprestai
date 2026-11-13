@@ -5,7 +5,7 @@ O plano e as cinco propostas foram aprovados pela pessoa em 2026-11-12. Nenhuma 
 - [x] T-01 — Migration `add_loans_and_audit_events`: `loans` com o índice único parcial, `audit_events` com o trigger que recusa `UPDATE` e `DELETE`, RLS e as policies `deny_all`. O DDL vai à pessoa antes do `migrate dev`
       CA: CA-07, CA-12 (a parte do banco), CA-15 (a parte da RLS)
       Verifica: `pnpm test` com `ca_07` (o `INSERT` duplicado recusado), `ca_12` (`UPDATE` e `DELETE` em `audit_events` falham como `postgres`) e `ca_15` (`SET LOCAL ROLE anon` e `authenticated` leem zero linhas, um controle com a RLS desligada e a conferência em `pg_policies`); `pnpm prisma migrate deploy` no banco de dev
-- [ ] T-02 — `equipment.list`, com cursor, e `equipment.byId`, em `src/server/services/equipment.ts` e `src/server/api/routers/equipment.ts`; `EQUIPMENT_IMAGES_BASE_URL` em `src/env/` e no `.env.example`
+- [x] T-02 — `equipment.list`, com cursor, e `equipment.byId`, em `src/server/services/equipment.ts` e `src/server/api/routers/equipment.ts`; `EQUIPMENT_IMAGES_BASE_URL` em `src/env/` e no `.env.example`
       CA: CA-08 (a parte da API), CA-09 (a parte da API), CA-13 (os dois procedimentos), CA-15
       Verifica: `pnpm test` com `ca_08` (`imageUrl` montada com a variável, e `null` sem ela; a segunda página pelo cursor), `ca_09` (o nome de quem pegou e a data), `ca_13` (`UNAUTHORIZED` sem sessão) e `ca_15` (o equipamento de B não aparece e responde `NOT_FOUND`), por `createCaller`
 - [ ] T-03 — `loan.create`, em `src/server/services/loan.ts` e `src/server/api/routers/loan.ts`: a transação do RN-09, os códigos do RN-10, a auditoria do RN-22 e o relógio injetado

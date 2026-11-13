@@ -38,6 +38,8 @@ export type Context = {
   // Quando a sessão entrou pelo link do e-mail, em segundos, ou null se entrou
   // com senha; dá o prazo da senha nova no account.setup (RN-59).
   linkEntryAt?: number | null;
+  // A base pública das fotos (spec 004, RN-24). Só o teste a troca pela sua.
+  equipmentImagesBaseUrl?: string | null;
 };
 
 export const envRateLimitRules = rateLimitRulesFrom(serverEnv);
@@ -89,6 +91,7 @@ export async function createContext(
     passwordReset: createPasswordResetAuth(),
     ip: opts?.req ? clientIp(opts.req.headers) : null,
     rateLimitRules: envRateLimitRules,
+    equipmentImagesBaseUrl: serverEnv.EQUIPMENT_IMAGES_BASE_URL ?? null,
   };
 }
 
