@@ -225,10 +225,15 @@ describe("o passo de produção dos equipamentos iniciais (ADR-013)", { timeout:
   });
 
   it("ca_09 o script não lê arquivo de ambiente nem outra variável além da DIRECT_URL", () => {
-    const source = readFileSync(SCRIPT, "utf8");
+    // O script e a leitura dos arquivos de dados, que ele divide com o seed.
+    const sources = [SCRIPT, "prisma/equipment-files.ts"].map((file) => readFileSync(file, "utf8"));
 
-    expect(source.match(/process\.env\b[.[\w"'\]]*/g)).toEqual(["process.env.DIRECT_URL"]);
-    expect(source).not.toMatch(/loadEnvFile|parseEnv|dotenv|\.env\.local/);
+    expect(sources.flatMap((source) => source.match(/process\.env\b[.[\w"'\]]*/g) ?? [])).toEqual([
+      "process.env.DIRECT_URL",
+    ]);
+    for (const source of sources) {
+      expect(source).not.toMatch(/loadEnvFile|parseEnv|dotenv|\.env\.local/);
+    }
   });
 });
 
