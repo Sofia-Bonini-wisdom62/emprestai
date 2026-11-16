@@ -126,3 +126,22 @@ it("ca_10 um equipamento da área A não aceita categoria da área B", async () 
     ).rejects.toThrow(/equipments_tenant_id_category_id_fkey/);
   });
 });
+
+// Sem foto aprovada, o equipamento grava a imagem nula (spec 003, RN-17; ADR-014; T-05).
+it("ca_01 um equipamento sem foto grava image_object nulo", async () => {
+  await inRolledBackTransaction(async (tx) => {
+    const tenant = await createTenant(tx, "ca-01-a");
+    const category = await createCategory(tx, tenant.id);
+    const equipment = await tx.equipment.create({
+      data: {
+        tenantId: tenant.id,
+        assetTag: "TI-0001",
+        name: "Notebook 14 polegadas",
+        categoryId: category.id,
+        status: "available",
+      },
+    });
+
+    expect(equipment.imageObject).toBeNull();
+  });
+});
