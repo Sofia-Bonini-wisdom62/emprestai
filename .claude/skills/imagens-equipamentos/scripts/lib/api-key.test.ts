@@ -27,7 +27,7 @@ const ZERO_WIDTH = String.fromCharCode(0x200b);
 const NBSP = String.fromCharCode(0xa0);
 
 const invalid = (path: string) =>
-  `A PEXELS_API_KEY no ${path} tem espaço, quebra de linha ou caractere fora do ASCII visível, como aspas curvas. Confira se a chave foi colada inteira.`;
+  `A PIXABAY_API_KEY no ${path} tem espaço, quebra de linha ou caractere fora do ASCII visível, como aspas curvas. Confira se a chave foi colada inteira.`;
 
 // O erro de readApiKey e tudo o que um log mostraria dele.
 function errorOf(path: string) {
@@ -44,10 +44,10 @@ function errorOf(path: string) {
 }
 
 describe("readApiKey, CA-13 (spec 002, RN-08 e RN-19)", () => {
-  it("ca_13 lê só a PEXELS_API_KEY do arquivo, entre outras variáveis", () => {
+  it("ca_13 lê só a PIXABAY_API_KEY do arquivo, entre outras variáveis", () => {
     const path = envFile(
       "completo.env",
-      ["DATABASE_URL=postgresql://exemplo", `PEXELS_API_KEY=${KEY}`, "SUPABASE_SECRET_KEY=outra-ficticia", ""].join("\n"),
+      ["DATABASE_URL=postgresql://exemplo", `PIXABAY_API_KEY=${KEY}`, "SUPABASE_SECRET_KEY=outra-ficticia", ""].join("\n"),
     );
 
     expect(readApiKey(path).reveal()).toBe(KEY);
@@ -58,24 +58,24 @@ describe("readApiKey, CA-13 (spec 002, RN-08 e RN-19)", () => {
     const shown = [String(apiKey), `${apiKey}`, JSON.stringify({ apiKey }), inspect(apiKey), inspect({ apiKey })].join("\n");
 
     expect(shown).not.toContain(KEY);
-    expect(String(apiKey)).toBe("[PEXELS_API_KEY]");
-    expect(JSON.stringify({ apiKey })).toBe('{"apiKey":"[PEXELS_API_KEY]"}');
-    expect(inspect(apiKey)).toBe("ApiKey [PEXELS_API_KEY]");
+    expect(String(apiKey)).toBe("[PIXABAY_API_KEY]");
+    expect(JSON.stringify({ apiKey })).toBe('{"apiKey":"[PIXABAY_API_KEY]"}');
+    expect(inspect(apiKey)).toBe("ApiKey [PIXABAY_API_KEY]");
   });
 
   it.each([
     ["sem o arquivo", () => join(dir, "nao-existe.env"), (path: string) =>
-      `O ${path} não existe. Copie o .env.example para .env.local e preencha a PEXELS_API_KEY.`],
+      `O ${path} não existe. Copie o .env.example para .env.local e preencha a PIXABAY_API_KEY.`],
     ["sem a variável", () => envFile("sem.env", "DATABASE_URL=postgresql://exemplo\n"), (path: string) =>
-      `A PEXELS_API_KEY está vazia ou ausente no ${path}. Preencha com a sua chave do Pexels.`],
-    ["com a variável vazia", () => envFile("vazia.env", "PEXELS_API_KEY=\n"), (path: string) =>
-      `A PEXELS_API_KEY está vazia ou ausente no ${path}. Preencha com a sua chave do Pexels.`],
-    ["com espaço no meio da chave", () => envFile("espaco.env", `PEXELS_API_KEY="${KEY} ${KEY}"\n`), invalid],
-    ["com aspas curvas de uma colagem", () => envFile("aspas.env", `PEXELS_API_KEY=${CURLY}${KEY}${CURLY}\n`), invalid],
-    ["com um espaço invisível", () => envFile("invisivel.env", `PEXELS_API_KEY=${KEY}${ZERO_WIDTH}\n`), invalid],
-    ["com espaço na ponta, entre aspas", () => envFile("ponta.env", `PEXELS_API_KEY="${KEY} "\n`), invalid],
-    ["com quebra de linha na ponta, entre aspas", () => envFile("quebra.env", `PEXELS_API_KEY="${KEY}\\n"\n`), invalid],
-    ["com espaço sem quebra na ponta, entre aspas", () => envFile("nbsp.env", `PEXELS_API_KEY="${KEY}${NBSP}"\n`), invalid],
+      `A PIXABAY_API_KEY está vazia ou ausente no ${path}. Preencha com a sua chave do Pixabay.`],
+    ["com a variável vazia", () => envFile("vazia.env", "PIXABAY_API_KEY=\n"), (path: string) =>
+      `A PIXABAY_API_KEY está vazia ou ausente no ${path}. Preencha com a sua chave do Pixabay.`],
+    ["com espaço no meio da chave", () => envFile("espaco.env", `PIXABAY_API_KEY="${KEY} ${KEY}"\n`), invalid],
+    ["com aspas curvas de uma colagem", () => envFile("aspas.env", `PIXABAY_API_KEY=${CURLY}${KEY}${CURLY}\n`), invalid],
+    ["com um espaço invisível", () => envFile("invisivel.env", `PIXABAY_API_KEY=${KEY}${ZERO_WIDTH}\n`), invalid],
+    ["com espaço na ponta, entre aspas", () => envFile("ponta.env", `PIXABAY_API_KEY="${KEY} "\n`), invalid],
+    ["com quebra de linha na ponta, entre aspas", () => envFile("quebra.env", `PIXABAY_API_KEY="${KEY}\\n"\n`), invalid],
+    ["com espaço sem quebra na ponta, entre aspas", () => envFile("nbsp.env", `PIXABAY_API_KEY="${KEY}${NBSP}"\n`), invalid],
   ])("ca_13 o erro %s não traz a chave", (_, makePath, expected) => {
     const path = makePath();
     const { message, shown } = errorOf(path);

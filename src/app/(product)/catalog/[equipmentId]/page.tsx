@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { BlockedNotice } from "@/components/equipment/blocked-notice";
 import { EquipmentPhoto } from "@/components/equipment/equipment-photo";
-import { PhotoCredit } from "@/components/equipment/photo-credit";
+import { PhotoCredit, showsPhotoCredit } from "@/components/equipment/photo-credit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatFullDate } from "@/lib/dates";
@@ -73,7 +73,7 @@ export default async function EquipmentPage({
           <div className="overflow-hidden rounded-[14px] border border-border">
             <EquipmentPhoto imageUrl={equipment.imageUrl} category={equipment.category} />
           </div>
-          <PhotoCredit />
+          {showsPhotoCredit([equipment]) ? <PhotoCredit /> : null}
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-[28px]/9 font-semibold">{equipment.name}</h1>
             <Badge variant={badgeOf[equipment.status]} />

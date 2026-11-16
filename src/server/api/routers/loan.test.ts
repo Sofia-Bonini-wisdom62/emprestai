@@ -273,6 +273,8 @@ describe("loan.create", () => {
     ).rejects.toMatchObject(overdue);
     await expect(equipmentStatus(area, "TI-0005")).resolves.toBe("available");
     await expect(openLoans(area, "caio")).resolves.toBe(2);
+    // ca_12: só o pedido que passou, no dia 26, gravou auditoria; a recusa não grava.
+    await expect(auditEvents(area)).resolves.toBe(1);
   });
 
   it("ca_07 se já houver um empréstimo em aberto do item, o índice recusa e nada muda", async () => {
@@ -444,6 +446,8 @@ describe("pedidos simultâneos", () => {
     expect(refused).toHaveLength(1);
     expect(refused[0]).toMatchObject({ error: limitReached });
     await expect(openLoans(area, "beatriz")).resolves.toBe(3);
+    // ca_12: só o pedido que passou grava auditoria; a recusa pelo limite não grava.
+    await expect(auditEvents(area)).resolves.toBe(1);
   });
 });
 

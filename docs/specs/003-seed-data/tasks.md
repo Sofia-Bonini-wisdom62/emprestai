@@ -15,6 +15,7 @@ Nenhuma tarefa começa antes de o plano ser aprovado. Não entra dependência no
 - [ ] T-04 — O `prisma/seed.ts` chama o módulo de carregamento. Depende da T-02. Pela decisão de 2026-11-16, não depende mais da T-07 da spec 002: sem o manifesto, o seed grava os 12 com a imagem nula
       CA: CA-07
       Verifica: `pnpm test:e2e` com `ca_07` em `e2e/seed.e2e.ts`, ao lado do `ca_13`, porque precisa do Auth; `pnpm prisma db seed` duas vezes no dev
-- [ ] T-05 — Decisão de 2026-11-16: migration `make_equipment_image_optional`, que deixa `equipments.image_object` aceitar nulo, e `imageUrlFor`, em `src/server/services/equipment.ts`, devolvendo `null` para a imagem nula. Vem antes da T-02, que grava nulo. Antes de gerar, o DDL vai para aprovação
+- [x] T-05 — Decisão de 2026-11-16: migration `make_equipment_image_optional`, que deixa `equipments.image_object` aceitar nulo, e `imageUrlFor`, em `src/server/services/equipment.ts`, devolvendo `null` para a imagem nula. Vem antes da T-02, que grava nulo. Antes de gerar, o DDL vai para aprovação
       CA: CA-01 (a parte da imagem nula)
       Verifica: `pnpm test` com um caso de `imageUrlFor` com a imagem nula e as specs da 004 passando; `pnpm prisma migrate deploy` contra o dev
+      Feito: `pnpm test` completo com 678 de 678 e `pnpm build` em 2026-11-16, com o DDL aprovado pela pessoa ("Aprovo o DDL"). O `migrate deploy` contra o dev ficou pulado, porque a worktree não tem `.env.local`. O SQL saiu de `prisma migrate diff`, sem banco, pelo mesmo motivo
