@@ -95,6 +95,9 @@ const withYou = (page: Page) => page.getByRole("region", { name: "Itens com voc�
 test("ca_01 depois de confirmar, Meus empréstimos mostra o aviso de resultado e o item na lista", async ({
   page,
 }) => {
+  // Cria a conta, entra, pede o item e navega duas vezes: na rodada completa desta máquina, isso
+  // passou dos 30 s padrão (verificacao.md, rodada 2).
+  test.setTimeout(60_000);
   await newPerson(page, "Beatriz Fontes");
   const equipment = nextEquipment();
   sql(insertEquipment(equipment, "available"));
