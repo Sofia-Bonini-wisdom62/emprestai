@@ -99,6 +99,19 @@ describe("loadEquipmentData", () => {
     ]);
   });
 
+  it("ca_05 a foto do manifesto para um patrimônio fora da lista é ignorada, sem recusa", async () => {
+    const tenant = await createArea();
+    const manifest = { photos: [photo("TI-0001", 111), photo("TI-0099", 999)] };
+
+    const result = await loadEquipmentData(db, list(), manifest, tenant.slug);
+
+    expect(result).toEqual({ created: 4, imageUpdated: 0, withoutImage: 3 });
+    const rows = await equipmentsOf(tenant.id);
+    expect(rows.map((row) => row.assetTag)).toEqual(["TI-0001", "TI-0002", "TI-0003", "TI-0004"]);
+    expect(rows.find((row) => row.assetTag === "TI-0001")?.imageObject).toBe("TI-0001-111.jpg");
+    expect(rows.some((row) => row.imageObject === "TI-0099-999.jpg")).toBe(false);
+  });
+
   it("ca_02 rodar duas vezes deixa as mesmas categorias e os mesmos equipamentos, com os mesmos ids", async () => {
     const tenant = await createArea();
     await loadEquipmentData(db, list(), complete(), tenant.slug);

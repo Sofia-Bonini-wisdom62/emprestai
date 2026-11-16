@@ -41,6 +41,8 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const isFilled = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
 
+// Só os patrimônios da lista são lidos do manifesto: foto de um patrimônio que não está na lista é
+// ignorada, sem recusa (RN-08; decisão da pessoa de 2026-11-16, "Ignorar").
 // O mapeamento explícito entre os dois nomes do mesmo dado (decisão da pessoa de 2026-11-12): o
 // manifesto da spec 002 chama de objectName o que o equipamento guarda em imageObject. Só a foto
 // aprovada conta.
