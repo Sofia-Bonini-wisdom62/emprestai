@@ -5,11 +5,11 @@ import { ESLint } from "eslint";
 import { describe, expect, it } from "vitest";
 
 // A fronteira da rede e da chave (spec 002, RN-01 e RN-08; tasks.md, T-04): o lint do projeto
-// só deixa o fetch no pexels.ts e o process.env no api-key.ts, e a varredura do código cobre o
+// só deixa o fetch no pixabay.ts e o process.env no api-key.ts, e a varredura do código cobre o
 // que o lint não enxerga.
 const SKILL = ".claude/skills/imagens-equipamentos";
 const LIB = `${SKILL}/scripts/lib`;
-const NETWORK = join(LIB, "pexels.ts");
+const NETWORK = join(LIB, "pixabay.ts");
 const ENTRY = join(LIB, "api-key.ts");
 
 const eslint = new ESLint();
@@ -19,7 +19,7 @@ async function rulesFor(code: string, filePath: string) {
   return result.messages.map((message) => message.ruleId);
 }
 
-const ENV = "export const value = process.env.PEXELS_API_KEY;\n";
+const ENV = "export const value = process.env.PIXABAY_API_KEY;\n";
 const LOAD = "process.loadEnvFile();\n";
 const FETCH = 'export const response = fetch("https://example.com");\n';
 
@@ -43,12 +43,12 @@ describe("a fronteira da rede, CA-13 (spec 002, RN-01)", { timeout: 60_000 }, ()
     expect(await rulesFor(code, `${LIB}/qualquer.ts`)).toContain(rule);
   });
 
-  it("ca_13 o lint deixa o fetch só no pexels.ts", async () => {
-    expect(await rulesFor(FETCH, `${LIB}/pexels.ts`)).not.toContain("no-restricted-globals");
+  it("ca_13 o lint deixa o fetch só no pixabay.ts", async () => {
+    expect(await rulesFor(FETCH, `${LIB}/pixabay.ts`)).not.toContain("no-restricted-globals");
     expect(await rulesFor(FETCH, `${LIB}/api-key.ts`)).toContain("no-restricted-globals");
   });
 
-  it("ca_13 fora do pexels.ts, nenhum arquivo da skill chega à rede por um caminho que o lint não vê", () => {
+  it("ca_13 fora do pixabay.ts, nenhum arquivo da skill chega à rede por um caminho que o lint não vê", () => {
     const pattern = new RegExp(
       [
         String.raw`\b(globalThis|global)(\.fetch|\[)`,
@@ -73,7 +73,7 @@ describe("a fronteira da chave, CA-07 e CA-13 (spec 002, RN-08)", { timeout: 60_
 
   it("ca_07 o lint deixa o process.env só no api-key.ts", async () => {
     expect(await rulesFor(ENV, `${LIB}/api-key.ts`)).not.toContain("no-restricted-properties");
-    expect(await rulesFor(ENV, `${LIB}/pexels.ts`)).toContain("no-restricted-properties");
+    expect(await rulesFor(ENV, `${LIB}/pixabay.ts`)).toContain("no-restricted-properties");
   });
 
   it("ca_07 o código da skill só está em .ts, que o lint da skill cobre", () => {
@@ -100,7 +100,7 @@ describe("a fronteira da chave, CA-07 e CA-13 (spec 002, RN-08)", { timeout: 60_
     expect(matching(pattern, [ENTRY])).toEqual([]);
   });
 
-  it("ca_13 só o pexels.ts tira a chave do ApiKey, para o cabeçalho da busca", () => {
+  it("ca_13 só o pixabay.ts tira a chave do ApiKey, para a URL da busca", () => {
     expect(matching(/\.reveal\(/, [NETWORK])).toEqual([]);
   });
 
