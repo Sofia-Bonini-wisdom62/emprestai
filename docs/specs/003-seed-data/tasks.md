@@ -22,3 +22,7 @@ Nenhuma tarefa começa antes de o plano ser aprovado. Não entra dependência no
       CA: CA-01 (a parte da imagem nula)
       Verifica: `pnpm test` com um caso de `imageUrlFor` com a imagem nula e as specs da 004 passando; `pnpm prisma migrate deploy` contra o dev
       Feito: `pnpm test` completo com 678 de 678 e `pnpm build` em 2026-11-16, com o DDL aprovado pela pessoa ("Aprovo o DDL"). O `migrate deploy` contra o dev ficou pulado, porque a worktree não tem `.env.local`. O SQL saiu de `prisma migrate diff`, sem banco, pelo mesmo motivo
+- [x] T-06 — Correção da rodada 1 do `verificador-spec` (2026-11-16, `verificacao.md`): o caso que faltava para a última frase do CA-04, com um manifesto que existe e não traz foto para o patrimônio que já tem uma. Nenhum código de produção muda: a guarda já estava em `prisma/equipment-data.ts`
+      CA: CA-04
+      Verifica: `pnpm test` com o `ca_04` novo, em `prisma/equipment-data.test.ts`
+      Feito: `pnpm test` completo e `pnpm build` em 2026-11-16, com o caso novo passando. O outro motivo da rodada 1, o `pnpm test:e2e` com seis casos de outras specs estourando 30 s numa rodada de 25,4 min, não é desta tarefa: é a máquina sem memória, e fica para a rodada 2
