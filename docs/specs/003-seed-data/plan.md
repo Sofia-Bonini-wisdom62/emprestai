@@ -44,7 +44,7 @@ Fora desta ordem, a pessoa:
 
 - Spec 002:
   - a T-03, para o formato e a conferência do manifesto, e a T-06, para `prisma/data/equipment.json`, antes do passo 2;
-  - a T-07, para o manifesto aprovado, antes dos passos 4 e 5. A T-07 espera a chave do Pexels da pessoa.
+  - a T-07, para o manifesto aprovado, antes dos passos 4 e 5. A T-07 usa a chave do Pixabay da pessoa, que ela já tem.
 - A pessoa:
   - aprovar o DDL do passo 1;
   - enviar as fotos ao bucket antes do passo 5;
