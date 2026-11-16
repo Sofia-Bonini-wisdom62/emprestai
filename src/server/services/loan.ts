@@ -3,7 +3,7 @@ import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 // Solicitar empréstimo (spec 004). Toda a regra do pedido mora aqui, numa transação só
 // (RN-03 a RN-09 e RN-22); o router só traduz o resultado.
 
-export const LOAN_LIMIT = 5; // RN-03; resposta 40
+export const LOAN_LIMIT = 3; // RN-03; resposta 40
 export const LOAN_DAYS = 14; // RN-04; respostas 4, 4b e 41
 const TIME_ZONE = "America/Sao_Paulo"; // RN-04, RN-05 e RN-20
 
