@@ -39,6 +39,24 @@ Fora desta ordem, a pessoa:
 - confere no painel o "Add user" e cria a conta do professor, a qualquer momento (resposta 35);
 - depois do primeiro deploy com o passo, faz a conferência em produção da spec, com uma conta dela, e repete o deploy para provar que nada duplica.
 
+### Texto do passo 5, entregue na T-03
+
+Para a pessoa pôr, à mão, no `.github/workflows/production.yml`, entre o passo "Garante a área default e o primeiro administrador" e o passo "Publica a produção na Vercel". O recuo é o dos outros passos do arquivo, com seis espaços:
+
+```yaml
+      # Categorias e equipamentos iniciais na área default (ADR-013 e ADR-014). Roda a cada
+      # deploy, depois do passo do ADR-009, que cria a default: cria o que falta e, no que já
+      # existe, só troca a imagem. Dado inválido em prisma/data/ falha o passo, e o deploy não
+      # sai. Reexecutar uma rodada antiga regrava a imagem com o manifesto daquele commit; o
+      # deploy seguinte da main corrige. O secret só existe neste passo.
+      - name: Carrega as categorias e os equipamentos iniciais
+        run: node --import ./prisma/resolve-ts.mjs prisma/load-equipment.ts
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+```
+
+O passo não pede secret novo. No log da rodada, ele escreve uma linha com as contagens: quantos equipamentos criou, quantos tiveram a imagem trocada e quantos estão sem foto.
+
 ## Risco
 
 - **Um deploy travado por dado inválido.** O passo roda antes do deploy e falha alto (ADR-013). Prova: o CA-05 e o CA-09 no `pnpm test`, e, pela decisão de 2026-11-16, o manifesto só barra o deploy quando existe e não passa na conferência da spec 002.
