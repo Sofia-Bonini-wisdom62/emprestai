@@ -1,7 +1,7 @@
 # 003 — Dados iniciais
 
 Status: aprovada
-Atualizada em: 2026-11-12
+Atualizada em: 2026-11-13
 
 ## Objetivo
 
@@ -23,10 +23,12 @@ O briefing contrariava o enunciado, as rules ou a spec 002 em quatro pontos. Cad
 - o `sharp` (resposta 37; RN-15);
 - só o TI-0004 e o TI-0007 em manutenção (resposta 33; RN-03).
 
+Em 2026-11-13, a troca do Pexels pelo Pixabay (spec 002, "Troca de 2026-11-13"; resposta da pessoa: "Confirmo a troca") mudou o RN-04 e o RN-15: o id da foto passa a ser o do Pixabay, e o `sharp` entra, só na skill da spec 002.
+
 - RN-01 — Os equipamentos são os de `prisma/data/equipment.json`, a lista da seção 03 do enunciado. Origem: briefing, itens 1 e 2; spec 002, RN-10.
 - RN-02 — Um registro por unidade física, identificada pelo patrimônio, que é único na área. Origem: resposta 1.
 - RN-03 — A situação é a da lista. TI-0004, TI-0007 e TI-0010 ficam em manutenção, e os outros 9, disponíveis. Na lista, `disponivel` é `available`, e `manutencao` é `maintenance`. Origem: resposta 33; `AGENTS.md`, seção 7.
-- RN-04 — O equipamento tem só patrimônio, nome, categoria, situação e imagem. A imagem é o nome do objeto, `<patrimonio>-<idPexels>.jpg`, no bucket público `equipment-images`. Número de série, local de retirada e observações ficam para a spec do cadastro. Os créditos da foto ficam só no manifesto. Origem: resposta 38; spec 002, RN-05 e RN-06.
+- RN-04 — O equipamento tem só patrimônio, nome, categoria, situação e imagem. A imagem é o nome do objeto, `<patrimonio>-<idPixabay>.jpg`, no bucket público `equipment-images`. Número de série, local de retirada e observações ficam para a spec do cadastro. Os créditos da foto ficam só no manifesto. Origem: resposta 38; spec 002, RN-05 e RN-06; troca de 2026-11-13.
 - RN-05 — Nascem cinco categorias, Notebooks, Monitores, Câmeras, Cabos e Projetores. As chaves da lista se ligam a elas assim: `notebook` a Notebooks, `monitor` a Monitores, `cabo` a Cabos e `camera` a Câmeras. Projetores nasce vazia. Origem: respostas 12, 12c e 39.
 - RN-06 — Todo equipamento e toda categoria pertencem à área `default`, a única da v1. As duas tabelas têm `tenant_id`, RLS e policy explícita na mesma migration. Origem: ADR-005; resposta 29; ADR-001, seção 2.7; `rules/migration.md`.
 - RN-07 — O carregamento lê os dois arquivos de `prisma/data/` e, para cada patrimônio, cria o equipamento que falta. No que já existe, atualiza só a imagem, e nunca a situação, o nome nem a categoria. Carregar de novo não duplica nada, e a chave é a área com o patrimônio. Origem: briefing, item 6; resposta 34.
@@ -37,7 +39,7 @@ O briefing contrariava o enunciado, as rules ou a spec 002 em quatro pontos. Cad
 - RN-12 — Na produção, o carregamento roda num passo do workflow de produção, depois do `prisma migrate deploy` e ao lado do passo do ADR-009. O agente não escreve no banco nem no Storage da produção: o passo roda no GitHub Actions, e a mudança no workflow é aplicada pela pessoa, à mão. Origem: resposta 34; ADR-013; enunciado, seção 01; `rules/restrictions.md`, Escopo e Produção.
 - RN-13 — A conta do professor nasce no painel do Supabase de produção, criada pela pessoa com a senha padrão e o e-mail já confirmado, e não por convite. No primeiro login, vira `member` na `default` e, como nasce sem nome, passa por `/account/setup` antes do catálogo. Origem: resposta 35; resposta 23; spec 001, RN-13 e CA-06.
 - RN-14 — O e-mail do professor não entra no git. Spec, testes e `ENTREGA.md` dizem "a conta do professor". Origem: resposta 36; `rules/restrictions.md`, Dados e segredos.
-- RN-15 — Sem `sharp` nem outra dependência nova: o tamanho de 800×600 é o que a spec 002 garante (RN-03 da 002). Origem: resposta 37.
+- RN-15 — O carregamento não usa o `sharp` nem outra dependência nova: o tamanho de 800×600 é o que a spec 002 garante (RN-03 da 002). O `sharp` entra no projeto só para a skill da spec 002, que recorta a foto do Pixabay, e o carregamento grava o nome do arquivo que ela já conferiu. Origem: resposta 37, atualizada pela troca de 2026-11-13.
 - RN-16 — A conta do professor chega à correção com zero empréstimos. Nenhum passo desta spec grava nada nela além do que o próprio login grava, e os testes da pessoa usam outra conta. Origem: enunciado, seção 01; briefing, item 5.
 
 ## Critérios de aceitação
@@ -64,7 +66,7 @@ Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, q
 - Fora de escopo:
   - a tela de catálogo, o cadastro de equipamento pela interface e a importação da planilha (briefing, "Fora de escopo"; PRD, "O que NÃO entra nesta versão");
   - solicitar empréstimo, que é a Entrega 4 e outra spec;
-  - preparar, aprovar e enviar as fotos, que é da spec 002, e o crédito "Fotos: Pexels" na tela, que é da spec do catálogo;
+  - preparar, aprovar e enviar as fotos, que é da spec 002, e o crédito "Fotos: Pixabay" na tela, que é da spec 004;
   - número de série, local de retirada e observações (resposta 38);
   - renomear ou excluir categoria (pergunta 12d, aberta);
   - os passos da pessoa, registrados no `ENTREGA.md`:
