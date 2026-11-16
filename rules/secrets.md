@@ -46,7 +46,11 @@ tem toda chave que o projeto usa, sem nenhum valor real. Enquanto não houver
   bloquear contas de teste (ADR-006; decisão da pessoa em 2026-11-11, na spec 001);
   o script do primeiro administrador (ADR-009), que roda fora do Next, no
   workflow de produção, e lê só `FIRST_ADMIN_EMAIL` e a URL do banco que o
-  workflow lhe passa; e os scripts da skill `imagens-equipamentos`, em que só
+  workflow lhe passa; o script dos equipamentos iniciais
+  (`prisma/load-equipment.ts`; ADR-013), que roda no mesmo workflow, depois
+  do script do ADR-009, e lê só a URL do banco que o workflow lhe passa
+  (decisão da pessoa em 2026-11-12, na spec 003);
+  e os scripts da skill `imagens-equipamentos`, em que só
   o `scripts/lib/api-key.ts` lê a `PIXABAY_API_KEY`, e só ela, do `.env.local`,
   por `util.parseEnv`, sem carregar o resto do arquivo e sem mostrá-la
   (ADR-011; decisão da pessoa em 2026-11-11, na spec 002, e troca do Pexels
