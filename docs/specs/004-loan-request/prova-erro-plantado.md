@@ -61,6 +61,29 @@ Para o agente principal (não é parte do veredito):
 - Nesta rodada, o `pnpm build` (passo 6) regenerou o client. Na próxima, o 1b e o E2E devem passar desse erro de tipo, e o ca_01 da spec 003 deve passar.
 - O hook do verificador não bloqueou nenhum comando nesta pasta. Todos rodaram com `cd` para a worktree.
 
+## Uma falha que não era do erro plantado
+
+A rodada não foi limpa. Além do erro plantado, a pasta de trabalho tinha um defeito que eu não tinha visto: o client do Prisma (`src/generated/prisma/`, fora do git) fora gerado antes do `d779f8c`, que deixou `image_object` anulável na spec 003. O código e o schema eram os do `81c4288`, mas o client era de um schema mais antigo. Eu deveria ter rodado o `prisma generate` antes de chamar o verificador.
+
+**O que esse defeito derrubou:**
+- o `pnpm typecheck` (passo 1b): o TS2322 em `prisma/equipment-tables.test.ts:136`, um teste da spec 003;
+- o `pnpm test` (passo 2): uma das seis falhas, o `ca_01` da spec 003 em `prisma/equipment-tables.test.ts:131`;
+- o `pnpm test:e2e` (passo 5): ele não rodou nenhum caso, porque o `next build` do `globalSetup` parou no mesmo erro de tipo.
+
+**Quais CAs ele pode ter contaminado.** Os que dependem do E2E para alguma parte: CA-01, CA-02, CA-04, CA-08, CA-09, CA-13, CA-16 e CA-17. O verificador os marcou como NÃO RODADO, não como atendidos nem como reprovados. Nesses, a rodada não diz nada sobre a tela. A prova de que a tela da spec 004 funciona continua sendo a rodada 3 de `verificacao.md`, sobre o `5691596`.
+
+**Por que os cinco reprovados apontam para o `loan.ts:6`, e não para o client.**
+- **As falhas vêm do Vitest, não do E2E nem do typecheck.** O Vitest não confere tipos. As cinco falhas estão em `src/server/api/routers/loan.test.ts`, que rodou inteiro.
+- **Os testes do `loan.test.ts` gravam equipamento sempre com `imageObject` preenchido.** Para eles, a coluna ser ou não anulável não muda nada. Os outros 25 casos do mesmo arquivo passaram com o mesmo client.
+- **Cada falha descreve o limite.**
+  - `:235` (CA-03) e `:297` (CA-11): o quarto pedido passou ("promise resolved instead of rejecting").
+  - `:420` (CA-06): os dois pedidos simultâneos passaram.
+  - `:527` e `:560` (CA-10): o `limit` veio 5, e o esperado era 3.
+- **O CA-12 reprova por consequência.** As recusas pelo limite, que os casos `:235` e `:420` conferiam, deixaram de acontecer.
+- **Com o client regenerado e o erro desfeito (`02d59b5`), os cinco casos passam de novo.** O `loan.test.ts` dá 30 passed.
+
+O que não dá para afirmar: que o E2E, com o erro plantado, teria reprovado o limite na tela. Ele não rodou.
+
 ## O que a rodada mostra
 
 - **Reprovou o que devia.** Os quatro critérios esperados (CA-03, CA-06, CA-10 e CA-11) deram REPROVADO, com a linha do erro como causa. O verificador achou também um quinto, o CA-12: as recusas pelo limite não acontecem mais, então a parte "a recusa não grava auditoria" fica sem prova.
