@@ -51,7 +51,7 @@ Fora desta ordem, a pessoa:
 
 - Spec 002:
   - a T-03, para o formato e a conferência do manifesto, e a T-06, para `prisma/data/equipment.json`, antes do passo 2;
-  - a T-07, para o manifesto aprovado. Pela decisão de 2026-11-16, ela só preenche as fotos, numa rodada depois dos passos 4 e 5, e deixa de bloqueá-los. A T-07 espera a chave do Pexels da pessoa.
+  - a T-07, para o manifesto aprovado. Pela decisão de 2026-11-16, ela só preenche as fotos, numa rodada depois dos passos 4 e 5, e deixa de bloqueá-los. A T-07 usa a chave do Pixabay da pessoa, que ela já tem.
 - A pessoa:
   - aprovar o DDL do passo 1;
   - enviar as fotos ao bucket antes do merge do manifesto aprovado;

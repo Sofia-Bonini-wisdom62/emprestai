@@ -65,7 +65,7 @@ A linha "Dado inválido" passa a ser:
 
 ### Fica mais fácil
 
-- A spec 003 e a 004 andam sem esperar a chave do Pexels.
+- A spec 003 e a 004 andam sem esperar a rodada real das fotos.
 - Quando o manifesto aprovado entrar no repositório, o deploy seguinte preenche as fotos, sem ninguém tocar no banco.
 
 ### Fica mais difícil
@@ -87,5 +87,5 @@ A linha "Dado inválido" passa a ser:
 
 ## 6. O que este ADR não decide
 
-- Quando a T-07 da spec 002 acontece, que depende da chave do Pexels da pessoa.
+- Quando a T-07 da spec 002 acontece, a rodada real das fotos do Pixabay.
 - A ordem entre enviar as fotos ao bucket e fazer o merge do manifesto, que fica no roteiro da spec 002 (`references/manual-upload.md`).
