@@ -515,6 +515,11 @@ proposta do agente entre as alternativas que ele levou, e viram RN na spec
     carregamento só grava patrimônio cuja foto passou nessa conferência.
     alternativa descartada: instalar o `sharp`, dependência fora do ADR-001.
     decidido: pela pessoa em 2026-11-12, aceitando a proposta do agente.
+    substituído em parte: o trecho "o carregamento só grava patrimônio cuja
+    foto passou nessa conferência" deixou de valer em 2026-11-16, pela
+    decisão da pessoa "segue sem imagem por enquanto... retome tudo" e pela
+    escolha "Opção (a)". O patrimônio sem foto aprovada grava a imagem nula
+    (spec 003, RN-17; ADR-014). A parte do `sharp` continua.
     vira RN em: dados iniciais.
 
 38. Quais campos o equipamento tem nesta spec, e os créditos da foto ficam no

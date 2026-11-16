@@ -1,6 +1,6 @@
 # 003 — Dados iniciais
 
-Status: rascunho
+Status: aprovada
 Atualizada em: 2026-11-16
 
 ## Objetivo
@@ -10,31 +10,21 @@ O banco de dev e o de produção passam a ter os 12 equipamentos da prática, ca
 ## Vínculo
 
 - PRD: `docs/PRD.md` não pede dados iniciais. Eles servem ao item 2 de "O que precisa existir na primeira versão" (catálogo com a situação de cada item) e à regra "Equipamento em manutenção não aparece como disponível". A origem é a Entrega 3 da prática (seção 04 do enunciado: briefing de dados iniciais e "Ao final, em produção"), com as regras da seção 01 e a lista dos 12 equipamentos da seção 03.
-- Restringe: `docs/adr/001-stack.md`, seções 2.5 e 2.7, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/011-equipment-images.md`, ainda Proposto; `docs/adr/013-production-equipment-data.md`; `docs/adr/014-equipment-without-image.md`, Proposto, que substitui duas linhas do ADR-013 (proposta de 2026-11-16).
+- Restringe: `docs/adr/001-stack.md`, seções 2.5 e 2.7, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/011-equipment-images.md`, ainda Proposto; `docs/adr/013-production-equipment-data.md`; `docs/adr/014-equipment-without-image.md`, que substitui duas linhas do ADR-013 (decisão de 2026-11-16).
 - Assume pronto: 001-login (`tenants`, `memberships`, `profiles`, o seed do dev e o passo do ADR-009). Da 002-equipment-images, em partes, como diz o plano: o formato e a conferência do manifesto (T-03 da 002), `prisma/data/equipment.json` (T-06) e o manifesto aprovado `prisma/data/equipment-images.json` (T-07; RN-10 da 002).
 
 ## Regras
 
-**Proposta de 2026-11-16, sem imagem, à espera de aprovação.** A pessoa decidiu, nestas palavras, "segue sem imagem por enquanto... retome tudo": a rodada real das fotos (T-07 da spec 002) fica para depois. A proposta do agente é:
+**Decisão de 2026-11-16, sem imagem.** A pessoa decidiu, nestas palavras, "segue sem imagem por enquanto... retome tudo": a rodada real das fotos (T-07 da spec 002) fica para depois. Entre as duas saídas que o agente levou, ela escolheu, nestas palavras, "Opção (a)", em outra conversa do projeto; a sessão de coordenação repassou a resposta em 2026-11-16. Ficou assim:
+- `image_object` aceita nulo, por uma migration nova (T-05), com o DDL aprovado pela pessoa antes;
 - o carregamento aceita ficar sem manifesto aprovado e grava os 12 equipamentos com a imagem nula;
 - quando o manifesto existir, a rodada seguinte preenche a imagem, sem duplicar nada (RN-07).
 
-Há duas saídas, e a pessoa escolhe uma. As RN e os CA marcados estão escritos para a (a), a recomendada.
+A saída descartada, (b), não tinha migration: gravava um texto no lugar do nome do objeto e deixava a `EQUIPMENT_IMAGES_BASE_URL` vazia na produção. Ela feria o padrão do nome do objeto (RN-04; spec 002, RN-06), e, com a variável preenchida, quem ainda não tivesse foto mostraria imagem quebrada.
 
-| | (a) `image_object` aceita nulo, por migration nova (recomendada) | (b) Sem migration: um valor no lugar da foto e a `EQUIPMENT_IMAGES_BASE_URL` vazia na produção |
-|---|---|---|
-| O que o equipamento sem foto grava | `image_object` nulo | Um texto no lugar do nome do objeto. O nome do RN-04, `<assetTag>-<idPexels>.jpg`, não existe sem foto, porque não há id do Pexels. Caberia, por exemplo, `<assetTag>.jpg` ou texto vazio |
-| Como a tela mostra | `imageUrlFor` devolve `null` para a imagem nula, e o catálogo da 004 mostra o ícone da categoria (RN-12 da 004) | A variável vazia faz o `imageUrl` voltar nulo para todos (RN-24 da 004), e o catálogo mostra o ícone |
-| Fotos chegando aos poucos | Cada equipamento mostra a foto assim que a dele entra no manifesto | Nenhuma foto aparece até a pessoa pôr a URL do bucket na variável. Depois disso, quem ainda não tem foto mostra uma imagem quebrada, porque o objeto não existe |
-| Custo | Uma migration (DDL aprovado antes) e um ajuste no `imageUrlFor` da 004, com teste | Uma mudança no painel da Vercel, feita pela pessoa, no dia em que as fotos forem ao bucket. O banco guarda um nome de objeto que não existe, e um nome errado passa a se parecer com "sem foto" |
-| RN-04 da 003 e RN-06 da 002 | Muda: a imagem pode ser nula | Fere: o valor não segue o padrão `<patrimonio>-<idPexels>.jpg` |
-| RN-08 da 003 | Muda: patrimônio sem foto deixa de ser recusa | Muda igual |
-| Resposta 37 ("o carregamento só grava patrimônio cuja foto passou nessa conferência") | Contraria | Contraria igual |
-| ADR-013 ("Dado inválido") | Contraria; o ADR-014 substitui a linha | Contraria igual; o ADR-014 também seria preciso |
+A mesma escolha confirma que a decisão de 2026-11-16 substitui o trecho da resposta 37 que dizia "o carregamento só grava patrimônio cuja foto passou nessa conferência". A parte do `sharp` continua.
 
-Nas duas, o trecho da resposta 37 sobre gravar só patrimônio com foto deixa de valer. A proposta pede que a pessoa confirme que a decisão de 2026-11-16 o substitui; a parte do `sharp` continua.
-
-O que muda leva a marca "proposta de 2026-11-16": o Objetivo, os RN-04, RN-07, RN-08 e RN-17, os CA-01, CA-04, CA-05 e CA-11, o Fora de escopo e o Contrato afetado. O resto da spec continua como foi aprovado em 2026-11-12. A mudança contraria o ADR-013, aceito, e por isso vem com o ADR-014, Proposto. Ela também pede uma migration nova, porque a coluna `image_object` da T-01 é obrigatória.
+O que mudou leva a marca "decisão de 2026-11-16": o Objetivo, os RN-04, RN-07, RN-08 e RN-17, os CA-01, CA-04, CA-05 e CA-11, o Fora de escopo e o Contrato afetado. O resto da spec continua como foi aprovado em 2026-11-12. A mudança contraria o ADR-013, e por isso o ADR-014, aceito, substitui duas linhas dele.
 
 "Decisão de 2026-11-12" é a resposta da pessoa ("Aceito todas") às perguntas 33 a 39 de `docs/perguntas-prd.md`, aceitando a proposta do agente em cada uma.
 
@@ -47,11 +37,11 @@ O briefing contrariava o enunciado, as rules ou a spec 002 em quatro pontos. Cad
 - RN-01 — Os equipamentos são os de `prisma/data/equipment.json`, a lista da seção 03 do enunciado. Origem: briefing, itens 1 e 2; spec 002, RN-10.
 - RN-02 — Um registro por unidade física, identificada pelo patrimônio, que é único na área. Origem: resposta 1.
 - RN-03 — A situação é a da lista. TI-0004, TI-0007 e TI-0010 ficam em manutenção, e os outros 9, disponíveis. Na lista, `disponivel` é `available`, e `manutencao` é `maintenance`. Origem: resposta 33; `AGENTS.md`, seção 7.
-- RN-04 — O equipamento tem só patrimônio, nome, categoria, situação e imagem. A imagem é o nome do objeto, `<patrimonio>-<idPexels>.jpg`, no bucket público `equipment-images`, ou nula enquanto o patrimônio não tiver foto aprovada (proposta de 2026-11-16). Número de série, local de retirada e observações ficam para a spec do cadastro. Os créditos da foto ficam só no manifesto. Origem: resposta 38; spec 002, RN-05 e RN-06.
+- RN-04 — O equipamento tem só patrimônio, nome, categoria, situação e imagem. A imagem é o nome do objeto, `<patrimonio>-<idPexels>.jpg`, no bucket público `equipment-images`, ou nula enquanto o patrimônio não tiver foto aprovada (decisão de 2026-11-16). Número de série, local de retirada e observações ficam para a spec do cadastro. Os créditos da foto ficam só no manifesto. Origem: resposta 38; spec 002, RN-05 e RN-06.
 - RN-05 — Nascem cinco categorias, Notebooks, Monitores, Câmeras, Cabos e Projetores. As chaves da lista se ligam a elas assim: `notebook` a Notebooks, `monitor` a Monitores, `cabo` a Cabos e `camera` a Câmeras. Projetores nasce vazia. Origem: respostas 12, 12c e 39.
 - RN-06 — Todo equipamento e toda categoria pertencem à área `default`, a única da v1. As duas tabelas têm `tenant_id`, RLS e policy explícita na mesma migration. Origem: ADR-005; resposta 29; ADR-001, seção 2.7; `rules/migration.md`.
-- RN-07 — O carregamento lê os dois arquivos de `prisma/data/` e, para cada patrimônio, cria o equipamento que falta. No que já existe, atualiza só a imagem, e nunca a situação, o nome nem a categoria. A imagem só muda quando o manifesto aprovado traz uma foto para o patrimônio: de nula para a foto, ou de uma foto para outra. Ela nunca volta a nula (proposta de 2026-11-16). Carregar de novo não duplica nada, e a chave é a área com o patrimônio. Origem: briefing, item 6; resposta 34.
-- RN-08 — Antes de gravar qualquer coisa, o carregamento recusa o conjunto inteiro se um patrimônio se repetir, se tiver categoria ou situação fora das chaves dos RN-03 e RN-05, ou se o manifesto existir e não passar na conferência da spec 002. Patrimônio sem foto aprovada deixa de ser recusa (proposta de 2026-11-16). Origem: briefing, item 4; spec 002, RN-10; resposta 37.
+- RN-07 — O carregamento lê os dois arquivos de `prisma/data/` e, para cada patrimônio, cria o equipamento que falta. No que já existe, atualiza só a imagem, e nunca a situação, o nome nem a categoria. A imagem só muda quando o manifesto aprovado traz uma foto para o patrimônio: de nula para a foto, ou de uma foto para outra. Ela nunca volta a nula (decisão de 2026-11-16). Carregar de novo não duplica nada, e a chave é a área com o patrimônio. Origem: briefing, item 6; resposta 34.
+- RN-08 — Antes de gravar qualquer coisa, o carregamento recusa o conjunto inteiro se um patrimônio se repetir, se tiver categoria ou situação fora das chaves dos RN-03 e RN-05, ou se o manifesto existir e não passar na conferência da spec 002. Patrimônio sem foto aprovada deixa de ser recusa (decisão de 2026-11-16). Origem: briefing, item 4; spec 002, RN-10; resposta 37.
 - RN-09 — Nenhuma senha, token ou chave entra em código, em arquivo de dados ou no histórico do git. A senha padrão da turma só existe no painel de produção. Origem: enunciado, seção 01; `rules/restrictions.md`, Dados e segredos; resposta 35.
 - RN-10 — Carregar os dados não cria empréstimo. Origem: briefing, item 3.
 - RN-11 — No dev, `pnpm prisma db seed` faz o carregamento na `default`, além do que já grava (spec 001, CA-13), e continua recusando banco ou Auth fora da máquina. Origem: spec 001; spec 002, RN-10; ADR-004.
@@ -60,19 +50,19 @@ O briefing contrariava o enunciado, as rules ou a spec 002 em quatro pontos. Cad
 - RN-14 — O e-mail do professor não entra no git. Spec, testes e `ENTREGA.md` dizem "a conta do professor". Origem: resposta 36; `rules/restrictions.md`, Dados e segredos.
 - RN-15 — Sem `sharp` nem outra dependência nova: o tamanho de 800×600 é o que a spec 002 garante (RN-03 da 002). Origem: resposta 37.
 - RN-16 — A conta do professor chega à correção com zero empréstimos. Nenhum passo desta spec grava nada nela além do que o próprio login grava, e os testes da pessoa usam outra conta. Origem: enunciado, seção 01; briefing, item 5.
-- RN-17 — Sem `prisma/data/equipment-images.json`, o carregamento grava os equipamentos com a imagem nula e diz no log quantos ficaram sem foto. Um manifesto que traz só parte dos patrimônios deixa os outros com a imagem nula. Origem: decisão da pessoa de 2026-11-16; proposta de 2026-11-16.
+- RN-17 — Sem `prisma/data/equipment-images.json`, o carregamento grava os equipamentos com a imagem nula e diz no log quantos ficaram sem foto. Um manifesto que traz só parte dos patrimônios deixa os outros com a imagem nula. Origem: decisão de 2026-11-16.
 
 ## Critérios de aceitação
 
 Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, que precisa do Auth, o `pnpm test:e2e`, como o CA-13 da spec 001. A conferência em produção é da pessoa e está em Fora de escopo.
 
-- CA-01 — Num banco vazio com a área `default`, o carregamento grava as 5 categorias do RN-05 e 12 equipamentos na `default`, com os patrimônios de TI-0001 a TI-0012. O nome, a categoria e a situação de cada um batem com `prisma/data/equipment.json`: 9 `available`, e TI-0004, TI-0007 e TI-0010 `maintenance`. Sem manifesto aprovado, os 12 ficam com a imagem nula (proposta de 2026-11-16).
+- CA-01 — Num banco vazio com a área `default`, o carregamento grava as 5 categorias do RN-05 e 12 equipamentos na `default`, com os patrimônios de TI-0001 a TI-0012. O nome, a categoria e a situação de cada um batem com `prisma/data/equipment.json`: 9 `available`, e TI-0004, TI-0007 e TI-0010 `maintenance`. Sem manifesto aprovado, os 12 ficam com a imagem nula (decisão de 2026-11-16).
 - CA-02 — Rodar o carregamento duas vezes deixa as mesmas 5 categorias e os mesmos 12 equipamentos, com os mesmos ids e os mesmos valores.
 - CA-03 — Dado o TI-0001 já gravado com situação `loaned` e nome alterado, rodar o carregamento de novo não muda a situação nem o nome dele.
-- CA-04 — Cada equipamento gravado guarda o nome do objeto que o manifesto aprovado dá ao seu patrimônio. Dado o TI-0001 gravado com `TI-0001-111.jpg` e um manifesto que lhe dá `TI-0001-222.jpg`, a rodada seguinte o deixa com `TI-0001-222.jpg`. Dado o TI-0001 com a imagem nula e um manifesto que lhe dá `TI-0001-111.jpg`, a rodada seguinte o deixa com `TI-0001-111.jpg`. Dado o TI-0001 com `TI-0001-111.jpg` e um manifesto sem foto para ele, a imagem não muda (proposta de 2026-11-16).
+- CA-04 — Cada equipamento gravado guarda o nome do objeto que o manifesto aprovado dá ao seu patrimônio. Dado o TI-0001 gravado com `TI-0001-111.jpg` e um manifesto que lhe dá `TI-0001-222.jpg`, a rodada seguinte o deixa com `TI-0001-222.jpg`. Dado o TI-0001 com a imagem nula e um manifesto que lhe dá `TI-0001-111.jpg`, a rodada seguinte o deixa com `TI-0001-111.jpg`. Dado o TI-0001 com `TI-0001-111.jpg` e um manifesto sem foto para ele, a imagem não muda (decisão de 2026-11-16).
 - CA-05 — O carregamento falha sem gravar nada, um caso de cada vez, quando:
   - um patrimônio aparece duas vezes em `prisma/data/equipment.json`;
-  - o manifesto existe e não passa na conferência da spec 002 (proposta de 2026-11-16, no lugar de "um patrimônio não tem foto aprovada no manifesto");
+  - o manifesto existe e não passa na conferência da spec 002 (decisão de 2026-11-16, no lugar de "um patrimônio não tem foto aprovada no manifesto");
   - a categoria de um item não é `notebook`, `monitor`, `cabo` nem `camera`;
   - a situação de um item não é `disponivel` nem `manutencao`.
 - CA-06 — O carregamento só grava nas tabelas desta spec: nenhuma linha nova em `tenants`, `memberships`, `profiles` ou `auth.users`.
@@ -80,7 +70,7 @@ Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, q
 - CA-08 — Em `prisma/` e `prisma/data/`, nenhum arquivo traz endereço de e-mail fora dos domínios reservados para exemplo, `example.com` e `example.test` (RFC 2606), que os testes da spec 001 já usam, e a única senha que o seed usa vem de `SEED_PASSWORD`.
 - CA-09 — O script do passo de produção, rodado contra o banco do Testcontainers, faz o mesmo que o CA-01 e o CA-02, sem ler `.env.local` e sem precisar do Auth.
 - CA-10 — **Isolamento:** dado as áreas A e B, o carregamento grava só na `default`. Um equipamento de B com o mesmo patrimônio de um da `default` não colide com ele e não muda. Os papéis `anon` e `authenticated` não leem nenhuma linha de `equipments` nem de `equipment_categories`.
-- CA-11 — Rodar o carregamento sem manifesto, depois com o manifesto aprovado, deixa os mesmos 12 equipamentos, com os mesmos ids, e cada um com o objeto que o manifesto lhe dá (proposta de 2026-11-16).
+- CA-11 — Rodar o carregamento sem manifesto, depois com o manifesto aprovado, deixa os mesmos 12 equipamentos, com os mesmos ids, e cada um com o objeto que o manifesto lhe dá (decisão de 2026-11-16).
 
 ## Fora de escopo / não decidido
 
@@ -96,17 +86,17 @@ Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, q
   - a conferência em produção, feita pela pessoa com uma conta dela, deixando a do professor intacta:
     - a conta do professor entra no link da Vercel com a senha padrão da turma;
     - os 12 equipamentos existem no banco do deploy, e TI-0004, TI-0007 e TI-0010 em manutenção;
-    - cada um com a sua imagem, e as imagens abrem pela URL pública, sem login, todas em 800×600. Pela proposta de 2026-11-16, este item fica pendente até a T-07 da spec 002 e o envio das fotos, e o "Ao final, em produção" da Entrega 3 fica incompleto até lá, o que vai para o `ENTREGA.md`, seção 8;
+    - cada um com a sua imagem, e as imagens abrem pela URL pública, sem login, todas em 800×600. Pela decisão de 2026-11-16, este item fica pendente até a T-07 da spec 002 e o envio das fotos, e o "Ao final, em produção" da Entrega 3 fica incompleto até lá, o que vai para o `ENTREGA.md`, seção 8;
     - repetir o deploy não duplicou nada;
     - a conta do professor tem zero empréstimos.
-- Não decidido: a aprovação da proposta de 2026-11-16 e do ADR-014, com a pessoa. A spec e o ADR-013 foram aprovados pela pessoa em 2026-11-12 ("Aprovo os dois"). O ADR-011, do bucket e do envio pela pessoa, segue Proposto.
+- Não decidido: nada. A decisão de 2026-11-16 e o ADR-014 foram aceitos pela pessoa ("Opção (a)"). A spec e o ADR-013 foram aprovados pela pessoa em 2026-11-12 ("Aprovo os dois"). O ADR-011, do bucket e do envio pela pessoa, segue Proposto.
 - Fica para a spec do catálogo, como o ADR-011, seção 5, já diz: de onde a tela monta a URL pública da imagem, já que o dev não tem Storage (ADR-004, ADR-006).
 
 ## Contrato afetado
 
 - Tabela: `equipment_categories (id, tenant_id, name)`, nova, única por `(tenant_id, name)`, com RLS e policy explícita.
-- Tabela: `equipments (id, tenant_id, asset_tag, name, category_id, status, image_object, created_at)`, nova, única por `(tenant_id, asset_tag)`, com RLS e policy explícita. Pela proposta de 2026-11-16, uma migration nova deixa `image_object` aceitar nulo; a da T-01 já foi aplicada e não se edita (`rules/restrictions.md`, Bancos e schema). `status` está no enum `EquipmentStatus`, com `available`, `loaned`, `maintenance` e `out_of_service`, as quatro do glossário.
-- Código da spec 004 (proposta de 2026-11-16): `imageUrlFor`, em `src/server/services/equipment.ts`, passa a aceitar a imagem nula e devolve `imageUrl: null`, o mesmo caso da variável vazia da RN-24 da 004, que já mostra o ícone da categoria (RN-12 da 004). Nenhum comportamento da 004 muda.
+- Tabela: `equipments (id, tenant_id, asset_tag, name, category_id, status, image_object, created_at)`, nova, única por `(tenant_id, asset_tag)`, com RLS e policy explícita. Pela decisão de 2026-11-16, uma migration nova deixa `image_object` aceitar nulo; a da T-01 já foi aplicada e não se edita (`rules/restrictions.md`, Bancos e schema). `status` está no enum `EquipmentStatus`, com `available`, `loaned`, `maintenance` e `out_of_service`, as quatro do glossário.
+- Código da spec 004 (decisão de 2026-11-16): `imageUrlFor`, em `src/server/services/equipment.ts`, passa a aceitar a imagem nula e devolve `imageUrl: null`, o mesmo caso da variável vazia da RN-24 da 004, que já mostra o ícone da categoria (RN-12 da 004). Nenhum comportamento da 004 muda.
 - Seed: `prisma/seed.ts` passa a fazer o carregamento no dev.
 - Script: um script versionado em `prisma/`, com o Prisma Client, que o seed e o passo de produção usam. O nome fica com a tarefa que implementa, como no ADR-009.
 - Workflow: `.github/workflows/production.yml` ganha o passo do RN-12. O agente prepara o texto, e a pessoa aplica, à mão.
