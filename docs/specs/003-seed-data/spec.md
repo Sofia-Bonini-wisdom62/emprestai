@@ -19,6 +19,21 @@ O banco de dev e o de produção passam a ter os 12 equipamentos da prática, ca
 - o carregamento aceita ficar sem manifesto aprovado e grava os 12 equipamentos com a imagem nula;
 - quando o manifesto existir, a rodada seguinte preenche a imagem, sem duplicar nada (RN-07).
 
+Há duas saídas, e a pessoa escolhe uma. As RN e os CA marcados estão escritos para a (a), a recomendada.
+
+| | (a) `image_object` aceita nulo, por migration nova (recomendada) | (b) Sem migration: um valor no lugar da foto e a `EQUIPMENT_IMAGES_BASE_URL` vazia na produção |
+|---|---|---|
+| O que o equipamento sem foto grava | `image_object` nulo | Um texto no lugar do nome do objeto. O nome do RN-04, `<assetTag>-<idPexels>.jpg`, não existe sem foto, porque não há id do Pexels. Caberia, por exemplo, `<assetTag>.jpg` ou texto vazio |
+| Como a tela mostra | `imageUrlFor` devolve `null` para a imagem nula, e o catálogo da 004 mostra o ícone da categoria (RN-12 da 004) | A variável vazia faz o `imageUrl` voltar nulo para todos (RN-24 da 004), e o catálogo mostra o ícone |
+| Fotos chegando aos poucos | Cada equipamento mostra a foto assim que a dele entra no manifesto | Nenhuma foto aparece até a pessoa pôr a URL do bucket na variável. Depois disso, quem ainda não tem foto mostra uma imagem quebrada, porque o objeto não existe |
+| Custo | Uma migration (DDL aprovado antes) e um ajuste no `imageUrlFor` da 004, com teste | Uma mudança no painel da Vercel, feita pela pessoa, no dia em que as fotos forem ao bucket. O banco guarda um nome de objeto que não existe, e um nome errado passa a se parecer com "sem foto" |
+| RN-04 da 003 e RN-06 da 002 | Muda: a imagem pode ser nula | Fere: o valor não segue o padrão `<patrimonio>-<idPexels>.jpg` |
+| RN-08 da 003 | Muda: patrimônio sem foto deixa de ser recusa | Muda igual |
+| Resposta 37 ("o carregamento só grava patrimônio cuja foto passou nessa conferência") | Contraria | Contraria igual |
+| ADR-013 ("Dado inválido") | Contraria; o ADR-014 substitui a linha | Contraria igual; o ADR-014 também seria preciso |
+
+Nas duas, o trecho da resposta 37 sobre gravar só patrimônio com foto deixa de valer. A proposta pede que a pessoa confirme que a decisão de 2026-11-16 o substitui; a parte do `sharp` continua.
+
 O que muda leva a marca "proposta de 2026-11-16": o Objetivo, os RN-04, RN-07, RN-08 e RN-17, os CA-01, CA-04, CA-05 e CA-11, o Fora de escopo e o Contrato afetado. O resto da spec continua como foi aprovado em 2026-11-12. A mudança contraria o ADR-013, aceito, e por isso vem com o ADR-014, Proposto. Ela também pede uma migration nova, porque a coluna `image_object` da T-01 é obrigatória.
 
 "Decisão de 2026-11-12" é a resposta da pessoa ("Aceito todas") às perguntas 33 a 39 de `docs/perguntas-prd.md`, aceitando a proposta do agente em cada uma.

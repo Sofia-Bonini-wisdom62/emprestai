@@ -15,7 +15,7 @@
 
 O ADR-013 manda o passo de produção recusar o conjunto inteiro quando um patrimônio não tem foto aprovada no manifesto. Quando ele foi aceito, o manifesto aprovado da spec 002 (T-07) parecia vir antes do carregamento.
 
-Em 2026-11-16, a pessoa decidiu, nestas palavras, "segue sem imagem por enquanto... retome tudo". A rodada real das fotos fica para depois, e os equipamentos precisam chegar ao banco antes dela, porque a spec 004 (solicitar empréstimo) depende deles. Com a regra do ADR-013, o carregamento não grava nada até a T-07.
+Em 2026-11-16, a pessoa decidiu, nestas palavras, "segue sem imagem por enquanto... retome tudo". A rodada real das fotos fica para depois, e os equipamentos precisam chegar ao banco antes dela, porque a spec 004 (solicitar empréstimo) depende deles. Com a regra do ADR-013, o carregamento não grava nada até a T-07. A resposta 37 de `docs/perguntas-prd.md` diz o mesmo ("o carregamento só grava patrimônio cuja foto passou nessa conferência"), e este ADR também substitui esse trecho, se a pessoa confirmar.
 
 A coluna `equipments.image_object`, da T-01 da spec 003, é obrigatória. A spec 004 já mostra o ícone da categoria quando não há URL de foto (RN-12 e RN-24 da 004).
 
@@ -56,7 +56,7 @@ A linha "Dado inválido" passa a ser:
 |---|---|
 | Esperar a T-07 da spec 002, como o ADR-013 manda | A pessoa decidiu seguir sem imagem |
 | Uma imagem de reserva, a mesma para os 12 | Imagem de fora da skill, contra a spec 002, RN-01, e repetida, contra o RN-04 da 002 |
-| Texto vazio no lugar de nulo, sem migration | O banco não distingue "sem foto" de um nome de objeto errado, e a 004 montaria uma URL quebrada |
+| (b) Sem migration: um texto no lugar do nome do objeto, como `<assetTag>.jpg` ou texto vazio, e a `EQUIPMENT_IMAGES_BASE_URL` vazia na produção até as fotos irem ao bucket | Fere o padrão do nome do objeto (spec 002, RN-06; spec 003, RN-04). O banco não distingue "sem foto" de um nome errado. Com a variável preenchida, quem ainda não tem foto mostra imagem quebrada, e nenhuma foto aparece antes de a variável mudar no painel. A comparação inteira está na spec 003, proposta de 2026-11-16 |
 | Gravar sem imagem e nunca preencher depois | A Entrega 3 pede cada equipamento com a sua imagem em produção |
 
 ---
