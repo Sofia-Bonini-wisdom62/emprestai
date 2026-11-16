@@ -9,34 +9,15 @@
 // Uso: node --import ./prisma/resolve-ts.mjs prisma/load-equipment.ts [lista] [manifesto]
 // Sem argumentos, lê prisma/data/equipment.json e prisma/data/equipment-images.json. O manifesto
 // aprovado pode não existir ainda: os equipamentos ficam com a imagem nula (RN-17).
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../src/generated/prisma/client";
 import { DEFAULT_TENANT } from "./default-tenant";
 import { EquipmentDataError, loadEquipmentData } from "./equipment-data";
+import { readEquipmentFiles } from "./equipment-files";
 
-const inData = (name: string) => fileURLToPath(new URL(`./data/${name}`, import.meta.url));
-const [listPath = inData("equipment.json"), manifestPath = inData("equipment-images.json")] =
-  process.argv.slice(2);
-
-// O conteúdo do arquivo, ou undefined quando ele não existe.
-function readJson(path: string): unknown {
-  let text: string;
-  try {
-    text = readFileSync(path, "utf8");
-  } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") return undefined;
-    throw error;
-  }
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    throw new EquipmentDataError([`${path} não é um JSON válido`]);
-  }
-}
+// Sem argumento, cada caminho é o de prisma/data/.
+const [listPath, manifestPath] = process.argv.slice(2);
 
 const databaseUrl = process.env.DIRECT_URL;
 if (!databaseUrl) {
@@ -52,17 +33,7 @@ const db = new PrismaClient({
 });
 
 try {
-  const list = readJson(listPath);
-  if (list === undefined) {
-    throw new EquipmentDataError([`a lista de equipamentos não existe em ${listPath}`]);
-  }
-  // Sem o arquivo, não há manifesto aprovado: o carregamento grava sem foto (RN-17). O arquivo
-  // que existe e traz null não é "sem manifesto": é um manifesto que não passa (RN-08).
-  const manifestFile = readJson(manifestPath);
-  if (manifestFile === null) {
-    throw new EquipmentDataError([`manifesto: ${manifestPath} traz null, e não as fotos`]);
-  }
-  const manifest = manifestFile ?? null;
+  const { list, manifest } = readEquipmentFiles(listPath, manifestPath);
 
   const result = await loadEquipmentData(db, list, manifest);
 
