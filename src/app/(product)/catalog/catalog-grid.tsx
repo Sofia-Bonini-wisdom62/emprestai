@@ -3,6 +3,7 @@
 import { LoaderCircle } from "lucide-react";
 
 import { EquipmentCard } from "@/components/equipment/equipment-card";
+import { PhotoCredit, showsPhotoCredit } from "@/components/equipment/photo-credit";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc/client";
 
@@ -58,6 +59,7 @@ export function CatalogGrid() {
           Mostrar mais equipamentos
         </Button>
       ) : null}
+      {showsPhotoCredit(items) ? <PhotoCredit /> : null}
     </div>
   );
 }

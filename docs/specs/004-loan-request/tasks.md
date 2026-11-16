@@ -26,3 +26,6 @@ O plano e as cinco propostas foram aprovados pela pessoa em 2026-11-12. Nenhuma 
 - [x] T-08 — Correções da rodada 1 do `verificador-spec` (decisão da verificação, de 2026-11-13): o CA-12 conferido nas recusas do `ca_04` e do `ca_06`; o aviso de `/my-loans` só com empréstimo de verdade; e os casos do item fora de uso no detalhe e da pill de atraso em Meus empréstimos
       CA: CA-12, CA-16, CA-17
       Verifica: `pnpm test` com `ca_04` e `ca_06` conferindo zero linhas novas em `audit_events` depois da recusa; `pnpm test:e2e` com `ca_16` (`/my-loans?confirmado=2030-01-01` sem o aviso) e `ca_17` (a pill "Em atraso" e o detalhe do item fora de uso)
+- [x] T-09 — Catálogo e detalhe sem foto (decisão de 2026-11-16): o crédito só com foto na página, e o teste do card e do detalhe sem a base das fotos
+      CA: CA-18
+      Verifica: `pnpm test` com `ca_18`, que monta o card, a foto e o crédito com `react-dom/server`, sem dependência nova, com e sem `imageUrl`. O E2E sobe sempre o servidor de fotos, então a tela sem foto se prova pela montagem dos componentes

@@ -27,6 +27,8 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 
 "Decisão da verificação, de 2026-11-13" é a resposta da pessoa ("Pode fazer as três") às recomendações do agente sobre a rodada 1 do `verificador-spec` (`verificacao.md`): o aviso de resultado só com empréstimo de verdade (RN-17, CA-16), e o item fora de uso no detalhe e a pill de atraso em Meus empréstimos, que a implementação já tinha, entram como regra (RN-27 e RN-28, CA-17).
 
+"Decisão de 2026-11-16" é a resposta da pessoa ("Aprovo os dois") à proposta do agente de RN-29 e CA-18, depois de ela decidir seguir sem imagem por enquanto ("segue sem imagem por enquanto"). O CA-08 passa a valer quando a base das fotos está preenchida.
+
 ## Regras
 
 - RN-01 — Solicitar cria o empréstimo na hora, sem aprovação de Operações nem fila. A retirada é física, no balcão de Operações, sem estado no sistema. Origem: resposta 2; briefing, "Decisão já tomada para a turma".
@@ -67,6 +69,7 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - RN-26 — A foto entra por `<img>` com `width="800"` e `height="600"`, sem `next/image`, que escreve `style` (ADR-002). A CSP acrescenta ao `img-src` só a origem da `EQUIPMENT_IMAGES_BASE_URL`, e só quando ela existe. A regra `@next/next/no-img-element` ganha uma exceção no `eslint.config.mjs`, com a justificativa, restrita aos arquivos do card e do detalhe. Origem: ADR-002; ADR-001, 2.10; `rules/restrictions.md`, Ferramentas; decisão do plano, de 2026-11-12.
 - RN-27 — No detalhe, o item `out_of_service` mostra a pill "Fora de uso" e, no lugar do botão, "Este equipamento não está disponível.", o texto do RN-10. O catálogo não trata o caso à parte (pergunta 9b). Origem: RN-07; decisão da verificação, de 2026-11-13.
 - RN-28 — Em Meus empréstimos, o empréstimo em atraso (RN-05) ganha a pill "Em atraso" ao lado da data prevista. Origem: `docs/layout.md`, seção 5 (pill `overdue`) e seção 8 (estado nunca só por cor); decisão da verificação, de 2026-11-13.
+- RN-29 — Sem foto (`imageUrl` nulo, RN-24), o card e o detalhe mostram o ícone da categoria em 48px, no quadro 4:3 sobre `--surface-sunken`, sem `<img>`. O crédito "Fotos: Pixabay" (RN-14) só aparece quando a página mostra ao menos uma foto. Enquanto as fotos não estão no bucket, a `EQUIPMENT_IMAGES_BASE_URL` fica vazia em Production. Origem: resposta 46; RN-24; decisão de 2026-11-16.
 
 ## Critérios de aceitação
 
@@ -79,7 +82,7 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
 - CA-05 — Dado o TI-0005 `available`, e Beatriz e Enzo Paiva sem empréstimo, quando os dois chamam `loan.create` para o TI-0005 em transações simultâneas, então exatamente uma cria o empréstimo, a outra falha com `EQUIPMENT_UNAVAILABLE`, e o banco tem um único empréstimo em aberto do TI-0005. Contra o Postgres do Testcontainers, sem mock.
 - CA-06 — Dado Beatriz com 2 empréstimos em aberto, quando ela pede o TI-0005 e o TI-0006, os dois `available`, em transações simultâneas, então exatamente um pedido passa, o outro falha com `LOAN_LIMIT_REACHED`, e ela termina com 3 empréstimos em aberto.
 - CA-07 — Dado um empréstimo em aberto do TI-0005, quando um `INSERT` direto em `loans` cria outro em aberto para o TI-0005, então o banco recusa pelo índice único parcial.
-- CA-08 — Dado o banco com os 12 equipamentos da spec 003, quando Beatriz abre `/catalog`, então vê 12 cards, cada um com a foto carregada da URL do RN-24 (no E2E, a do servidor de teste), o nome, "categoria · patrimônio" e a pill da situação, e a página mostra o crédito "Fotos: Pixabay", com o link "Pixabay" para `https://pixabay.com`. O detalhe de qualquer um deles também mostra a foto e o crédito.
+- CA-08 — Dado o banco com os 12 equipamentos da spec 003 e a `EQUIPMENT_IMAGES_BASE_URL` preenchida, quando Beatriz abre `/catalog`, então vê 12 cards, cada um com a foto carregada da URL do RN-24 (no E2E, a do servidor de teste), o nome, "categoria · patrimônio" e a pill da situação, e a página mostra o crédito "Fotos: Pixabay", com o link "Pixabay" para `https://pixabay.com`. O detalhe de qualquer um deles também mostra a foto e o crédito.
 - CA-09 — Dado o TI-0001 emprestado a Beatriz com data prevista 26/11/2026, quando Enzo abre `/catalog`, então o card do TI-0001 mostra a pill "Emprestado", "Com Beatriz Fontes" e "Volta até 26/11"; e o detalhe mostra "Com Beatriz Fontes · volta até 26/11/2026" no lugar do botão.
 - CA-10 — Dado Beatriz com dois empréstimos em aberto e Enzo com um, quando ela abre `/my-loans`, então vê só os dois dela, cada um com nome, patrimônio e data prevista, sem botão "Devolver", e o header mostra "Você está com 2 de 3 itens". Sem empréstimo, a tela mostra "Você não está com nenhum item" e o link para o catálogo.
 - CA-11 — Dado Flávia Rocha, `operations` na `default`, sem empréstimo, quando ela entra, então cai em `/operations/loans`; pelo link "Catálogo" do header chega a `/catalog` e solicita o TI-0002 como no CA-01, sob o mesmo limite do CA-03.
@@ -95,6 +98,7 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
   - os papéis `anon` e `authenticated` não leem nenhuma linha de `loans` nem de `audit_events`.
 - CA-16 — Dado Beatriz sem empréstimo com data prevista 01/01/2030, quando ela abre `/my-loans?confirmado=2030-01-01`, então a tela não mostra "Empréstimo confirmado".
 - CA-17 — Dado Caio com um empréstimo de data prevista já passada, quando ele abre `/my-loans`, então a linha dele mostra a pill "Em atraso"; e dado o TI-0007 em `out_of_service`, quando Beatriz abre o detalhe dele, então vê a pill "Fora de uso" e "Este equipamento não está disponível." no lugar do botão.
+- CA-18 — Dado a `EQUIPMENT_IMAGES_BASE_URL` vazia, quando o card e o detalhe de um equipamento são montados, então mostram o ícone da categoria, nenhuma `<img>` e nenhum endereço do bucket, e a página não mostra "Fotos: Pixabay"; com a base preenchida, a `<img>` e o crédito aparecem.
 
 ## Fora de escopo / não decidido
 
