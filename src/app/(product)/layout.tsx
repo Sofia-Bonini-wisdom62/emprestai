@@ -4,6 +4,7 @@ import { destinationOf } from "@/server/services/account";
 
 import { AppHeader } from "./app-header";
 import { currentAccount } from "./current-account";
+import { currentLoans } from "./current-loans";
 
 // A moldura das telas do produto (docs/layout.md, seção 6), por ora só com o header: a navegação
 // lateral chega com as specs de empréstimo (spec 001, fora de escopo).
@@ -25,6 +26,8 @@ export default async function ProductLayout({
   // Sem papel, sem vínculo ou com vínculo em mais de uma área, a pessoa não entra (RN-52).
   if (!destinationOf(account)) redirect("/login");
 
+  const loans = await currentLoans();
+
   return (
     <>
       <a
@@ -33,7 +36,7 @@ export default async function ProductLayout({
       >
         Pular para o conteúdo
       </a>
-      <AppHeader name={account.name} email={account.email} />
+      <AppHeader name={account.name} email={account.email} loans={loans} />
       <main id="conteudo" className="flex flex-1 flex-col gap-2 px-5 py-8 md:px-8">
         {children}
       </main>

@@ -1,7 +1,7 @@
 # 002 — Imagens dos equipamentos
 
 Status: aprovada
-Atualizada em: 2026-11-12
+Atualizada em: 2026-11-13
 
 ## Objetivo
 
@@ -24,6 +24,8 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
 - os CA-11 e CA-12, que põem os testes das RN-12 a RN-17 no padrão de nomes de `rules/tests.md`;
 - os detalhes da linha de comando no plano;
 - o termo `assetTag` no glossário do `AGENTS.md`.
+
+"Decisão de 2026-11-13" é a resposta da pessoa ("Aceito todas") às quatro recomendações da revisão da T-04: as regras de rede além do host (RN-18), a mensagem do 429 com os limites do Pexels, a chave só em ASCII visível (RN-19) e o CA-13, que põe os testes desses detalhes no padrão de nomes de `rules/tests.md`. Apertar o bloco da skill no `eslint.config.mjs` ficou para depois.
 
 - RN-01 — As imagens vêm só da API do Pexels: a busca em `api.pexels.com` e o arquivo em `images.pexels.com`, com a chave da pessoa. Nenhuma outra origem de imagem. Origem: contrato da Entrega 2, "Fonte".
 - RN-02 — Nenhuma foto com pessoa, marca ou logo legível, texto ou tela com conteúdo chega ao sistema. Tela apagada passa; interface, texto ou logo legível reprova; na dúvida, reprova. Quem garante é a revisão visual, primeiro do agente, foto a foto, e depois da pessoa, na folha de contato. Origem: contrato, "Direito de imagem"; decisão de 2026-11-11.
@@ -76,6 +78,14 @@ O agente prepara, pela skill `imagens-equipamentos`, uma foto do Pexels para cad
   - um texto só com espaços conta como campo que falta.
 
   Origem: decisão de 2026-11-12. Prova: CA-12.
+- RN-18 — A rede, além do host do RN-01:
+  - só `https`, sem porta e sem usuário ou senha na URL. A URL fora disso é recusada antes de sair, com o motivo;
+  - nenhum pedido segue redirecionamento, porque um redirect levaria o pedido para fora da lista de hosts;
+  - só a busca leva a chave. O download vai sem ela, e um 401 no download não culpa a chave;
+  - o 429 diz que os limites são de 200 pedidos por hora e 20.000 por mês. Os números são os da documentação da API do Pexels, registrados no ADR-011.
+
+  Origem: decisão de 2026-11-13. Prova: CA-13.
+- RN-19 — A `PEXELS_API_KEY` só tem ASCII visível, de `!` a `~`. Espaço, quebra de linha, aspas curvas ou espaço invisível de uma colagem são recusados com mensagem própria, sem o valor, porque quebrariam o cabeçalho `Authorization`, e o erro sairia como falha de rede. Origem: decisão de 2026-11-13. Prova: CA-13.
 
 ## Critérios de aceitação
 
@@ -116,6 +126,14 @@ Só o que o `pnpm test` prova, sem rede e sem a chave. Ficam fora dele, e por is
   - o manifesto novo que deixa de fora um patrimônio com foto aprovada no manifesto aprovado (RN-16).
 
   Ela passa o manifesto gravado com BOM e a foto reprovada que repete o id de uma aprovada em outro patrimônio (RN-04). Os problemas de campo de uma foto saem de uma vez, e a mesma foto aprovada duas vezes no mesmo patrimônio só conta como duas aprovadas. Sem manifesto aprovado, todas as fotos aprovadas vão para a lista de envio, em ordem alfabética (RN-06). Pela linha de comando, um `--approved` que não existe ou que é uma pasta sai com 2, sem lista.
+- CA-13 — Com um `fetch` de mentira e uma chave fictícia num `.env` de teste:
+  - o download vem de `images.pexels.com` sem a chave, e nem a busca nem o download seguem redirecionamento;
+  - um download em http, com porta, com usuário na URL ou com URL inválida falha antes de sair, com o motivo (RN-18);
+  - um 401 no download não culpa a chave, e o 429 cita os limites do RN-18;
+  - um 500, uma resposta que não é JSON e um corpo cortado no meio saem como erro do Pexels, sem a chave;
+  - o módulo de entrada lê só a `PEXELS_API_KEY`, do `.env.local` da raiz, por `util.parseEnv`, e impressa ou em JSON a chave mostra só o nome;
+  - o arquivo ausente, a chave vazia e a chave fora do ASCII visível dão mensagem própria, sem o valor (RN-19);
+  - pelo ESLint do projeto e por uma varredura do código, fora do `pexels.ts` nenhum arquivo da skill usa o `fetch`, outro cliente de rede ou processo filho, e só o `pexels.ts` tira a chave do `ApiKey`.
 
 ## Fora de escopo / não decidido
 

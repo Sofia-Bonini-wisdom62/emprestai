@@ -1,7 +1,7 @@
 # 004 — Solicitar empréstimo
 
 Status: aprovada
-Atualizada em: 2026-11-12
+Atualizada em: 2026-11-13
 
 ## Objetivo
 
@@ -50,7 +50,7 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - RN-11 — Cada equipamento é uma unidade física, identificada pelo patrimônio. Origem: resposta 1.
 - RN-12 — O catálogo (`/catalog`) lista os equipamentos da área da sessão. Cada card mostra a foto em 4:3 no topo, o nome, a linha "categoria · patrimônio" e a pill da situação; o ícone da categoria só aparece em equipamento sem imagem. Origem: briefing, item 1; respostas 12 e 46; `docs/layout.md`, seção 5, card de equipamento.
 - RN-13 — A última linha do card segue o `docs/layout.md`: "Ver e solicitar" no disponível; "Com <nome>" e "Volta até dd/mm" no emprestado; "Em manutenção" no item em manutenção, que aparece sem a opção de pedir. Origem: respostas 14, 16 e 47.
-- RN-14 — A página do catálogo e a do detalhe mostram "Fotos: Pexels", com link para `https://www.pexels.com`. Origem: contrato da skill, "Crédito na tela", exigido pelas diretrizes da API do Pexels; decisão da pessoa de 2026-11-11, registrada na spec 002, "Fora de escopo"; resposta 47. Contraria o item 9 do briefing ("sem rodapé nem texto de crédito").
+- RN-14 — A página do catálogo e a do detalhe mostram "Fotos: Pixabay", com link para `https://pixabay.com`. Origem: contrato da skill, "Crédito na tela"; decisão da pessoa de 2026-11-11, registrada na spec 002, "Fora de escopo", de manter o crédito; resposta 47; decisão da pessoa de 2026-11-13 ("Confirmo a troca"), tomada depois de o Pexels pausar a emissão de chaves, que troca a fonte das fotos do Pexels pelo Pixabay e, com ela, o texto e o link do crédito. As fotos continuam servidas do nosso bucket, nunca do Pixabay, então a CSP do RN-26 não muda. Contraria o item 9 do briefing ("sem rodapé nem texto de crédito").
 - RN-15 — Solicitar fica no detalhe (`/catalog/[equipmentId]`), no card "Solicitar empréstimo", que mostra "Devolver até dd/mm/aaaa" e "Retire no balcão de Operações". O pedido passa por um diálogo de confirmação com a data prevista, o local e a contagem resultante ("depois deste, você fica com N de 3 itens"). O detalhe mostra a foto na área de imagem, o nome, a pill, a categoria e o patrimônio. Origem: `docs/layout.md`, seção 6, tela 3, e seção 7.1; respostas 44 e 46.
 - RN-16 — Item que não está disponível mostra a situação no lugar do botão: "Com <nome> · volta até dd/mm/aaaa" no emprestado e "Em manutenção. Não pode ser pedido agora." no item em manutenção. No limite ou com atraso, o botão fica desabilitado com o motivo do RN-10 ao lado. Origem: `docs/layout.md`, seção 6, tela 3; respostas 14 e 16.
 - RN-17 — Depois de confirmar, a pessoa vai para `/my-loans`, com o aviso de resultado "Empréstimo confirmado. Retire o item no balcão de Operações e devolva até dd/mm/aaaa.". Origem: `docs/layout.md`, seção 7.1; resposta 44; decisão de 2026-11-12.
@@ -75,7 +75,7 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
 - CA-05 — Dado o TI-0005 `available`, e Beatriz e Enzo Paiva sem empréstimo, quando os dois chamam `loan.create` para o TI-0005 em transações simultâneas, então exatamente uma cria o empréstimo, a outra falha com `EQUIPMENT_UNAVAILABLE`, e o banco tem um único empréstimo em aberto do TI-0005. Contra o Postgres do Testcontainers, sem mock.
 - CA-06 — Dado Beatriz com 2 empréstimos em aberto, quando ela pede o TI-0005 e o TI-0006, os dois `available`, em transações simultâneas, então exatamente um pedido passa, o outro falha com `LOAN_LIMIT_REACHED`, e ela termina com 3 empréstimos em aberto.
 - CA-07 — Dado um empréstimo em aberto do TI-0005, quando um `INSERT` direto em `loans` cria outro em aberto para o TI-0005, então o banco recusa pelo índice único parcial.
-- CA-08 — Dado o banco com os 12 equipamentos da spec 003, quando Beatriz abre `/catalog`, então vê 12 cards, cada um com a foto carregada da URL do RN-24 (no E2E, a do servidor de teste), o nome, "categoria · patrimônio" e a pill da situação, e a página mostra o link "Fotos: Pexels" para `https://www.pexels.com`. O detalhe de qualquer um deles também mostra a foto e o crédito.
+- CA-08 — Dado o banco com os 12 equipamentos da spec 003, quando Beatriz abre `/catalog`, então vê 12 cards, cada um com a foto carregada da URL do RN-24 (no E2E, a do servidor de teste), o nome, "categoria · patrimônio" e a pill da situação, e a página mostra o crédito "Fotos: Pixabay", com o link "Pixabay" para `https://pixabay.com`. O detalhe de qualquer um deles também mostra a foto e o crédito.
 - CA-09 — Dado o TI-0001 emprestado a Beatriz com data prevista 26/11/2026, quando Enzo abre `/catalog`, então o card do TI-0001 mostra a pill "Emprestado", "Com Beatriz Fontes" e "Volta até 26/11"; e o detalhe mostra "Com Beatriz Fontes · volta até 26/11/2026" no lugar do botão.
 - CA-10 — Dado Beatriz com dois empréstimos em aberto e Enzo com um, quando ela abre `/my-loans`, então vê só os dois dela, cada um com nome, patrimônio e data prevista, sem botão "Devolver", e o header mostra "Você está com 2 de 3 itens". Sem empréstimo, a tela mostra "Você não está com nenhum item" e o link para o catálogo.
 - CA-11 — Dado Flávia Rocha, `operations` na `default`, sem empréstimo, quando ela entra, então cai em `/operations/loans`; pelo link "Catálogo" do header chega a `/catalog` e solicita o TI-0002 como no CA-01, sob o mesmo limite do CA-03.
@@ -113,13 +113,13 @@ Pessoas são as do `docs/layout.md`, seção 10, e equipamentos os da spec 003; 
 ## Contrato afetado
 
 - Endpoint:
-  - `equipment.list` — novo, `tenantProcedure`. Input `{ cursor?: uuid, limit?: 1..24 }`, estrito; devolve `{ items, nextCursor }` (RN-25), só com equipamentos da área. Cada item traz id, patrimônio, nome, categoria, situação, URL pública da imagem e, se emprestado, o nome de quem está com ele e a data prevista.
+  - `equipment.list` — novo, `tenantProcedure`. Input `{ cursor?: uuid, limit?: 1..24, direction?: "forward" | "backward" }`, estrito (a direção é a que o `useInfiniteQuery` do tRPC manda, e o service a ignora); devolve `{ items, nextCursor }` (RN-25), só com equipamentos da área. Cada item traz id, patrimônio, nome, categoria, situação, URL pública da imagem e, se emprestado, o nome de quem está com ele e a data prevista.
   - `equipment.byId` — novo, `tenantProcedure`. Input `{ equipmentId: uuid }`, estrito. O mesmo formato. Equipamento de outra área é `NOT_FOUND`.
   - `loan.create` — novo, mutação `tenantProcedure`. Input `{ equipmentId: uuid }`, estrito. Devolve o empréstimo com a data prevista, ou falha com um dos códigos do RN-10 ou `NOT_FOUND`.
   - `loan.listMine` — novo, `tenantProcedure`, `.input(z.void())`. Os empréstimos em aberto da pessoa, a contagem, o limite e se há atraso, que o header, o detalhe e o quadro de bloqueio usam.
 - Service: `src/server/services/loan.ts` e `src/server/services/equipment.ts`, novos. RN-03 a RN-09 moram no service, nunca no router nem na tela.
 - Tela:
-  - `/catalog` — deixa de ser provisória: grid de cards e o crédito do Pexels;
+  - `/catalog` — deixa de ser provisória: grid de cards e o crédito do Pixabay;
   - `/catalog/[equipmentId]` — nova: foto, ficha, card "Solicitar empréstimo", diálogo de confirmação e crédito;
   - `/my-loans` — nova: "Itens com você", sem "Devolver";
   - header — ganha o contador e os links "Catálogo" e "Meus empréstimos";

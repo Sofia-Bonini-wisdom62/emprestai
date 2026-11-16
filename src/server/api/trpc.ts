@@ -38,7 +38,24 @@ export type Context = {
   // Quando a sessão entrou pelo link do e-mail, em segundos, ou null se entrou
   // com senha; dá o prazo da senha nova no account.setup (RN-59).
   linkEntryAt?: number | null;
+  // A base pública das fotos (spec 004, RN-24). Só o teste a troca pela sua.
+  equipmentImagesBaseUrl?: string | null;
+  // O relógio do pedido de empréstimo: dá a data prevista e o atraso (spec 004, RN-04 e RN-05).
+  // Só o teste o troca pelo seu.
+  now?: () => Date;
 };
+
+// A recusa de uma regra de negócio, com o código que a tela lê em error.data.reason (ADR-001,
+// 2.3: "TRPCError com código, tratado por errorFormatter"). A mensagem é a que a pessoa vê.
+export class DomainRefusal extends Error {
+  constructor(
+    readonly reason: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "DomainRefusal";
+  }
+}
 
 export const envRateLimitRules = rateLimitRulesFrom(serverEnv);
 
@@ -89,10 +106,26 @@ export async function createContext(
     passwordReset: createPasswordResetAuth(),
     ip: opts?.req ? clientIp(opts.req.headers) : null,
     rateLimitRules: envRateLimitRules,
+    equipmentImagesBaseUrl: serverEnv.EQUIPMENT_IMAGES_BASE_URL ?? null,
   };
 }
 
-const t = initTRPC.context<Context>().create({ transformer: superjson });
+// Põe o código da recusa em data.reason, e null em todo outro erro.
+export function formatError<Shape extends { data: object }>({
+  shape,
+  error,
+}: {
+  shape: Shape;
+  error: { cause?: unknown };
+}) {
+  const reason = error.cause instanceof DomainRefusal ? error.cause.reason : null;
+  return { ...shape, data: { ...shape.data, reason } };
+}
+
+const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+  errorFormatter: formatError,
+});
 
 export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;

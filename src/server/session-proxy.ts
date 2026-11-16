@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { equipmentImagesOrigin } from "@/env/images";
 import { runtimeEnv } from "@/env/runtime";
 import {
   type AuthConfig,
@@ -42,6 +43,7 @@ export async function handleSession(
   const policy = contentSecurityPolicy(createNonce(), {
     development: runtimeEnv.nextDev,
     https: request.nextUrl.protocol === "https:",
+    imagesOrigin: equipmentImagesOrigin,
   });
   request.headers.set("content-security-policy", policy);
 

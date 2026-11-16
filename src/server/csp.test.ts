@@ -31,6 +31,23 @@ describe("contentSecurityPolicy em produção", () => {
   });
 });
 
+describe("contentSecurityPolicy com as fotos do bucket", () => {
+  it("ca_08 sem a base das fotos, o img-src fica só com o próprio domínio", () => {
+    const policy = contentSecurityPolicy("bm9uY2U=", { development: false, https: true });
+    expect(directive(policy, "img-src")).toBe("img-src 'self' blob: data:");
+  });
+
+  it("ca_08 com a base das fotos, o img-src ganha só a origem dela", () => {
+    const policy = contentSecurityPolicy("bm9uY2U=", {
+      development: false,
+      https: true,
+      imagesOrigin: "https://exemplo.supabase.co",
+    });
+    expect(directive(policy, "img-src")).toBe("img-src 'self' blob: data: https://exemplo.supabase.co");
+    expect(directive(policy, "default-src")).toBe("default-src 'self'");
+  });
+});
+
 describe("contentSecurityPolicy no next dev", () => {
   const policy = contentSecurityPolicy("bm9uY2U=", { development: true, https: false });
 

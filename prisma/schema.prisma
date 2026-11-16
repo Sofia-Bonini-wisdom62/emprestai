@@ -29,6 +29,8 @@ model Tenant {
   memberships         Membership[]
   equipmentCategories EquipmentCategory[]
   equipments          Equipment[]
+  loans               Loan[]
+  auditEvents         AuditEvent[]
 
   @@map("tenants")
 }
@@ -41,6 +43,7 @@ model Membership {
   role      MembershipRole
   createdAt DateTime       @default(now()) @map("created_at")
   tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  loans     Loan[]
 
   @@unique([tenantId, userId])
   @@index([userId])
@@ -102,8 +105,49 @@ model Equipment {
   createdAt   DateTime          @default(now()) @map("created_at")
   tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   category    EquipmentCategory @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
+  loans       Loan[]
 
   @@unique([tenantId, assetTag])
+  // Alvo da FK composta de loans: o empréstimo é sempre da mesma área do equipamento (spec 004).
+  @@unique([tenantId, id])
   @@index([categoryId])
   @@map("equipments")
+}
+
+// Empréstimo (spec 004). O índice único parcial "loans_equipment_id_open_key", um empréstimo em
+// aberto por equipamento (RN-09), está só no SQL da migration: o Prisma não modela índice parcial.
+model Loan {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String     @map("tenant_id") @db.Uuid
+  equipmentId String     @map("equipment_id") @db.Uuid
+  // Id da conta no Supabase Auth, sem FK para auth.users (spec 001, RN-18); a FK composta é com
+  // memberships, para quem pega o item ter vínculo na área.
+  userId      String     @map("user_id") @db.Uuid
+  // A confirmação do pedido (RN-01).
+  createdAt   DateTime   @default(now()) @map("created_at")
+  // Data prevista de devolução, no calendário de America/Sao_Paulo (RN-04).
+  dueOn       DateTime   @map("due_on") @db.Date
+  returnedAt  DateTime?  @map("returned_at")
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  equipment   Equipment  @relation(fields: [tenantId, equipmentId], references: [tenantId, id], onDelete: Restrict)
+  membership  Membership @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: Restrict)
+
+  @@index([tenantId, userId])
+  @@map("loans")
+}
+
+// Auditoria append-only (ADR-001, 2.10; ADR-010; spec 004, RN-22). O trigger que recusa UPDATE,
+// DELETE e TRUNCATE está no SQL da migration.
+model AuditEvent {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  actorUserId  String   @map("actor_user_id") @db.Uuid
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String   @map("resource_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, createdAt])
+  @@map("audit_events")
 }
