@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Aceito em 2026-11-12, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), na revisão da spec 003 ("Aprovo os dois") |
+| Status | Aceito em 2026-11-12, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade), na revisão da spec 003 ("Aprovo os dois"). Trecho substituído pelo [ADR-014](014-equipment-without-image.md), em 2026-11-16: da seção 2, as linhas "O que grava" e "Dado inválido", no que tratam da foto (patrimônio sem foto aprovada grava a imagem nula) |
 | Data | 2026-11-12 |
 | Turma | B |
 | Vínculo | [`docs/perguntas-prd.md`](../perguntas-prd.md), resposta 34; [`docs/specs/003-seed-data/spec.md`](../specs/003-seed-data/spec.md), RN-07 e RN-12; [ADR-009](009-production-first-admin.md); [ADR-011](011-equipment-images.md) |
