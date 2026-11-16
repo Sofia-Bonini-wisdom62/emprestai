@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { BlockedNotice } from "@/components/equipment/blocked-notice";
-import { PhotoCredit } from "@/components/equipment/photo-credit";
 
 import { currentLoans } from "../current-loans";
 import { CatalogGrid } from "./catalog-grid";
@@ -20,7 +19,6 @@ export default async function CatalogPage() {
       <h1 className="text-[28px]/9 font-semibold">Catálogo</h1>
       {loans?.hasOverdue ? <BlockedNotice /> : null}
       <CatalogGrid />
-      <PhotoCredit />
     </div>
   );
 }
