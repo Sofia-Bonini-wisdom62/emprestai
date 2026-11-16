@@ -19,7 +19,7 @@ A troca de 2026-11-13 pôs o Pixabay no lugar do Pexels depois da T-04. A T-04 �
 - [x] T-05 — Busca, download, conferência de origem e folha de contato: `scripts/search.ts`, com o cache de 24 h, `scripts/download.ts`, com o recorte do `sharp`, o `--origin` do `scripts/check.ts`, com a recusa da foto aprovada de nome já aprovado que difere da entrada aprovada (RN-20), e `scripts/contact-sheet.ts`, com fixtures. Instala o `sharp`, aprovado pela pessoa na troca de 2026-11-13, em `devDependencies` e na versão exata 0.35.5, como ela aceitou nas escolhas do #56, e confere no diff do lockfile que nenhum pacote novo entrou
       CA: CA-04, CA-05, CA-14
       Verifica: `pnpm test` com `ca_04`, `ca_05` e `ca_14`, sobre uma resposta de busca fictícia do Pixabay e JPEG gerados no teste, sem rede; o diff do lockfile sem pacote acrescentado nem removido em `packages` e em `snapshots`: só o `sharp` nas `devDependencies` do importador da raiz e, se o pnpm a tirar, a marca `optional` do `sharp` e das dependências que só ele usa
-- [ ] T-06 — `SKILL.md`, os quatro `references/` e `prisma/data/equipment.json`
+- [x] T-06 — `SKILL.md`, os quatro `references/` e `prisma/data/equipment.json`
       CA: CA-08 (a parte da lista)
       Verifica: `pnpm test` com `ca_08` na lista dos 12; o passo 0 do `SKILL.md` rodado uma vez, com zero ferramentas de escrita encontradas nos quatro servidores negados; o `SKILL.md` só gera a folha de contato depois de o `check.ts --files <pasta> --origin` sair com 0 (RN-09 e RN-20)
 - [ ] T-07 — Rodada real com a chave da pessoa: buscar, escolher, revisar, folha de contato e PARAR; com a aprovação, `prisma/data/equipment-images.json`. Usa a chave do Pixabay da pessoa, que ela já tem
