@@ -521,6 +521,11 @@ proposta do agente entre as alternativas que ele levou, e viram RN na spec
     em 800×600. A versão exata e o `devDependencies` também foram aceitos
     por ela ("Aceito todas", no #56; ADR-011). O carregamento desta entrega continua sem usá-lo: grava o nome
     do objeto cuja foto a spec 002 já conferiu.
+    substituído em parte: o trecho "o carregamento só grava patrimônio cuja
+    foto passou nessa conferência" deixou de valer em 2026-11-16, pela
+    decisão da pessoa "segue sem imagem por enquanto... retome tudo" e pela
+    escolha "Opção (a)". O patrimônio sem foto aprovada grava a imagem nula
+    (spec 003, RN-17; ADR-014). A parte do `sharp` continua.
     vira RN em: dados iniciais.
 
 38. Quais campos o equipamento tem nesta spec, e os créditos da foto ficam no

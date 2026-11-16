@@ -20,6 +20,12 @@ O plano e as cinco propostas foram aprovados pela pessoa em 2026-11-12. Nenhuma 
 - [x] T-06 — `/catalog/[equipmentId]` com a foto, a ficha, o card "Solicitar empréstimo", `alert-dialog.tsx` do shadcn/ui, o quadro de bloqueio e o destino `/my-loans` com o aviso
       CA: CA-01, CA-02, CA-03, CA-04, CA-08 (o detalhe), CA-09, CA-11, CA-13 (a tela)
       Verifica: `pnpm test:e2e` com `ca_01` (confirmar leva a `/my-loans` e o item passa a emprestado; o aviso de resultado é conferido na T-07, que cria a tela), `ca_02` (o texto de manutenção no lugar do botão), `ca_03` (o motivo ao lado do botão desabilitado e o aviso de completar o limite), `ca_04` (o quadro de bloqueio), `ca_08` (a foto e o crédito no detalhe), `ca_09`, `ca_11` (Flávia cai em `/operations/loans`, chega ao catálogo pelo header e solicita o TI-0002) e `ca_13` (o detalhe sem sessão vai para `/login`); `e2e/csp.e2e.ts` sem bloqueio no detalhe
-- [ ] T-07 — `/my-loans` com "Itens com você", sem "Devolver", e o estado vazio
+- [x] T-07 — `/my-loans` com "Itens com você", sem "Devolver", e o estado vazio
       CA: CA-01 (o aviso), CA-10, CA-13 (a tela)
       Verifica: `pnpm test:e2e` com `ca_01` (o aviso "Empréstimo confirmado. Retire o item no balcão de Operações e devolva até dd/mm/aaaa." depois de confirmar), `ca_10` (só os empréstimos de Beatriz, com nome, patrimônio e data, e o estado vazio) e `ca_13` (`/my-loans` sem sessão vai para `/login`)
+- [x] T-08 — Correções da rodada 1 do `verificador-spec` (decisão da verificação, de 2026-11-13): o CA-12 conferido nas recusas do `ca_04` e do `ca_06`; o aviso de `/my-loans` só com empréstimo de verdade; e os casos do item fora de uso no detalhe e da pill de atraso em Meus empréstimos
+      CA: CA-12, CA-16, CA-17
+      Verifica: `pnpm test` com `ca_04` e `ca_06` conferindo zero linhas novas em `audit_events` depois da recusa; `pnpm test:e2e` com `ca_16` (`/my-loans?confirmado=2030-01-01` sem o aviso) e `ca_17` (a pill "Em atraso" e o detalhe do item fora de uso)
+- [x] T-09 — Catálogo e detalhe sem foto (decisão de 2026-11-16): o crédito só com foto na página, e o teste do card e do detalhe sem a base das fotos
+      CA: CA-18
+      Verifica: `pnpm test` com `ca_18`, que monta o card, a foto e o crédito com `react-dom/server`, sem dependência nova, com e sem `imageUrl`. O E2E sobe sempre o servidor de fotos, então a tela sem foto se prova pela montagem dos componentes

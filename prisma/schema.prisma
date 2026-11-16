@@ -100,8 +100,9 @@ model Equipment {
   name        String
   categoryId  String            @map("category_id") @db.Uuid
   status      EquipmentStatus
-  // Nome do objeto no bucket equipment-images, <patrimonio>-<idPixabay>.jpg (spec 003, RN-04).
-  imageObject String            @map("image_object")
+  // Nome do objeto no bucket equipment-images, <patrimonio>-<idPixabay>.jpg, ou nulo enquanto não
+  // há foto aprovada (spec 003, RN-04 e RN-17; ADR-014).
+  imageObject String?           @map("image_object")
   createdAt   DateTime          @default(now()) @map("created_at")
   tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   category    EquipmentCategory @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)

@@ -40,13 +40,15 @@ type EquipmentRow = {
   assetTag: string;
   name: string;
   status: EquipmentStatus;
-  imageObject: string;
+  imageObject: string | null;
   category: { name: string };
   loans: { userId: string; dueOn: Date }[];
 };
 
-export function imageUrlFor(baseUrl: string | null, imageObject: string): string | null {
-  if (!baseUrl) return null;
+// Sem a base das fotos (spec 004, RN-24) ou sem foto aprovada (spec 003, RN-17; ADR-014), não há
+// URL, e a tela mostra o ícone da categoria (spec 004, RN-12).
+export function imageUrlFor(baseUrl: string | null, imageObject: string | null): string | null {
+  if (!baseUrl || !imageObject) return null;
   return `${baseUrl.replace(/\/+$/, "")}/${encodeURIComponent(imageObject)}`;
 }
 
