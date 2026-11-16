@@ -47,7 +47,8 @@ Para a pessoa pôr, à mão, no `.github/workflows/production.yml`, entre o pass
       # Categorias e equipamentos iniciais na área default (ADR-013 e ADR-014). Roda a cada
       # deploy, depois do passo do ADR-009, que cria a default: cria o que falta e, no que já
       # existe, só troca a imagem. Dado inválido em prisma/data/ falha o passo, e o deploy não
-      # sai. O secret só existe neste passo.
+      # sai. Reexecutar uma rodada antiga regrava a imagem com o manifesto daquele commit; o
+      # deploy seguinte da main corrige. O secret só existe neste passo.
       - name: Carrega as categorias e os equipamentos iniciais
         run: node --import ./prisma/resolve-ts.mjs prisma/load-equipment.ts
         env:

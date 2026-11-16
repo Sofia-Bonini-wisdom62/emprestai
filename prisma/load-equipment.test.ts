@@ -194,6 +194,7 @@ describe("o passo de produção dos equipamentos iniciais (ADR-013)", { timeout:
       () => [writeJson("repetida.json", [...list, list[0]])],
       "o patrimônio TI-0001 se repete",
     ],
+    ["um manifesto que existe e traz null", () => [LIST_PATH, writeJson("manifesto-null.json", null)], "traz null"],
     [
       "um manifesto que não passa na conferência da spec 002",
       () => [LIST_PATH, writeJson("manifesto-invalido.json", { photos: [{ assetTag: "TI-0001" }] })],

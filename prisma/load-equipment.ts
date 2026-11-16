@@ -43,15 +43,26 @@ if (!databaseUrl) {
   throw new Error("Falta DIRECT_URL: o passo precisa da URL do banco que o workflow passa");
 }
 
-const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl, max: 1 }) });
+// O carregamento é uma transação só, com cerca de 30 consultas na primeira rodada, e o runner
+// fala com o banco de outra região. Os 5 s que o Prisma dá por padrão ficam no limite, e a folga
+// vale só para este passo: o teto continua sendo o timeout-minutes do job.
+const db = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: databaseUrl, max: 1 }),
+  transactionOptions: { maxWait: 10_000, timeout: 30_000 },
+});
 
 try {
   const list = readJson(listPath);
   if (list === undefined) {
     throw new EquipmentDataError([`a lista de equipamentos não existe em ${listPath}`]);
   }
-  // Sem o arquivo, não há manifesto aprovado: o carregamento grava sem foto (RN-17).
-  const manifest = readJson(manifestPath) ?? null;
+  // Sem o arquivo, não há manifesto aprovado: o carregamento grava sem foto (RN-17). O arquivo
+  // que existe e traz null não é "sem manifesto": é um manifesto que não passa (RN-08).
+  const manifestFile = readJson(manifestPath);
+  if (manifestFile === null) {
+    throw new EquipmentDataError([`manifesto: ${manifestPath} traz null, e não as fotos`]);
+  }
+  const manifest = manifestFile ?? null;
 
   const result = await loadEquipmentData(db, list, manifest);
 
