@@ -1,12 +1,16 @@
 // Seed do dev e da pilha do E2E (spec 001, T-04; ADR-005): a área default e a conta fictícia de
-// Operações. Idempotente: rodar de novo não duplica nada (CA-13). Nunca roda em produção: lá, a
-// default e o primeiro administrador vêm do passo do workflow (ADR-009). Roda fora do Next e lê o
-// ambiente direto, pela exceção de rules/secrets.md: só a chave do Auth da máquina, para conta de teste.
+// Operações, e os equipamentos iniciais de prisma/data/ (spec 003, T-04; RN-11). Idempotente:
+// rodar de novo não duplica nada (CA-13 da 001 e CA-07 da 003). Nunca roda em produção: lá, a
+// default e o primeiro administrador vêm do passo do ADR-009, e os equipamentos, do passo do
+// ADR-013. Roda fora do Next e lê o ambiente direto, pela exceção de rules/secrets.md: só a chave
+// do Auth da máquina, para conta de teste.
 import { PrismaPg } from "@prisma/adapter-pg";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { PrismaClient } from "../src/generated/prisma/client";
 import { DEFAULT_TENANT, upsertDefaultTenant } from "./default-tenant";
+import { loadEquipmentData } from "./equipment-data";
+import { readEquipmentFiles } from "./equipment-files";
 
 // A pessoa fictícia da spec 001 (CA-02), num domínio reservado para exemplo.
 const OPERATIONS_ACCOUNT = { email: "flavia.rocha@example.com", name: "Flávia Rocha" };
@@ -109,8 +113,16 @@ async function main() {
       create: { tenantId: tenant.id, userId, role: "operations" },
     });
 
+    // O mesmo carregamento do passo de produção, depois da área e da conta: cria o que falta e,
+    // no que já existe, só troca a imagem. Sem o manifesto aprovado, grava sem foto (RN-17).
+    const { list, manifest } = readEquipmentFiles();
+    const equipment = await loadEquipmentData(db, list, manifest);
+
     console.log(
       `Seed: área ${DEFAULT_TENANT.slug} e ${OPERATIONS_ACCOUNT.name} (${OPERATIONS_ACCOUNT.email}) em Operações`,
+    );
+    console.log(
+      `Seed: equipamentos iniciais na área ${DEFAULT_TENANT.slug}: ${equipment.created} criados, ${equipment.imageUpdated} com a imagem trocada, ${equipment.withoutImage} sem foto`,
     );
   } finally {
     await db.$disconnect();
