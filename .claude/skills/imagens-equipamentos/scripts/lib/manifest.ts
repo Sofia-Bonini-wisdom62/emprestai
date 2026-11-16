@@ -204,6 +204,29 @@ export function missingAssetTags(approved: Manifest, next: Manifest): string[] {
     .map((assetTag) => `o patrimônio ${assetTag} tem foto aprovada no manifesto aprovado e ficou de fora do manifesto novo (RN-16)`);
 }
 
+// O valor em texto, com as chaves dos objetos em ordem: a mesma licença ou o mesmo veredito com
+// as chaves em outra ordem não contam como mudança.
+const stable = (value: unknown) =>
+  JSON.stringify(value, (_, inner: unknown) => (isRecord(inner) ? Object.fromEntries(Object.entries(inner).sort()) : inner));
+
+// RN-20: a foto aprovada cujo nome de objeto já está aprovado no manifesto aprovado vem igual,
+// campo a campo, à entrada de lá. Ela não volta a ser conferida pela origem, porque a URL pode
+// ter expirado; assim, nenhuma mudança nela passa sem aviso.
+export function changedApproved(approved: Manifest, next: Manifest): string[] {
+  const before = new Map(approvedPhotos(approved).map((photo) => [photo.objectName, photo]));
+  return approvedPhotos(next)
+    .flatMap((photo) => {
+      const old = before.get(photo.objectName);
+      if (!old) return [];
+      const keys = [...new Set([...Object.keys(old), ...Object.keys(photo)])].sort();
+      const changed = keys.filter((key) => stable(old[key as keyof Photo]) !== stable(photo[key as keyof Photo]));
+      return changed.length > 0
+        ? [`a foto aprovada ${photo.objectName} difere da entrada do manifesto aprovado, em ${changed.join(", ")} (RN-20)`]
+        : [];
+    })
+    .sort();
+}
+
 // RN-06: comparado ao manifesto aprovado, o que o manifesto novo põe no bucket e o que tira.
 // Repetir o processo com as mesmas fotos deixa as duas listas vazias.
 export function objectLists(approved: Manifest, next: Manifest) {
