@@ -1,8 +1,9 @@
 // O carregamento dos equipamentos iniciais (spec 003, T-02). A lista é fictícia, no formato da lista
-// da prática, para a lista real continuar com uma fonte só (spec 002, RN-10); o caso ca_01 sobre
-// prisma/data/equipment.json entra depois da T-06 da spec 002 (plano, passo 2). Cada caso usa uma
-// área própria: o first-admin.test.ts cria e apaga a default no mesmo banco.
+// da prática, para a lista real continuar com uma fonte só (spec 002, RN-10); um caso ca_01 lê a
+// lista real, de prisma/data/equipment.json, sem copiá-la para cá (plano, passo 2). Cada caso usa
+// uma área própria: o first-admin.test.ts cria e apaga a default no mesmo banco.
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import { afterAll, describe, expect, inject, it } from "vitest";
 
@@ -97,6 +98,54 @@ describe("loadEquipmentData", () => {
       ["TI-0003", "TI-0003-333.jpg"],
       ["TI-0004", null],
     ]);
+  });
+
+  // A lista da prática, a mesma que o seed e o passo de produção carregam. O esperado sai do
+  // próprio arquivo, e as contagens, do CA-01.
+  it("ca_01 com prisma/data/equipment.json, grava os 12 da prática, 9 disponíveis e 3 em manutenção, sem foto", async () => {
+    const tenant = await createArea();
+    const categoryOf = { notebook: "Notebooks", monitor: "Monitores", cabo: "Cabos", camera: "Câmeras" };
+    const statusOf = { disponivel: "available", manutencao: "maintenance" };
+    const practice = JSON.parse(readFileSync("prisma/data/equipment.json", "utf8")) as {
+      patrimonio: string;
+      nome: string;
+      categoria: keyof typeof categoryOf;
+      situacao: keyof typeof statusOf;
+    }[];
+
+    const result = await loadEquipmentData(db, practice, null, tenant.slug);
+
+    expect(result).toEqual({ created: 12, imageUpdated: 0, withoutImage: 12 });
+    const categories = await db.equipmentCategory.findMany({ where: { tenantId: tenant.id } });
+    expect(categories.map((category) => category.name).sort()).toEqual([...CATEGORY_NAMES].sort());
+
+    const rows = await equipmentsOf(tenant.id);
+    expect(rows.map((row) => row.assetTag)).toEqual(
+      Array.from({ length: 12 }, (_, n) => `TI-${String(n + 1).padStart(4, "0")}`),
+    );
+    expect(
+      rows.map((row) => ({
+        assetTag: row.assetTag,
+        name: row.name,
+        category: row.category.name,
+        status: row.status,
+        imageObject: row.imageObject,
+      })),
+    ).toEqual(
+      practice.map((item) => ({
+        assetTag: item.patrimonio,
+        name: item.nome,
+        category: categoryOf[item.categoria],
+        status: statusOf[item.situacao],
+        imageObject: null,
+      })),
+    );
+    expect(rows.filter((row) => row.status === "maintenance").map((row) => row.assetTag)).toEqual([
+      "TI-0004",
+      "TI-0007",
+      "TI-0010",
+    ]);
+    expect(rows.filter((row) => row.status === "available")).toHaveLength(9);
   });
 
   it("ca_05 a foto do manifesto para um patrimônio fora da lista é ignorada, sem recusa", async () => {
