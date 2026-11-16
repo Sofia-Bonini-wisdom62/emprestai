@@ -2,7 +2,7 @@
 
 ## Rodada 1 — 2026-11-13
 
-HEAD verificado: `210b2db`, na branch `feat/004-t07-my-loans`.
+HEAD: 210b2db (branch `feat/004-t07-my-loans`)
 
 | CA | evidência (arquivo:linha do teste) | status | observação |
 |---|---|---|---|
@@ -43,7 +43,7 @@ Os arquivos citados ficam todos na worktree C:\Users\SOFIAP~1\AppData\Local\Temp
 
 ## Rodada 2 — 2026-11-16
 
-HEAD verificado: `ff404b4`, na branch `feat/004-t07-my-loans`.
+HEAD: ff404b4 (branch `feat/004-t07-my-loans`)
 
 | CA | evidência (arquivo:linha do teste) | status | observação |
 |---|---|---|---|
@@ -94,7 +94,7 @@ O trace da falha está em C:\Users\SOFIAP~1\AppData\Local\Temp\claude\a1621f5565
 
 ## Rodada 3 — 2026-11-16
 
-HEAD verificado: `5691596`, na branch `feat/004-t07-my-loans`.
+HEAD: 5691596 (branch `feat/004-t07-my-loans`)
 
 | CA | evidência (arquivo:linha do teste) | status | observação |
 |---|---|---|---|

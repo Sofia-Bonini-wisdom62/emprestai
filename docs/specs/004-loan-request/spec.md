@@ -1,7 +1,7 @@
 # 004 — Solicitar empréstimo
 
-Status: aprovada
-Atualizada em: 2026-11-13
+Status: implementada
+Atualizada em: 2026-11-16
 
 ## Objetivo
 
