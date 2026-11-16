@@ -103,7 +103,8 @@ Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, q
 - Script: um script versionado em `prisma/`, com o Prisma Client, que o seed e o passo de produção usam. O nome fica com a tarefa que implementa, como no ADR-009.
 - Workflow: `.github/workflows/production.yml` ganha o passo do RN-12. O agente prepara o texto, e a pessoa aplica, à mão.
 - Rule: `rules/secrets.md` ganha, ao lado da do ADR-009, a exceção do script do passo de produção, que lê só a URL do banco que o workflow lhe passa (ADR-013, seção 2).
-- Glossário: o `AGENTS.md`, seção 7, ganha patrimônio como `asset_tag` e categoria como `category`.
+- Glossário: o `AGENTS.md`, seção 7, ganha patrimônio como `assetTag` e categoria como `category`. A coluna é `asset_tag`, e o campo do Prisma, `assetTag` (decisão da pessoa de 2026-11-12, "Mantém e fiz o merge").
+- Imagem: o manifesto da spec 002 chama o nome do objeto de `objectName`, e o equipamento, de `imageObject` (coluna `image_object`). Os dois nomes ficam, e o carregamento faz o mapeamento explícito, com teste (mesma decisão).
 - **Não pode mudar:**
   - o seed continua recusando banco e Auth fora da máquina e continua sem rodar em produção;
   - o passo do ADR-009, a área `default` e a conta de Flávia Rocha do seed;
