@@ -100,7 +100,7 @@ model Equipment {
   name        String
   categoryId  String            @map("category_id") @db.Uuid
   status      EquipmentStatus
-  // Nome do objeto no bucket equipment-images, <patrimonio>-<idPexels>.jpg (spec 003, RN-04).
+  // Nome do objeto no bucket equipment-images, <patrimonio>-<idPixabay>.jpg (spec 003, RN-04).
   imageObject String            @map("image_object")
   createdAt   DateTime          @default(now()) @map("created_at")
   tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)

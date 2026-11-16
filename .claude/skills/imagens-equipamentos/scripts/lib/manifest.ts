@@ -4,22 +4,25 @@
 // do arquivo e o veredito. O manifesto aprovado vai para prisma/data/equipment-images.json,
 // que o seed lê (RN-10).
 
-export const LICENSE = { name: "Pexels License", url: "https://www.pexels.com/license/" };
+export const LICENSE = { name: "Pixabay Content License", url: "https://pixabay.com/service/license-summary/" };
 
 export type Verdict = "approved" | "rejected";
 
 export type Photo = {
   // O patrimônio do equipamento, como TI-0001.
   assetTag: string;
-  pexelsId: number;
-  // <patrimônio>-<id do Pexels>.jpg, o nome do objeto no bucket (RN-06).
+  pixabayId: number;
+  // <patrimônio>-<id do Pixabay>.jpg, o nome do objeto no bucket (RN-06).
   objectName: string;
-  // O crédito (RN-05): a página da foto no Pexels, o fotógrafo, a página dele e a licença.
+  // O crédito (RN-05): a página da foto no Pixabay (pageURL), o autor (user), a página dele e a
+  // licença. Os nomes photographer e photographerUrl ficam os da T-03 (plano, "Troca do Pexels
+  // pelo Pixabay").
   photoUrl: string;
   photographer: string;
   photographerUrl: string;
   license: { name: string; url: string };
-  // De onde o arquivo foi baixado, o SHA-256 dele e a data do download.
+  // De onde o arquivo foi baixado (o largeImageURL), o SHA-256 do arquivo de 800×600 e a data do
+  // download.
   sourceUrl: string;
   sha256: string;
   downloadedAt: string;
@@ -33,7 +36,7 @@ export type ManifestCheck =
   | { ok: true; manifest: Manifest }
   | { ok: false; problems: string[] };
 
-export const objectName = (assetTag: string, pexelsId: number) => `${assetTag}-${pexelsId}.jpg`;
+export const objectName = (assetTag: string, pixabayId: number) => `${assetTag}-${pixabayId}.jpg`;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -41,7 +44,8 @@ const isFilled = (value: unknown): value is string => typeof value === "string" 
 // Um texto só com espaços conta como campo que falta (RN-17).
 const isMissing = (value: unknown) =>
   value === undefined || value === null || (typeof value === "string" && value.trim() === "");
-// Só https: o crédito vira link na tela do catálogo, e um javascript: ali seria uma brecha.
+// Só https: o crédito vira link na folha de contato (RN-09), e um javascript: ali seria uma
+// brecha; a origem também é baixada de novo pela conferência de origem (RN-20).
 const isUrl = (value: unknown) => isFilled(value) && URL.canParse(value) && new URL(value).protocol === "https:";
 const isId = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) > 0;
 const isSha256 = (value: unknown) => typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
@@ -58,10 +62,10 @@ function isDate(value: unknown) {
 // Os campos que o RN-05 exige em toda foto, aprovada ou reprovada, e como cada um se valida.
 const FIELDS: Array<[key: keyof Photo, description: string, valid: (value: unknown) => boolean]> = [
   ["assetTag", "o patrimônio (assetTag)", isFilled],
-  ["pexelsId", "o id do Pexels (pexelsId)", isId],
+  ["pixabayId", "o id do Pixabay (pixabayId)", isId],
   ["photoUrl", "a página da foto (photoUrl)", isUrl],
-  ["photographer", "o fotógrafo (photographer)", isFilled],
-  ["photographerUrl", "a página do fotógrafo (photographerUrl)", isUrl],
+  ["photographer", "o autor (photographer)", isFilled],
+  ["photographerUrl", "a página do autor (photographerUrl)", isUrl],
   ["sourceUrl", "a URL de origem do arquivo (sourceUrl)", isUrl],
   ["sha256", "o SHA-256 (sha256)", isSha256],
   ["downloadedAt", "a data do download (downloadedAt)", isDate],
@@ -92,8 +96,8 @@ function checkPhoto(photo: Record<string, unknown>, label: string): string[] {
     problems.push(`${label}: falta o nome do objeto (objectName)`);
   } else if (typeof photo.objectName !== "string") {
     problems.push(`${label}: o nome do objeto (objectName) é inválido`);
-  } else if (isFilled(photo.assetTag) && isId(photo.pexelsId)) {
-    const expected = objectName(photo.assetTag, photo.pexelsId);
+  } else if (isFilled(photo.assetTag) && isId(photo.pixabayId)) {
+    const expected = objectName(photo.assetTag, photo.pixabayId);
     if (photo.objectName !== expected) {
       problems.push(`${label}: o nome do objeto é "${photo.objectName}", e não "${expected}" (RN-06)`);
     }
@@ -115,7 +119,7 @@ function checkPhoto(photo: Record<string, unknown>, label: string): string[] {
 // RN-04: a mesma foto, pelo id ou pelo SHA-256, não aparece em dois equipamentos. Conta só
 // as aprovadas, que são as que chegam ao bucket; uma reprovada não aparece em equipamento.
 // A mesma foto aprovada duas vezes no mesmo patrimônio fica para a contagem por patrimônio.
-function findRepeated(approved: Photo[], key: "pexelsId" | "sha256", description: string): string[] {
+function findRepeated(approved: Photo[], key: "pixabayId" | "sha256", description: string): string[] {
   const byValue = new Map<string, Set<string>>();
   for (const photo of approved) {
     const value = String(photo[key]);
@@ -140,7 +144,7 @@ export function checkManifest(data: unknown): ManifestCheck {
       return;
     }
     const tag = isFilled(photo.assetTag) ? photo.assetTag : "sem patrimônio";
-    const id = isId(photo.pexelsId) ? photo.pexelsId : "sem id";
+    const id = isId(photo.pixabayId) ? photo.pixabayId : "sem id";
     problems.push(...checkPhoto(photo, `foto ${index + 1} (${tag}, ${id})`));
   });
   if (problems.length > 0) return { ok: false, problems };
@@ -148,7 +152,7 @@ export function checkManifest(data: unknown): ManifestCheck {
   const manifest = data as Manifest;
   const approved = manifest.photos.filter((photo) => photo.review.verdict === "approved");
   problems.push(
-    ...findRepeated(approved, "pexelsId", "o id do Pexels"),
+    ...findRepeated(approved, "pixabayId", "o id do Pixabay"),
     ...findRepeated(approved, "sha256", "o SHA-256"),
   );
 
@@ -175,7 +179,7 @@ export function checkManifestText(text: string): ManifestCheck {
 }
 
 // O arquivo como está no disco (RN-17). Lido como "utf8", um byte inválido viraria U+FFFD sem
-// aviso, e um manifesto em Latin-1 passaria com o nome do fotógrafo estragado.
+// aviso, e um manifesto em Latin-1 passaria com o nome do autor estragado.
 export function checkManifestBytes(bytes: Uint8Array): ManifestCheck {
   let text: string;
   try {

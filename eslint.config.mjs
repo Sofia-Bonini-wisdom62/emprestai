@@ -51,7 +51,7 @@ const eslintConfig = defineConfig([
     rules: { "@next/next/no-img-element": "off" },
   },
   // Skill imagens-equipamentos (spec 002, RN-01 e RN-08; ADR-011): a rede só passa pelo
-  // scripts/lib/pexels.ts, que tem a allowlist de host, e a chave só pelo
+  // scripts/lib/pixabay.ts, que tem a allowlist de host, e a chave só pelo
   // scripts/lib/api-key.ts, a exceção do rules/secrets.md. Nenhum arquivo da skill importa
   // outro cliente de rede nem roda processo.
   {
@@ -64,7 +64,7 @@ const eslintConfig = defineConfig([
             [name, `node:${name}`].map((module) => ({
               name: module,
               message:
-                "Rede e processo só pelo scripts/lib/pexels.ts (spec 002, RN-01).",
+                "Rede e processo só pelo scripts/lib/pixabay.ts (spec 002, RN-01).",
             })),
         ),
       ],
@@ -72,13 +72,13 @@ const eslintConfig = defineConfig([
   },
   {
     files: [".claude/skills/**/*.ts"],
-    ignores: [".claude/skills/imagens-equipamentos/scripts/lib/pexels.ts"],
+    ignores: [".claude/skills/imagens-equipamentos/scripts/lib/pixabay.ts"],
     rules: {
       "no-restricted-globals": [
         "error",
         {
           name: "fetch",
-          message: "Rede só pelo scripts/lib/pexels.ts, com a allowlist de host (spec 002, RN-01).",
+          message: "Rede só pelo scripts/lib/pixabay.ts, com a allowlist de host (spec 002, RN-01).",
         },
       ],
     },

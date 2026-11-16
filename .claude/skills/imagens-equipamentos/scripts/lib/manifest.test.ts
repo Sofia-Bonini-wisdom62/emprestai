@@ -38,8 +38,8 @@ describe("checkManifest, CA-03 (spec 002, RN-04 a RN-06)", () => {
 
   it.each([
     ["photoUrl", "a página da foto (photoUrl)"],
-    ["photographer", "o fotógrafo (photographer)"],
-    ["photographerUrl", "a página do fotógrafo (photographerUrl)"],
+    ["photographer", "o autor (photographer)"],
+    ["photographerUrl", "a página do autor (photographerUrl)"],
     ["license", "a licença (license)"],
   ])("ca_03 reprova com o campo de crédito %s faltando", (field, description) => {
     expect(checkManifest(withoutField(TI_0002, field))).toEqual({
@@ -48,12 +48,12 @@ describe("checkManifest, CA-03 (spec 002, RN-04 a RN-06)", () => {
     });
   });
 
-  it("ca_03 reprova com o id do Pexels repetido", () => {
+  it("ca_03 reprova com o id do Pixabay repetido", () => {
     const repeated = photo("TI-0002", 111, "approved", { sha256: sha(222) });
 
     expect(checkManifest(withPhoto(TI_0002, repeated))).toEqual({
       ok: false,
-      problems: ["o id do Pexels 111 está aprovado em TI-0001 e TI-0002 (RN-04)"],
+      problems: ["o id do Pixabay 111 está aprovado em TI-0001 e TI-0002 (RN-04)"],
     });
   });
 
@@ -109,12 +109,12 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
     ["sha256", "o SHA-256 (sha256)"],
     ["downloadedAt", "a data do download (downloadedAt)"],
     ["assetTag", "o patrimônio (assetTag)"],
-    ["pexelsId", "o id do Pexels (pexelsId)"],
+    ["pixabayId", "o id do Pixabay (pixabayId)"],
     ["objectName", "o nome do objeto (objectName)"],
   ])("ca_12 reprova a foto sem o campo %s", (field, description) => {
     const problems = checkManifest(withoutField(TI_0002, field));
     const photoLabel =
-      field === "assetTag" ? "foto 3 (sem patrimônio, 222)" : field === "pexelsId" ? "foto 3 (TI-0002, sem id)" : label;
+      field === "assetTag" ? "foto 3 (sem patrimônio, 222)" : field === "pixabayId" ? "foto 3 (TI-0002, sem id)" : label;
 
     expect(problems).toEqual({ ok: false, problems: [`${photoLabel}: falta ${description}`] });
   });
@@ -129,7 +129,7 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
   });
 
   it.each([
-    ["photographer", "o fotógrafo (photographer)"],
+    ["photographer", "o autor (photographer)"],
     ["review.reason", "o motivo do veredito (review.reason)"],
   ])("ca_12 o campo %s só com espaços conta como campo que falta", (field, description) => {
     const blank = field === "review.reason"
@@ -143,14 +143,14 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
   });
 
   it.each([
-    ["pexelsId", "222", "o id do Pexels (pexelsId)"],
-    ["pexelsId", 0, "o id do Pexels (pexelsId)"],
-    ["pexelsId", 2.5, "o id do Pexels (pexelsId)"],
+    ["pixabayId", "222", "o id do Pixabay (pixabayId)"],
+    ["pixabayId", 0, "o id do Pixabay (pixabayId)"],
+    ["pixabayId", 2.5, "o id do Pixabay (pixabayId)"],
     ["photoUrl", "página da foto", "a página da foto (photoUrl)"],
-    ["photoUrl", "http://www.pexels.com/photo/222/", "a página da foto (photoUrl)"],
-    ["photographerUrl", "javascript:alert(1)", "a página do fotógrafo (photographerUrl)"],
-    ["photographerUrl", "www.pexels.com/@fotografa-ficticia-222", "a página do fotógrafo (photographerUrl)"],
-    ["sourceUrl", "pexels-photo-222.jpeg", "a URL de origem do arquivo (sourceUrl)"],
+    ["photoUrl", "http://pixabay.com/photos/foto-ficticia-222/", "a página da foto (photoUrl)"],
+    ["photographerUrl", "javascript:alert(1)", "a página do autor (photographerUrl)"],
+    ["photographerUrl", "pixabay.com/users/autora-ficticia-222-9222/", "a página do autor (photographerUrl)"],
+    ["sourceUrl", "ficticia222_1280.jpg", "a URL de origem do arquivo (sourceUrl)"],
     ["sourceUrl", "data:image/jpeg;base64,AAAA", "a URL de origem do arquivo (sourceUrl)"],
     ["objectName", ["TI-0002-222.jpg"], "o nome do objeto (objectName)"],
     ["sha256", sha(222).toUpperCase().replace(/^0/, "A"), "o SHA-256 (sha256)"],
@@ -163,19 +163,20 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
     ["downloadedAt", "2026-11-12T25:99:00Z", "a data do download (downloadedAt)"],
   ])("ca_12 reprova o campo %s com o valor %j", (field, value, description) => {
     const problems = checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), [field]: value }));
-    const photoLabel = field === "pexelsId" ? "foto 3 (TI-0002, sem id)" : label;
+    const photoLabel = field === "pixabayId" ? "foto 3 (TI-0002, sem id)" : label;
 
     expect(problems).toEqual({ ok: false, problems: [`${photoLabel}: ${description} é inválido`] });
   });
 
   it.each([
-    ["outro nome", { name: "CC0", url: "https://www.pexels.com/license/" }],
-    ["outra URL", { name: "Pexels License", url: "https://www.pexels.com/" }],
-    ["um campo a mais", { name: "Pexels License", url: "https://www.pexels.com/license/", note: "x" }],
+    ["outro nome", { name: "CC0", url: "https://pixabay.com/service/license-summary/" }],
+    ["outra URL", { name: "Pixabay Content License", url: "https://pixabay.com/" }],
+    ["um campo a mais", { name: "Pixabay Content License", url: "https://pixabay.com/service/license-summary/", note: "x" }],
+    ["a licença antiga do Pexels", { name: "Pexels License", url: "https://www.pexels.com/license/" }],
   ])("ca_12 reprova a licença com %s", (_, license) => {
     expect(checkManifest(withPhoto(TI_0002, { ...photo("TI-0002", 222), license }))).toEqual({
       ok: false,
-      problems: [`${label}: a licença (license) não é a "Pexels License", com https://www.pexels.com/license/`],
+      problems: [`${label}: a licença (license) não é a "Pixabay Content License", com https://pixabay.com/service/license-summary/`],
     });
   });
 
@@ -193,7 +194,7 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
 
     expect(checkManifest(withPhoto(TI_0002, incomplete))).toEqual({
       ok: false,
-      problems: [`${label}: falta o fotógrafo (photographer)`, `${label}: falta o SHA-256 (sha256)`],
+      problems: [`${label}: falta o autor (photographer)`, `${label}: falta o SHA-256 (sha256)`],
     });
   });
 
@@ -203,10 +204,10 @@ describe("checkManifest, CA-12 (RN-04, RN-05 e RN-17): os outros campos e a repe
 
   it.each([
     ["assetTag", omit(rejected(), "assetTag"), "foto 2 (sem patrimônio, 112): falta o patrimônio (assetTag)"],
-    ["pexelsId", omit(rejected(), "pexelsId"), "foto 2 (TI-0001, sem id): falta o id do Pexels (pexelsId)"],
+    ["pixabayId", omit(rejected(), "pixabayId"), "foto 2 (TI-0001, sem id): falta o id do Pixabay (pixabayId)"],
     ["photoUrl", omit(rejected(), "photoUrl"), `${rejectedLabel}: falta a página da foto (photoUrl)`],
-    ["photographer", omit(rejected(), "photographer"), `${rejectedLabel}: falta o fotógrafo (photographer)`],
-    ["photographerUrl", omit(rejected(), "photographerUrl"), `${rejectedLabel}: falta a página do fotógrafo (photographerUrl)`],
+    ["photographer", omit(rejected(), "photographer"), `${rejectedLabel}: falta o autor (photographer)`],
+    ["photographerUrl", omit(rejected(), "photographerUrl"), `${rejectedLabel}: falta a página do autor (photographerUrl)`],
     ["license", omit(rejected(), "license"), `${rejectedLabel}: falta a licença (license)`],
     ["sourceUrl", omit(rejected(), "sourceUrl"), `${rejectedLabel}: falta a URL de origem do arquivo (sourceUrl)`],
     ["sha256", omit(rejected(), "sha256"), `${rejectedLabel}: falta o SHA-256 (sha256)`],

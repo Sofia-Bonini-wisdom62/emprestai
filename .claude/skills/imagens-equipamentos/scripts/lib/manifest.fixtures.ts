@@ -1,20 +1,20 @@
-// Fotos de mentira para os testes do manifesto: ids, fotógrafos e SHA-256 fictícios (RN-11).
+// Fotos de mentira para os testes do manifesto: ids, autores e SHA-256 fictícios (RN-11).
 import { LICENSE, type Manifest, type Photo, type Verdict } from "./manifest";
 
 // Um SHA-256 diferente por id, só com dígitos hexadecimais.
 export const sha = (id: number) => id.toString(16).padStart(64, "0");
 
-export function photo(assetTag: string, pexelsId: number, verdict: Verdict = "approved", overrides: Partial<Photo> = {}): Photo {
+export function photo(assetTag: string, pixabayId: number, verdict: Verdict = "approved", overrides: Partial<Photo> = {}): Photo {
   return {
     assetTag,
-    pexelsId,
-    objectName: `${assetTag}-${pexelsId}.jpg`,
-    photoUrl: `https://www.pexels.com/photo/${pexelsId}/`,
-    photographer: `Fotógrafa Fictícia ${pexelsId}`,
-    photographerUrl: `https://www.pexels.com/@fotografa-ficticia-${pexelsId}`,
+    pixabayId,
+    objectName: `${assetTag}-${pixabayId}.jpg`,
+    photoUrl: `https://pixabay.com/photos/foto-ficticia-${pixabayId}/`,
+    photographer: `Autora Fictícia ${pixabayId}`,
+    photographerUrl: `https://pixabay.com/users/autora-ficticia-${pixabayId}-${pixabayId + 9000}/`,
     license: { ...LICENSE },
-    sourceUrl: `https://images.pexels.com/photos/${pexelsId}/pexels-photo-${pexelsId}.jpeg?fit=crop&w=800&h=600`,
-    sha256: sha(pexelsId),
+    sourceUrl: `https://pixabay.com/get/ficticia${pixabayId}_1280.jpg`,
+    sha256: sha(pixabayId),
     downloadedAt: "2026-11-12T10:00:00Z",
     review: {
       verdict,
