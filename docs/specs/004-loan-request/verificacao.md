@@ -136,3 +136,29 @@ Rodei tudo na worktree C:\Users\SOFIAP~1\AppData\Local\Temp\claude\a1621f55654af
 - C:\Users\SOFIAP~1\AppData\Local\Temp\claude\a1621f55654af276\cc5f1430-e20b-4e91-a443-cdc3392c2aa4\scratchpad\v-test.log
 - C:\Users\SOFIAP~1\AppData\Local\Temp\claude\a1621f55654af276\cc5f1430-e20b-4e91-a443-cdc3392c2aa4\scratchpad\v-e2e.log
 - C:\Users\SOFIAP~1\AppData\Local\Temp\claude\a1621f55654af276\cc5f1430-e20b-4e91-a443-cdc3392c2aa4\scratchpad\v-build.log
+
+## Nota sobre o cabeçalho das rodadas — 2026-11-16
+
+O `rules/spec-flow.md` (passo 3 de "Antes de declarar uma spec pronta") pede que cada rodada seja a resposta do `verificador-spec` colada inteira, sem editar. Este arquivo tem uma edição feita depois da colagem, no commit `c360dc9`, e esta nota a registra.
+
+**O que mudou.** Só a linha que abre cada rodada:
+
+| Rodada | Linha original | Linha depois do `c360dc9` |
+|---|---|---|
+| 1 | ``HEAD verificado: `210b2db`, na branch `feat/004-t07-my-loans`.`` | ``HEAD: 210b2db (branch `feat/004-t07-my-loans`)`` |
+| 2 | ``HEAD verificado: `ff404b4`, na branch `feat/004-t07-my-loans`.`` | ``HEAD: ff404b4 (branch `feat/004-t07-my-loans`)`` |
+| 3 | ``HEAD verificado: `5691596`, na branch `feat/004-t07-my-loans`.`` | ``HEAD: 5691596 (branch `feat/004-t07-my-loans`)`` |
+
+**De quem era a linha.** Nenhuma das três foi escrita pelo verificador. Foi o agente principal que a pôs acima de cada resposta, porque nas três rodadas o verificador não mandou a linha de cabeçalho que o modelo dele pede (`.claude/agents/verificador-spec.md`, formato da resposta):
+
+```
+Spec: docs/specs/<NNN-nome>/spec.md · HEAD: <sha curto> · Escopo: <o que verificar>
+```
+
+Pelo mesmo motivo, as tabelas das três rodadas não têm a coluna "teste nesta rodada" que esse modelo pede. Elas estão aqui como o verificador as devolveu.
+
+**Por que mudou.** O hook `.claude/hooks/require-verification.mjs` só deixa o status da spec passar a `implementada` se acha, na última rodada, o texto `HEAD:` seguido do hash, que é o formato do próprio modelo do verificador. A linha "HEAD verificado: `x`" não casava. Por isso o hook recusaria a mudança de status, mesmo com o veredito PRONTA. A edição trocou a linha do agente principal pelo formato do modelo. Ela fica como está, porque o hook depende dela.
+
+**O que não mudou.** O texto que o verificador devolveu, em cada rodada, está como veio: a tabela, os checks, o fora de escopo e o veredito. Os vereditos continuam NÃO PRONTA, NÃO PRONTA e PRONTA, e os hashes continuam `210b2db`, `ff404b4` e `5691596`.
+
+**Para as próximas specs.** O agente principal pede ao verificador a linha de cabeçalho do modelo e cola a resposta com ela, sem escrever linha própria. Se a resposta vier sem a linha, a rodada se repete, em vez de o cabeçalho ser escrito à mão.
