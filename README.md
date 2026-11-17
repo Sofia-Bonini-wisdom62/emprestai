@@ -4,13 +4,13 @@ Sistema web interno para controlar empréstimo de equipamentos. Projeto de disci
 
 ## Estado atual
 
-Conferido na `main` em 2026-11-16, no commit `3bb897b`.
+Conferido na `main` em 2026-11-16, no commit `3bb897b`; a linha dos equipamentos em produção, em 2026-11-17, no commit `f64483a`.
 
 - O andar zero está fechado (tag `andar-zero`), e a produção é publicada pelo GitHub Actions a cada push na `main`.
 - Já existem o login, com "Esqueci minha senha" e a primeira entrada pelo link do convite, o catálogo, o detalhe do equipamento com "Solicitar empréstimo" e a tela "Meus empréstimos".
 - Ainda não existem a devolução, a tela de Operações com os empréstimos em aberto, que hoje é uma página provisória, nem o cadastro de equipamentos. Nenhum dos três tem spec.
 - As fotos dos equipamentos ainda não têm manifesto aprovado no repositório: sem foto, o catálogo mostra o ícone da categoria.
-- O passo que carrega os 12 equipamentos iniciais em produção ainda não está no workflow: o script está pronto, e quem aplica o passo é a pessoa.
+- Os 12 equipamentos iniciais estão em produção, sem foto: o passo do workflow que os carrega entrou em 2026-11-17, e a primeira rodada com ele registrou "12 criados" no log.
 
 Comandos para instalar, subir o banco e rodar: [AGENTS.md, seção 8](AGENTS.md).
 
@@ -59,7 +59,7 @@ O que depende de painel fica dito como tal: o repositório e o GitHub Actions s�
 | Supabase (produção e Auth) | Projeto `emprestai`, ref `zawqxqukgaqjlbtwiogb`, região `sa-east-1`, plano free. A rodada de Produção de 2026-11-16, no commit `3bb897b`, falou com o banco: nenhuma migration pendente e o vínculo do primeiro administrador garantido. No plano free, projeto ocioso pode ser pausado (ADR-001): o estado de agora só o painel diz, e quem confere é a pessoa — https://supabase.com/dashboard/project/zawqxqukgaqjlbtwiogb |
 | Banco de dev | Postgres local em Docker, com o Supabase Auth e o gateway Envoy ao lado, pelo `compose.yaml` ([ADR-004](docs/adr/004-environments.md) e [ADR-006](docs/adr/006-dev-auth.md)); não há projeto Supabase de dev |
 | Vercel | Projeto `emprestai`, id `prj_ZazuIw4JaAibAjyNU49xkwo4tMr2`, plano Hobby, functions nos EUA. URL de produção: https://emprestai-beta.vercel.app, o alias que a CLI da Vercel deu ao deploy dessa mesma rodada |
-| CI | GitHub Actions, em `.github/workflows/`. O `ci.yml` roda lint, typecheck, testes e build em todo PR; o E2E não roda no CI. O `production.yml`, a cada push na `main`, roda o CI, o `prisma migrate deploy`, o passo do primeiro administrador (ADR-009) e o deploy pela CLI da Vercel, nessa ordem, porque o `vercel.json` desliga o deploy por push na `main` (ADR-004 e ADR-007). O passo dos equipamentos iniciais (ADR-013) ainda não está nele: o texto está em [`docs/specs/003-seed-data/plan.md`](docs/specs/003-seed-data/plan.md), e quem aplica é a pessoa. Secrets que o `production.yml` usa: `DIRECT_URL`, `FIRST_ADMIN_EMAIL`, `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` |
+| CI | GitHub Actions, em `.github/workflows/`. O `ci.yml` roda lint, typecheck, testes e build em todo PR; o E2E não roda no CI. O `production.yml`, a cada push na `main`, roda o CI, o `prisma migrate deploy`, o passo do primeiro administrador (ADR-009), o passo dos equipamentos iniciais (ADR-013) e o deploy pela CLI da Vercel, nessa ordem, porque o `vercel.json` desliga o deploy por push na `main` (ADR-004 e ADR-007). Secrets que o `production.yml` usa: `DIRECT_URL`, `FIRST_ADMIN_EMAIL`, `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` |
 
 Variáveis de ambiente: copie `.env.example` para `.env.local` e preencha. A lista completa, e onde cada uma vive, está no próprio `.env.example`. Nada com valor real vai para o repositório.
 
