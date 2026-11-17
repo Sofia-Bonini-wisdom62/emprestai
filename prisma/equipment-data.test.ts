@@ -213,6 +213,22 @@ describe("loadEquipmentData", () => {
     ]);
   });
 
+  // A última frase do CA-04: o manifesto existe e não traz foto para quem já tem uma.
+  it("ca_04 com um manifesto sem foto para o patrimônio, a imagem que ele já tem não muda", async () => {
+    const tenant = await createArea();
+    await loadEquipmentData(db, list(), { photos: [photo("TI-0001", 111)] }, tenant.slug);
+
+    const result = await loadEquipmentData(db, list(), { photos: [photo("TI-0002", 222)] }, tenant.slug);
+
+    expect(result).toEqual({ created: 0, imageUpdated: 1, withoutImage: 2 });
+    expect((await equipmentsOf(tenant.id)).map((row) => [row.assetTag, row.imageObject])).toEqual([
+      ["TI-0001", "TI-0001-111.jpg"],
+      ["TI-0002", "TI-0002-222.jpg"],
+      ["TI-0003", null],
+      ["TI-0004", null],
+    ]);
+  });
+
   const invalid: Array<[string, unknown[], unknown, RegExp]> = [
     ["um patrimônio repetido", [...list(), list()[0]], null, /o patrimônio TI-0001 se repete/],
     [
