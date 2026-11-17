@@ -58,6 +58,10 @@ Monolito Next.js (App Router) + TypeScript `strict` + tRPC + Prisma + PostgreSQL
 
 As decisões e o porquê estão em [`docs/adr/001-stack.md`](docs/adr/001-stack.md), lido junto com [`docs/adr/003-stack-corrections.md`](docs/adr/003-stack-corrections.md): o ADR-003 numera cada trecho pela seção do ADR-001 que corrige, e onde os dois tratam do mesmo ponto vale o ADR-003. A multi-tenancy é decisão deliberada, confirmada pela resposta da pergunta 6 de `docs/perguntas-prd.md` (papel por área). [ADR-002](docs/adr/002-design-system.md): identidade visual. [ADR-004](docs/adr/004-environments.md): ambientes e bancos. [ADR-005](docs/adr/005-first-tenant-name.md): nome do primeiro tenant, que substitui as linhas do ADR-003 sobre ele. [ADR-006](docs/adr/006-dev-auth.md): Auth no desenvolvimento, em contêiner, que substitui trechos do ADR-001 e do ADR-004. [ADR-007](docs/adr/007-production-deploy-cli.md): deploy de produção pela CLI da Vercel, que substitui o Deploy Hook do ADR-004.
 
+[ADR-008](docs/adr/008-email-provider.md): e-mail do Auth de produção pelo SMTP do Gmail; Proposto, não substitui nada. [ADR-009](docs/adr/009-production-first-admin.md): passo do workflow que cria a área `default` e o vínculo do primeiro administrador em produção, que substitui trechos do ADR-004 e do ADR-005. [ADR-010](docs/adr/010-audit-from-loans.md): a auditoria começa na spec de solicitar empréstimo, que substitui um item do ADR-001, 2.10. [ADR-011](docs/adr/011-equipment-images.md): fotos dos equipamentos, do Pixabay ao Storage, com `sharp` e envio pela pessoa; Proposto, não substitui nada. [ADR-012](docs/adr/012-csp-nonce-radix.md): nonce da CSP nos estilos do Radix, com `get-nonce`; não substitui nada. [ADR-013](docs/adr/013-production-equipment-data.md): passo do workflow que grava as categorias e os equipamentos iniciais em produção, que substitui trechos do ADR-009. [ADR-014](docs/adr/014-equipment-without-image.md): equipamento sem foto aprovada fica com a imagem nula, que substitui duas linhas do ADR-013.
+
+Em 2026-11-16, o 008 e o 011 estão Propostos, e os outros doze, Aceitos. Quem diz é a linha de Status de cada arquivo: confira ali antes de se apoiar num ADR.
+
 ## 6. Bancos, três e só três
 
 | Banco | Onde | Quem escreve nele |
@@ -94,7 +98,21 @@ O Preview da Vercel não tem banco: a página mostra o estado de falha. Não exi
 
 ## 8. O repositório hoje
 
-Andar zero fechado (tag `andar-zero`) e produção no ar desde 2026-11-11, publicada pelo `.github/workflows/production.yml` (ADR-007). A raiz `/` é uma landing provisória que mostra a saúde do banco. A spec 001, de login, está aprovada e em implementação: o estado de cada tarefa está em `docs/specs/001-login/tasks.md`. Na `main` já estão a sessão no servidor, o `proxy.ts`, os routers `auth` e `account` e o `/auth/confirm`; as telas de login ainda não. O `compose.yaml` sobe o Auth e o gateway (T-01), e o `pnpm test:e2e` sobe uma pilha igual, efêmera (T-02).
+Andar zero fechado (tag `andar-zero`). Produção publicada pelo `.github/workflows/production.yml` a cada push na `main`, desde 2026-11-11 (ADR-007). O estado de cada spec está na linha `Status` do `spec.md` e nas caixas do `tasks.md` da pasta dela, em `docs/specs/`. Leia de lá: este arquivo não copia.
+
+Na `main` já estão:
+
+- 001, login: `/login`, `/forgot-password`, `/account/setup` e `/auth/confirm`; routers `auth` e `account`; sessão e CSP no `proxy.ts`.
+- 002, imagens: a skill `imagens-equipamentos`, que prepara as fotos pelo Pixabay e para na folha de contato. Só a pessoa a invoca.
+- 003, dados iniciais: `prisma/data/equipment.json`, que o seed carrega, e o script do passo de produção, `prisma/load-equipment.ts` (ADR-013).
+- 004, solicitar empréstimo: `/catalog`, o detalhe `/catalog/[equipmentId]` com "Solicitar empréstimo" e `/my-loans`; routers `equipment` e `loan`.
+
+Em 2026-11-16 ainda não existem:
+
+- Devolução, tela de Operações e cadastro de equipamento: sem spec nem router. `/operations/loans` e a raiz `/` são páginas provisórias.
+- `prisma/data/equipment-images.json`, o manifesto das fotos aprovadas (002, T-07): sem ele, os equipamentos ficam sem imagem (ADR-014).
+- O passo dos equipamentos no `production.yml`: o texto está no `plan.md` da 003, e quem aplica é a pessoa.
+- E2E no CI: o `ci.yml` roda lint, typecheck, `pnpm test` e build.
 
 ### Comandos
 
@@ -128,18 +146,21 @@ O Prisma avisa que há versão nova e sugere `npm i prisma@latest`: ignore. O pr
 | Pasta | O que mora ali |
 |---|---|
 | `src/app/` | Rotas do App Router; `api/trpc/[trpc]/` é o route handler único |
+| `src/app/(product)/` | Telas do produto, atrás da sessão e com o header: `catalog/`, `my-loans/` e `operations/` |
+| `src/components/` e `src/lib/` | Componentes compartilhados entre telas (`ui/` é o shadcn/ui) e funções puras |
 | `src/env/` | Única leitura de `process.env`, com as exceções de `rules/secrets.md` |
 | `src/server/api/` | `initTRPC`, contexto, `appRouter` e, em `routers/`, um router por domínio |
 | `src/server/services/` | Regra de negócio; nunca no router nem na tela |
 | `src/server/db.ts` | Singleton do Prisma |
 | `src/trpc/` | Lado cliente do tRPC |
 | `src/generated/prisma/` | Client gerado, fora do git e do lint |
-| `prisma/` | `schema.prisma` e migrations |
+| `prisma/` | `schema.prisma`, migrations, o seed e os scripts dos passos de produção (`first-admin.ts` e `load-equipment.ts`); em `data/`, a lista dos equipamentos iniciais |
+| `.claude/` | `agents/`: os subagentes `revisor-plano` e `verificador-spec`. `skills/`: a `imagens-equipamentos`. `hooks/` e `settings.json`: o bloqueio de produção e o portão da spec, que só a pessoa edita (`rules/restrictions.md`, Escopo) |
 | `docker/` | Configuração do Envoy, do Auth (`*.env`) e o script de senha do Auth, que o `compose.yaml` e o E2E usam (ADR-006) |
 | `tests/` | Só infraestrutura de teste: globalSetup e helpers do Vitest e, em `tests/e2e/`, a pilha efêmera e o app do E2E |
 | `e2e/` | Casos do Playwright (`*.e2e.ts`) |
 
-Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `routers/`, `services/` e `src/app/<rota>/`, mais `prisma/` se tiver tabela nova.
+Cada teste fica ao lado do arquivo que testa. Uma funcionalidade nova toca `routers/`, `services/` e `src/app/(product)/<rota>/`, mais `prisma/` se tiver tabela nova.
 
 ### Convenções não óbvias
 
