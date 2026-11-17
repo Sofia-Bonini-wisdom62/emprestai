@@ -109,7 +109,7 @@ Na `main` já estão:
 
 Em 2026-11-16 ainda não existem:
 
-- Devolução, tela de Operações e cadastro de equipamento: sem spec nem router. `/operations/loans` e a raiz `/` são páginas provisórias.
+- Devolução, tela de Operações e cadastro de equipamento: sem spec nem procedure. `/operations/loans` é página provisória. A raiz `/` segue com a landing que mostra a saúde do banco (spec 004, RN-23).
 - `prisma/data/equipment-images.json`, o manifesto das fotos aprovadas (002, T-07): sem ele, os equipamentos ficam sem imagem (ADR-014).
 - O passo dos equipamentos no `production.yml`: o texto está no `plan.md` da 003, e quem aplica é a pessoa.
 - E2E no CI: o `ci.yml` roda lint, typecheck, `pnpm test` e build.
