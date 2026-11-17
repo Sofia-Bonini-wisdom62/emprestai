@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | Aceito em 2026-11-17, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade): escolheu resolver o conflito por um ADR novo com a exceção ("ADR novo com a exceção"), resposta repassada pela sessão de coordenação, e aprova este texto ao mesclar o PR que o traz |
+| Status | Aceito em 2026-11-17, pela pessoa, que responde pelo time ([`rules/restrictions.md`](../../rules/restrictions.md), seção Autoridade): escolheu resolver o conflito por um ADR novo com a exceção ("ADR novo com a exceção"), na conversa com o agente, e aprova este texto ao mesclar o PR que o traz |
 | Data | 2026-11-17 |
 | Turma | B |
 | Vínculo | [`docs/specs/003-seed-data/spec.md`](../specs/003-seed-data/spec.md), RN-13; resposta 35 de [`docs/perguntas-prd.md`](../perguntas-prd.md); [`docs/specs/001-login/spec.md`](../specs/001-login/spec.md), RN-01, RN-13 e CA-06; [ADR-008](008-email-provider.md) |

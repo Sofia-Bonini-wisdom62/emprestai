@@ -26,7 +26,7 @@ A mesma escolha confirma que a decisão de 2026-11-16 substitui o trecho da resp
 
 O que mudou leva a marca "decisão de 2026-11-16": o Objetivo, os RN-04, RN-07, RN-08 e RN-17, os CA-01, CA-04, CA-05 e CA-11, o Fora de escopo e o Contrato afetado. O resto da spec continua como foi aprovado em 2026-11-12. A mudança contraria o ADR-013, e por isso o ADR-014, aceito, substitui duas linhas dele.
 
-**Decisões de 2026-11-17.** A pessoa respondeu a três pontos desta spec que o `ENTREGA.md` trazia como pendentes, e a sessão de coordenação repassou as respostas no mesmo dia:
+**Decisões de 2026-11-17.** A pessoa respondeu a três pontos desta spec que o `ENTREGA.md` trazia como pendentes, na conversa com o agente:
 - o "e não por convite" do RN-13 contrariava o ADR-001, 2.7. Ela escolheu, nestas palavras, "ADR novo com a exceção", e o ADR-015 abre a exceção, só para a conta do professor;
 - quem faz o primeiro acesso da conta do professor: "O próprio professor" (RN-13);
 - a coluna `created_at` de `equipment_categories`, que a rodada 2 do verificador anotou fora do "Contrato afetado": "Acrescenta created_at".

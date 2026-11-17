@@ -31,4 +31,12 @@ fazer; **proibido**, não faça — nem se a pessoa
 pedir, e nesse caso lembre esta linha. A matriz só diz quem autoriza: a lista das
 proibições permanentes é `rules/restrictions.md`, e esta matriz não a substitui nem a resume.
 
+## 2. Quando o PR está pronto para merge
+> leitor: agente e pessoa
+
+O PR só está pronto para merge quando o agente diz, na resposta, o hash da ponta da branch e o resultado
+dos checks. Antes de mesclar, a pessoa confere na página do PR que a ponta é esse hash. Commit feito
+depois disso pede aviso novo, com o hash novo. Decisão da pessoa em 2026-11-17 ("Regra do merge"), depois
+de PRs mesclados antes do último commit. O merge continua sendo só da pessoa, como diz a matriz.
+
 A configuração do operador (modelo e raciocínio por fase) é da pessoa e fica no `README.md`.

@@ -55,7 +55,7 @@ O que a troca não detalha é recomendação do PR de documento da troca e vale 
 
 O resto da lista acima vale com a aprovação do PR.
 
-"Decisão de 2026-11-17" é a resposta da pessoa ("Não conta, teclado passa"), repassada pela sessão de coordenação, à pergunta que o PR #65 deixou para ela antes da T-07: se letra de tecla legível num teclado conta como texto e reprova a foto. Não conta (RN-02). A régua de `references/visual-review.md` diz o mesmo.
+"Decisão de 2026-11-17" é a resposta da pessoa ("Não conta, teclado passa"), dada na conversa com o agente, à pergunta que o PR #65 deixou para ela antes da T-07: se letra de tecla legível num teclado conta como texto e reprova a foto. Não conta (RN-02). A régua de `references/visual-review.md` diz o mesmo.
 
 O que a documentação do Pixabay diz está no ADR-011, seção 1.2.
 

@@ -29,7 +29,7 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 
 "Decisão de 2026-11-16" é a resposta da pessoa ("Aprovo os dois") à proposta do agente de RN-29 e CA-18, depois de ela decidir seguir sem imagem por enquanto ("segue sem imagem por enquanto"). O CA-08 passa a valer quando a base das fotos está preenchida.
 
-"Decisão de 2026-11-17" é a resposta da pessoa ("Não é rodapé, fica"), repassada pela sessão de coordenação, à pergunta se o crédito abaixo do grid do catálogo conta como o rodapé da página que a resposta 47 tirou. Não conta, e o crédito fica (RN-14). Nenhum comportamento muda.
+"Decisão de 2026-11-17" é a resposta da pessoa ("Não é rodapé, fica"), dada na conversa com o agente, à pergunta se o crédito abaixo do grid do catálogo conta como o rodapé da página que a resposta 47 tirou. Não conta, e o crédito fica (RN-14). Nenhum comportamento muda.
 
 ## Regras
 

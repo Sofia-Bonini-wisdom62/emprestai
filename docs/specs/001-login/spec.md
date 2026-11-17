@@ -17,7 +17,7 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 
 "Decisão de 2026-11-11" é a resposta da pessoa às propostas do rascunho desta spec, dada em duas rodadas no mesmo dia. "Revisão da T-05" é a resposta dela, também em 2026-11-11, aos quatro pontos que o PR #26 deixou para decidir. "Revisão da T-07" é a resposta dela, no mesmo dia, às oito decisões que o PR #33 deixou abertas.
 
-"Registro de 2026-11-17" é a resposta da pessoa ("Sim, registra na spec"), repassada pela sessão de coordenação, à pergunta se as escolhas da T-04 e da T-13 entram aqui como regra. Elas já estavam no código, e nenhuma regra as dizia. São os RN-63 e RN-64. No mesmo dia, a pessoa escolheu resolver por um ADR novo ("ADR novo com a exceção") o conflito entre o RN-01 e a conta do professor, e o ADR-015 abre a exceção.
+"Registro de 2026-11-17" é a resposta da pessoa ("Sim, registra na spec"), dada na conversa com o agente, à pergunta se as escolhas da T-04 e da T-13 entram aqui como regra. Elas já estavam no código, e nenhuma regra as dizia. São os RN-63 e RN-64. No mesmo dia, a pessoa escolheu resolver por um ADR novo ("ADR novo com a exceção") o conflito entre o RN-01 e a conta do professor, e o ADR-015 abre a exceção.
 
 - RN-01 — A conta só nasce por convite, sem cadastro aberto, sem tela para convidar e sem tabela de convite no emprestai. A única exceção é a conta do professor, que a pessoa cria no painel do Supabase de produção (ADR-015; spec 003, RN-13). Origem: ADR-001, 2.7; resposta 5; ADR-015.
 - RN-02 — Em produção, o convite é feito no painel do Supabase e chega por e-mail, pelo SMTP do ADR-008. Origem: respostas 5 e 22; ADR-008.
