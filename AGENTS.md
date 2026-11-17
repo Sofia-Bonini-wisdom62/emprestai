@@ -104,14 +104,13 @@ Na `main` já estão:
 
 - 001, login: `/login`, `/forgot-password`, `/account/setup` e `/auth/confirm`; routers `auth` e `account`; sessão e CSP no `proxy.ts`.
 - 002, imagens: a skill `imagens-equipamentos`, que prepara as fotos pelo Pixabay e para na folha de contato. Só a pessoa a invoca.
-- 003, dados iniciais: `prisma/data/equipment.json`, que o seed carrega, e o script do passo de produção, `prisma/load-equipment.ts` (ADR-013).
+- 003, dados iniciais: `prisma/data/equipment.json`, que o seed carrega, e o script `prisma/load-equipment.ts`, que o `production.yml` roda a cada deploy (ADR-013).
 - 004, solicitar empréstimo: `/catalog`, o detalhe `/catalog/[equipmentId]` com "Solicitar empréstimo" e `/my-loans`; routers `equipment` e `loan`.
 
-Em 2026-11-16 ainda não existem:
+Em 2026-11-17 ainda não existem:
 
 - Devolução, tela de Operações e cadastro de equipamento: sem spec nem procedure. `/operations/loans` é página provisória. A raiz `/` segue com a landing que mostra a saúde do banco (spec 004, RN-23).
 - `prisma/data/equipment-images.json`, o manifesto das fotos aprovadas (002, T-07): sem ele, os equipamentos ficam sem imagem (ADR-014).
-- O passo dos equipamentos no `production.yml`: o texto está no `plan.md` da 003, e quem aplica é a pessoa.
 - E2E no CI: o `ci.yml` roda lint, typecheck, `pnpm test` e build.
 
 ### Comandos
