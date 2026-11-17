@@ -1,7 +1,7 @@
 # 003 — Dados iniciais
 
 Status: implementada
-Atualizada em: 2026-11-16
+Atualizada em: 2026-11-17
 
 ## Objetivo
 
@@ -10,7 +10,7 @@ O banco de dev e o de produção passam a ter os 12 equipamentos da prática, ca
 ## Vínculo
 
 - PRD: `docs/PRD.md` não pede dados iniciais. Eles servem ao item 2 de "O que precisa existir na primeira versão" (catálogo com a situação de cada item) e à regra "Equipamento em manutenção não aparece como disponível". A origem é a Entrega 3 da prática (seção 04 do enunciado: briefing de dados iniciais e "Ao final, em produção"), com as regras da seção 01 e a lista dos 12 equipamentos da seção 03.
-- Restringe: `docs/adr/001-stack.md`, seções 2.5 e 2.7, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/011-equipment-images.md`, ainda Proposto; `docs/adr/013-production-equipment-data.md`; `docs/adr/014-equipment-without-image.md`, que substitui duas linhas do ADR-013 (decisão de 2026-11-16).
+- Restringe: `docs/adr/001-stack.md`, seções 2.5 e 2.7, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/011-equipment-images.md`, ainda Proposto; `docs/adr/013-production-equipment-data.md`; `docs/adr/014-equipment-without-image.md`, que substitui duas linhas do ADR-013 (decisão de 2026-11-16); `docs/adr/015-professor-account.md`, que abre no ADR-001, 2.7, a exceção da conta do professor (decisão de 2026-11-17).
 - Assume pronto: 001-login (`tenants`, `memberships`, `profiles`, o seed do dev e o passo do ADR-009). Da 002-equipment-images, em partes, como diz o plano: o formato e a conferência do manifesto (T-03 da 002), `prisma/data/equipment.json` (T-06) e o manifesto aprovado `prisma/data/equipment-images.json` (T-07; RN-10 da 002).
 
 ## Regras
@@ -25,6 +25,13 @@ A saída descartada, (b), não tinha migration: gravava um texto no lugar do nom
 A mesma escolha confirma que a decisão de 2026-11-16 substitui o trecho da resposta 37 que dizia "o carregamento só grava patrimônio cuja foto passou nessa conferência". A parte do `sharp` continua.
 
 O que mudou leva a marca "decisão de 2026-11-16": o Objetivo, os RN-04, RN-07, RN-08 e RN-17, os CA-01, CA-04, CA-05 e CA-11, o Fora de escopo e o Contrato afetado. O resto da spec continua como foi aprovado em 2026-11-12. A mudança contraria o ADR-013, e por isso o ADR-014, aceito, substitui duas linhas dele.
+
+**Decisões de 2026-11-17.** A pessoa respondeu a três pontos desta spec que o `ENTREGA.md` trazia como pendentes, e a sessão de coordenação repassou as respostas no mesmo dia:
+- o "e não por convite" do RN-13 contrariava o ADR-001, 2.7. Ela escolheu, nestas palavras, "ADR novo com a exceção", e o ADR-015 abre a exceção, só para a conta do professor;
+- quem faz o primeiro acesso da conta do professor: "O próprio professor" (RN-13);
+- a coluna `created_at` de `equipment_categories`, que a rodada 2 do verificador anotou fora do "Contrato afetado": "Acrescenta created_at".
+
+Nenhum comportamento muda com elas.
 
 "Decisão de 2026-11-12" é a resposta da pessoa ("Aceito todas") às perguntas 33 a 39 de `docs/perguntas-prd.md`, aceitando a proposta do agente em cada uma.
 
@@ -48,7 +55,7 @@ Em 2026-11-13, a troca do Pexels pelo Pixabay (spec 002, "Troca de 2026-11-13"; 
 - RN-10 — Carregar os dados não cria empréstimo. Origem: briefing, item 3.
 - RN-11 — No dev, `pnpm prisma db seed` faz o carregamento na `default`, além do que já grava (spec 001, CA-13), e continua recusando banco ou Auth fora da máquina. Origem: spec 001; spec 002, RN-10; ADR-004.
 - RN-12 — Na produção, o carregamento roda num passo do workflow de produção, depois do `prisma migrate deploy` e ao lado do passo do ADR-009. O agente não escreve no banco nem no Storage da produção: o passo roda no GitHub Actions, e a mudança no workflow é aplicada pela pessoa, à mão. Origem: resposta 34; ADR-013; enunciado, seção 01; `rules/restrictions.md`, Escopo e Produção.
-- RN-13 — A conta do professor nasce no painel do Supabase de produção, criada pela pessoa com a senha padrão e o e-mail já confirmado, e não por convite. No primeiro login, vira `member` na `default` e, como nasce sem nome, passa por `/account/setup` antes do catálogo. Origem: resposta 35; resposta 23; spec 001, RN-13 e CA-06.
+- RN-13 — A conta do professor nasce no painel do Supabase de produção, criada pela pessoa com a senha padrão e o e-mail já confirmado, e não por convite. No primeiro login, vira `member` na `default` e, como nasce sem nome, passa por `/account/setup` antes do catálogo. É a única exceção ao cadastro só por convite, aberta pelo ADR-015. O primeiro acesso é do próprio professor: ninguém entra com a conta dele antes da correção (decisão da pessoa de 2026-11-17, "O próprio professor"). Origem: resposta 35; resposta 23; spec 001, RN-13 e CA-06; ADR-015.
 - RN-14 — O e-mail do professor não entra no git. Spec, testes e `ENTREGA.md` dizem "a conta do professor". Origem: resposta 36; `rules/restrictions.md`, Dados e segredos.
 - RN-15 — O carregamento não usa o `sharp` nem outra dependência nova: o tamanho de 800×600 é o que a spec 002 garante (RN-03 da 002). O `sharp` entra no projeto só para a skill da spec 002, que recorta a foto do Pixabay, e o carregamento grava o nome do arquivo que ela já conferiu. Origem: resposta 37, atualizada pela troca de 2026-11-13.
 - RN-16 — A conta do professor chega à correção com zero empréstimos. Nenhum passo desta spec grava nada nela além do que o próprio login grava, e os testes da pessoa usam outra conta. Origem: enunciado, seção 01; briefing, item 5.
@@ -96,7 +103,7 @@ Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, q
 
 ## Contrato afetado
 
-- Tabela: `equipment_categories (id, tenant_id, name)`, nova, única por `(tenant_id, name)`, com RLS e policy explícita.
+- Tabela: `equipment_categories (id, tenant_id, name, created_at)`, nova, única por `(tenant_id, name)`, com RLS e policy explícita. A tabela tem `created_at` desde a T-01, e a coluna entrou nesta linha pela decisão da pessoa de 2026-11-17, "Acrescenta created_at".
 - Tabela: `equipments (id, tenant_id, asset_tag, name, category_id, status, image_object, created_at)`, nova, única por `(tenant_id, asset_tag)`, com RLS e policy explícita. Pela decisão de 2026-11-16, uma migration nova deixa `image_object` aceitar nulo; a da T-01 já foi aplicada e não se edita (`rules/restrictions.md`, Bancos e schema). `status` está no enum `EquipmentStatus`, com `available`, `loaned`, `maintenance` e `out_of_service`, as quatro do glossário.
 - Código da spec 004 (decisão de 2026-11-16): `imageUrlFor`, em `src/server/services/equipment.ts`, passa a aceitar a imagem nula e devolve `imageUrl: null`, o mesmo caso da variável vazia da RN-24 da 004, que já mostra o ícone da categoria (RN-12 da 004). Nenhum comportamento da 004 muda.
 - Seed: `prisma/seed.ts` passa a fazer o carregamento no dev.

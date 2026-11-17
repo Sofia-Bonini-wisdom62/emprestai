@@ -41,6 +41,7 @@ O status de cada ADR é o da linha de Status do próprio arquivo, lida em 2026-1
 - [ADR-012 — Nonce da CSP para os estilos do Radix](docs/adr/012-csp-nonce-radix.md) — aceito em 2026-11-12: o `get-nonce` passa o nonce aos estilos que o Radix injeta, e a CSP segue sem `unsafe-inline`.
 - [ADR-013 — Equipamentos iniciais em produção](docs/adr/013-production-equipment-data.md) — aceito em 2026-11-12: um passo do workflow de produção grava as categorias e os equipamentos iniciais.
 - [ADR-014 — Equipamentos iniciais sem imagem](docs/adr/014-equipment-without-image.md) — aceito em 2026-11-16: patrimônio sem foto aprovada grava a imagem nula, em vez de travar o carregamento.
+- [ADR-015 — Conta do professor fora do convite](docs/adr/015-professor-account.md) — aceito em 2026-11-17: a conta do professor, e só ela, é criada pela pessoa no painel do Supabase de produção, e não por convite. Todo outro cadastro continua só por convite.
 - [Insumo do ADR](stacks_H.md) — documento de trabalho, congelado antes de o PRD entrar. Não copie nada dele.
 
 ## Para agentes

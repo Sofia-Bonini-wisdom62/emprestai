@@ -15,7 +15,8 @@ A régua do RN-02 da spec 002: nenhuma foto com pessoa, marca ou logo legível, 
 |---|---|
 | Pessoa ou parte de uma pessoa, como mão, braço, rosto, silhueta ou reflexo de alguém | Reprova |
 | Marca ou logo legível, no aparelho, na caixa, num adesivo ou ao fundo | Reprova |
-| Texto legível: etiqueta, papel, livro, tela com letras e as letras das teclas que dá para ler | Reprova |
+| Texto legível: etiqueta, papel, livro e tela com letras | Reprova |
+| Letra de tecla de teclado, mesmo legível | Passa: não conta como texto (decisão da pessoa de 2026-11-17, "Não conta, teclado passa"). Marca e logo continuam reprovando, pela linha acima |
 | Tela com conteúdo: interface, janela, página, código, imagem ou vídeo | Reprova |
 | Tela apagada ou preta, sem reflexo legível | Passa |
 | Marca, logo ou texto desfocado a ponto de não dar para ler | Passa, com o motivo dizendo que não se lê |
@@ -28,10 +29,10 @@ A licença do Pixabay também lembra que marca, logo ou pessoa reconhecível pod
 
 - Aprovada: "notebook fechado sobre mesa de madeira, sem logo nem texto legível".
 - Aprovada: "monitor desligado, tela preta, base sem marca legível".
+- Aprovada: "notebook aberto com a tela apagada, letras das teclas legíveis, sem marca nem logo".
 - Reprovada: "mão de uma pessoa no teclado".
 - Reprovada: "tela ligada com uma planilha".
 - Reprovada: "logo do fabricante legível na tampa".
-- Reprovada: "letras das teclas legíveis em primeiro plano".
 
 ## Depois da revisão do agente
 

@@ -1,7 +1,7 @@
 # 001 — Login
 
 Status: aprovada
-Atualizada em: 2026-11-11
+Atualizada em: 2026-11-17
 
 ## Objetivo
 
@@ -10,14 +10,16 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 ## Vínculo
 
 - PRD: `docs/PRD.md`, seção "O que precisa existir na primeira versão", item 1, com as respostas 5, 5b, 6, 15 e 22 a 32 de `docs/perguntas-prd.md`.
-- Restringe: `docs/adr/001-stack.md`, seções 2.6, 2.7, 2.8 e 2.10, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/002-design-system.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/006-dev-auth.md`; `docs/adr/007-production-deploy-cli.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/010-audit-from-loans.md`; e o `docs/adr/008-email-provider.md`, ainda Proposto até a conferência da seção 7 dele, que a pessoa decidiu não esperar para aprovar esta spec. Aparência: `docs/layout.md`, seções 5, 6 (telas 1 e 7), 8, 9 e 11.
+- Restringe: `docs/adr/001-stack.md`, seções 2.6, 2.7, 2.8 e 2.10, com as correções do `docs/adr/003-stack-corrections.md`; `docs/adr/002-design-system.md`; `docs/adr/004-environments.md`; `docs/adr/005-first-tenant-name.md`; `docs/adr/006-dev-auth.md`; `docs/adr/007-production-deploy-cli.md`; `docs/adr/009-production-first-admin.md`; `docs/adr/010-audit-from-loans.md`; `docs/adr/015-professor-account.md`, na exceção do RN-01; e o `docs/adr/008-email-provider.md`, ainda Proposto até a conferência da seção 7 dele, que a pessoa decidiu não esperar para aprovar esta spec. Aparência: `docs/layout.md`, seções 5, 6 (telas 1 e 7), 8, 9 e 11.
 - Assume pronto: nada. O andar zero e o ADR-006 aceito já estão na `main`.
 
 ## Regras
 
 "Decisão de 2026-11-11" é a resposta da pessoa às propostas do rascunho desta spec, dada em duas rodadas no mesmo dia. "Revisão da T-05" é a resposta dela, também em 2026-11-11, aos quatro pontos que o PR #26 deixou para decidir. "Revisão da T-07" é a resposta dela, no mesmo dia, às oito decisões que o PR #33 deixou abertas.
 
-- RN-01 — A conta só nasce por convite, sem cadastro aberto, sem tela para convidar e sem tabela de convite no emprestai. Origem: ADR-001, 2.7; resposta 5.
+"Registro de 2026-11-17" é a resposta da pessoa ("Sim, registra na spec"), repassada pela sessão de coordenação, à pergunta se as escolhas da T-04 e da T-13 entram aqui como regra. Elas já estavam no código, e nenhuma regra as dizia. São os RN-63 e RN-64. No mesmo dia, a pessoa escolheu resolver por um ADR novo ("ADR novo com a exceção") o conflito entre o RN-01 e a conta do professor, e o ADR-015 abre a exceção.
+
+- RN-01 — A conta só nasce por convite, sem cadastro aberto, sem tela para convidar e sem tabela de convite no emprestai. A única exceção é a conta do professor, que a pessoa cria no painel do Supabase de produção (ADR-015; spec 003, RN-13). Origem: ADR-001, 2.7; resposta 5; ADR-015.
 - RN-02 — Em produção, o convite é feito no painel do Supabase e chega por e-mail, pelo SMTP do ADR-008. Origem: respostas 5 e 22; ADR-008.
 - RN-03 — No dev, o convite sai por `auth.admin.generateLink`, sem e-mail, e o primeiro administrador vem do seed. Origem: resposta 5; ADR-006, seção 2.
 - RN-04 — Em produção, um passo do workflow, depois do `prisma migrate deploy`, cria a `default` e dá o papel de Operações à conta do secret `FIRST_ADMIN_EMAIL`, sem SQL à mão. Origem: resposta 5b; ADR-009.
@@ -79,6 +81,8 @@ Quem foi convidado entra no emprestai com e-mail e senha e cai na tela do seu pa
 - RN-60 — Em `/forgot-password`, o pedido de redefinição que falha por outro motivo que não o limite de tentativas, como a rede ou o servidor fora do ar, mostra "Não foi possível enviar agora. Tente de novo em instantes.", e o formulário continua na tela. Origem: revisão da T-10; decisão de 2026-11-11.
 - RN-61 — A CSP sem `unsafe-inline` e sem `unsafe-eval` vale no build de produção, no Preview e no E2E. Só o `next dev` ganha `'unsafe-eval'` no `script-src` e `'unsafe-inline'` no `style-src`, que o modo de desenvolvimento do Next exige. Origem: ADR-001, 2.10; revisão da T-12; decisão de 2026-11-12.
 - RN-62 — Toda resposta leva os cabeçalhos fixos `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, `Cross-Origin-Opener-Policy: same-origin` e `Strict-Transport-Security: max-age=63072000`, este sem `includeSubDomains` nem `preload`, porque o domínio é um `vercel.app` que o projeto não controla. Origem: ADR-001, 2.10; revisão da T-12; decisão de 2026-11-12.
+- RN-63 — O nome da área `default` é igual ao slug, `default`. O seed do dev e o passo do ADR-009 gravam a área pela mesma constante (`prisma/default-tenant.ts`), e o `ca_24` de `prisma/first-admin.test.ts` confere o nome. A senha da conta do seed vem da variável `SEED_PASSWORD`, que no dev só existe no `.env.local`. O seed não traz senha escrita e falha sem a variável ou com menos de 6 caracteres (`prisma/seed.ts`). O `ca_13` de `e2e/seed.e2e.ts` roda o seed com a senha da pilha do E2E, e o `ca_08` da spec 003 (`prisma/no-secrets.test.ts`) confere que a única senha do seed vem da variável. Origem: T-04; ADR-005, seção 6, que deixou o formato do nome de fora; registro de 2026-11-17.
+- RN-64 — Sem o secret `FIRST_ADMIN_EMAIL`, o passo do ADR-009 garante a `default`, avisa no log e termina com sucesso, sem gravar vínculo: o deploy segue, e a rodada que já tiver o secret completa. Com mais de uma conta do Auth com o e-mail do secret, o passo falha e não grava vínculo; a `default` já foi garantida antes (`prisma/first-admin.ts`). O `adr_009` de `prisma/first-admin.test.ts` prova o caso sem o secret, e os casos `ca_24` do mesmo arquivo, a conta que existe e a que não existe. O caso de mais de uma conta não tem teste. Origem: T-13; ADR-009; registro de 2026-11-17.
 
 ## Critérios de aceitação
 

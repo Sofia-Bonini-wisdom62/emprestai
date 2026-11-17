@@ -1,7 +1,7 @@
 # 002 — Imagens dos equipamentos
 
 Status: aprovada
-Atualizada em: 2026-11-13
+Atualizada em: 2026-11-17
 
 ## Objetivo
 
@@ -55,10 +55,12 @@ O que a troca não detalha é recomendação do PR de documento da troca e vale 
 
 O resto da lista acima vale com a aprovação do PR.
 
+"Decisão de 2026-11-17" é a resposta da pessoa ("Não conta, teclado passa"), repassada pela sessão de coordenação, à pergunta que o PR #65 deixou para ela antes da T-07: se letra de tecla legível num teclado conta como texto e reprova a foto. Não conta (RN-02). A régua de `references/visual-review.md` diz o mesmo.
+
 O que a documentação do Pixabay diz está no ADR-011, seção 1.2.
 
 - RN-01 — As imagens vêm só da API do Pixabay, com a chave da pessoa: a busca em `https://pixabay.com/api/` e o arquivo do `largeImageURL` de um resultado dela, em `pixabay.com` ou `cdn.pixabay.com`. Nenhuma outra origem de imagem. A busca pede só fotos (`image_type=photo`) na horizontal (`orientation=horizontal`). De cada resultado, ela guarda o id, a página da foto (`pageURL`), o autor (`user` e `user_id`), as tags e o `largeImageURL`; as tags servem à escolha e não vão para o manifesto. Origem: troca de 2026-11-13, que substitui o Pexels do contrato da Entrega 2, "Fonte". Os hosts são os dos exemplos da documentação da API, lida em 2026-11-13: a busca e o `largeImageURL` em `pixabay.com`, e o `previewURL` em `cdn.pixabay.com`.
-- RN-02 — Nenhuma foto com pessoa, marca ou logo legível, texto ou tela com conteúdo chega ao sistema. Tela apagada passa; interface, texto ou logo legível reprova; na dúvida, reprova. Quem garante é a revisão visual, primeiro do agente, foto a foto, e depois da pessoa, na folha de contato. Origem: contrato, "Direito de imagem"; decisão de 2026-11-11.
+- RN-02 — Nenhuma foto com pessoa, marca ou logo legível, texto ou tela com conteúdo chega ao sistema. Tela apagada passa; interface, texto ou logo legível reprova; na dúvida, reprova. Letra de tecla de teclado não conta como texto e passa: reprovam texto de tela, etiqueta, marca e logo (decisão de 2026-11-17, "Não conta, teclado passa"). Quem garante é a revisão visual, primeiro do agente, foto a foto, e depois da pessoa, na folha de contato. Origem: contrato, "Direito de imagem"; decisão de 2026-11-11; decisão de 2026-11-17.
 - RN-03 — Toda imagem é um JPEG de exatamente 800×600, sem orientação EXIF diferente de 1.
   - O download baixa o `largeImageURL`, que tem até 1280 px no lado maior.
   - O `sharp` gera o arquivo: aplica a orientação EXIF, reduz e recorta pelo centro até 800×600, sem ampliar, e grava um JPEG baseline com qualidade 80 (escolhas do #56), sem metadados.

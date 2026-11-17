@@ -1,7 +1,7 @@
 # 004 — Solicitar empréstimo
 
 Status: implementada
-Atualizada em: 2026-11-16
+Atualizada em: 2026-11-17
 
 ## Objetivo
 
@@ -29,6 +29,8 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 
 "Decisão de 2026-11-16" é a resposta da pessoa ("Aprovo os dois") à proposta do agente de RN-29 e CA-18, depois de ela decidir seguir sem imagem por enquanto ("segue sem imagem por enquanto"). O CA-08 passa a valer quando a base das fotos está preenchida.
 
+"Decisão de 2026-11-17" é a resposta da pessoa ("Não é rodapé, fica"), repassada pela sessão de coordenação, à pergunta se o crédito abaixo do grid do catálogo conta como o rodapé da página que a resposta 47 tirou. Não conta, e o crédito fica (RN-14). Nenhum comportamento muda.
+
 ## Regras
 
 - RN-01 — Solicitar cria o empréstimo na hora, sem aprovação de Operações nem fila. A retirada é física, no balcão de Operações, sem estado no sistema. Origem: resposta 2; briefing, "Decisão já tomada para a turma".
@@ -54,7 +56,7 @@ O colaborador logado vê o catálogo com as fotos, solicita um equipamento dispo
 - RN-11 — Cada equipamento é uma unidade física, identificada pelo patrimônio. Origem: resposta 1.
 - RN-12 — O catálogo (`/catalog`) lista os equipamentos da área da sessão. Cada card mostra a foto em 4:3 no topo, o nome, a linha "categoria · patrimônio" e a pill da situação; o ícone da categoria só aparece em equipamento sem imagem. Origem: briefing, item 1; respostas 12 e 46; `docs/layout.md`, seção 5, card de equipamento.
 - RN-13 — A última linha do card segue o `docs/layout.md`: "Ver e solicitar" no disponível; "Com <nome>" e "Volta até dd/mm" no emprestado; "Em manutenção" no item em manutenção, que aparece sem a opção de pedir. Origem: respostas 14, 16 e 47.
-- RN-14 — A página do catálogo e a do detalhe mostram "Fotos: Pixabay", com link para `https://pixabay.com`. Origem: contrato da skill, "Crédito na tela"; decisão da pessoa de 2026-11-11, registrada na spec 002, "Fora de escopo", de manter o crédito; resposta 47; decisão da pessoa de 2026-11-13 ("Confirmo a troca"), tomada depois de o Pexels pausar a emissão de chaves, que troca a fonte das fotos do Pexels pelo Pixabay e, com ela, o texto e o link do crédito. As fotos continuam servidas do nosso bucket, nunca do Pixabay, então a CSP do RN-26 não muda. Contraria o item 9 do briefing ("sem rodapé nem texto de crédito").
+- RN-14 — A página do catálogo e a do detalhe mostram "Fotos: Pixabay", com link para `https://pixabay.com`. Origem: contrato da skill, "Crédito na tela"; decisão da pessoa de 2026-11-11, registrada na spec 002, "Fora de escopo", de manter o crédito; resposta 47; decisão da pessoa de 2026-11-13 ("Confirmo a troca"), tomada depois de o Pexels pausar a emissão de chaves, que troca a fonte das fotos do Pexels pelo Pixabay e, com ela, o texto e o link do crédito. As fotos continuam servidas do nosso bucket, nunca do Pixabay, então a CSP do RN-26 não muda. Contraria o item 9 do briefing ("sem rodapé nem texto de crédito"). O crédito fica abaixo do grid, no catálogo, e abaixo da foto, no detalhe (`docs/layout.md`, seção 6), e não é o rodapé da página que a resposta 47 tirou (decisão de 2026-11-17, "Não é rodapé, fica").
 - RN-15 — Solicitar fica no detalhe (`/catalog/[equipmentId]`), no card "Solicitar empréstimo", que mostra "Devolver até dd/mm/aaaa" e "Retire no balcão de Operações". O pedido passa por um diálogo de confirmação com a data prevista, o local e a contagem resultante ("depois deste, você fica com N de 3 itens"). O detalhe mostra a foto na área de imagem, o nome, a pill, a categoria e o patrimônio. Origem: `docs/layout.md`, seção 6, tela 3, e seção 7.1; respostas 44 e 46.
 - RN-16 — Item que não está disponível mostra a situação no lugar do botão: "Com <nome> · volta até dd/mm/aaaa" no emprestado e "Em manutenção. Não pode ser pedido agora." no item em manutenção. No limite ou com atraso, o botão fica desabilitado com o motivo do RN-10 ao lado. Origem: `docs/layout.md`, seção 6, tela 3; respostas 14 e 16.
 - RN-17 — Depois de confirmar, a pessoa vai para `/my-loans`, com o aviso de resultado "Empréstimo confirmado. Retire o item no balcão de Operações e devolva até dd/mm/aaaa.". A data vem na URL, e o aviso só aparece se a pessoa tem um empréstimo em aberto com essa data prevista; outra data na URL não mostra nada. Origem: `docs/layout.md`, seção 7.1; resposta 44; decisão de 2026-11-12; decisão da verificação, de 2026-11-13.
