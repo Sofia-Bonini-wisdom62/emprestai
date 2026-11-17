@@ -4,6 +4,13 @@ O roteiro que mostra que o `verificador-spec` reprova o que deve reprovar e não
 primeira spec com `tasks.md` todo em `[x]`, antes da rodada que vale, e de novo sempre que o arquivo do agente
 ou os hooks mudarem.
 
+> **Encerrado em 2026-11-17.** A pessoa decidiu, nestas palavras, "Sim, encerra": o roteiro para aqui, e a
+> prova com erro plantado que vale é a de
+> [`docs/specs/004-loan-request/prova-erro-plantado.md`](specs/004-loan-request/prova-erro-plantado.md)
+> (PR #64), que é a que o enunciado da prática pede. Das cinco provas abaixo, a 1 chegou a ter uma rodada e a
+> 2 foi plantada, as duas numa branch local que foi apagada sem ir ao GitHub; a 3, a 4 e a 5 não foram feitas.
+> O texto abaixo fica como registro do roteiro, e não como passo a cumprir.
+
 ## Antes de começar
 
 - Árvore limpa (`git status --short` vazio) e Docker de pé.
