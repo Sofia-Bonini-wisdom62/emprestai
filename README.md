@@ -25,7 +25,7 @@ Comandos para instalar, subir o banco e rodar: [AGENTS.md, seção 8](AGENTS.md)
 
 ## Decisões
 
-O status de cada ADR é o da linha de Status do próprio arquivo, lida em 2026-11-16.
+O status de cada ADR é o da linha de Status do próprio arquivo, lida em 2026-11-17.
 
 - [ADR-001 — Stack da aplicação](docs/adr/001-stack.md) — aceito em 2026-10-02. O texto é o de 2026-09-14; as correções estão no ADR-003.
 - [ADR-002 — Sistema de design](docs/adr/002-design-system.md) — aceito em 2026-11-11: só escuro, índigo, Geist, densidade arejada.

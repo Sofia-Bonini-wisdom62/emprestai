@@ -93,7 +93,7 @@ Só o que os testes provam: o `pnpm test`, no Testcontainers, e, para o CA-07, q
     - aplicar à mão a mudança do workflow de produção, a partir do texto que o agente prepara;
     - conferir no painel de produção que Add user cria conta com senha e e-mail confirmado, e criar a conta do professor (resposta 35);
   - a conferência em produção, feita pela pessoa com uma conta dela, deixando a do professor intacta:
-    - a conta do professor entra no link da Vercel com a senha padrão da turma;
+    - a conta do professor entra no link da Vercel com a senha padrão da turma (pela decisão de 2026-11-17, ninguém faz este login antes da correção; ADR-015, seções 4 e 6);
     - os 12 equipamentos existem no banco do deploy, e TI-0004, TI-0007 e TI-0010 em manutenção;
     - cada um com a sua imagem, e as imagens abrem pela URL pública, sem login, todas em 800×600. Pela decisão de 2026-11-16, este item fica pendente até a T-07 da spec 002 e o envio das fotos, e o "Ao final, em produção" da Entrega 3 fica incompleto até lá, o que vai para o `ENTREGA.md`, seção 8;
     - repetir o deploy não duplicou nada;

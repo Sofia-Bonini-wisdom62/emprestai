@@ -19,9 +19,8 @@ Ao iniciar uma funcionalidade que ainda não tem pasta em `docs/specs/`.
 3. Antes de pedir a aprovação de uma spec que depende de um ADR com Status
    Proposto, confira cada item do "Antes de aceitar" desse ADR e diga na
    resposta o que está feito e o que falta. Com item aberto que só a pessoa
-   resolve (chave, conta, painel), PARE e pergunte antes de planejar tarefa
-   que dependa dele. Decisão da pessoa em 2026-11-17, depois da chave do
-   Pexels, que não existia.
+   resolve (chave, conta, painel), PARE e pergunte. Decisão da pessoa em
+   2026-11-17, depois da chave do Pexels, que não existia.
 4. `plan.md`, na mesma pasta, sai da spec: o **como** desta funcionalidade —
    caminho, ordem, risco — citando a seção dos ADRs que a restringem, sem
    recopiar a decisão.
