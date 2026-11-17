@@ -1,6 +1,6 @@
 # 003 — Dados iniciais
 
-Status: aprovada
+Status: implementada
 Atualizada em: 2026-11-16
 
 ## Objetivo
