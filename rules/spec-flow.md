@@ -16,12 +16,17 @@ Ao iniciar uma funcionalidade que ainda não tem pasta em `docs/specs/`.
    passa de rascunho.
 2. Crie `docs/specs/<NNN-nome-curto>/spec.md`: o **quê** — regras RN-xx e
    critérios CA-xx. `NNN` é o próximo livre; formato em `docs/specs/README.md`.
-3. `plan.md`, na mesma pasta, sai da spec: o **como** desta funcionalidade —
+3. Antes de pedir a aprovação de uma spec que depende de um ADR com Status
+   Proposto, confira cada item do "Antes de aceitar" desse ADR e diga na
+   resposta o que está feito e o que falta. Com item aberto que só a pessoa
+   resolve (chave, conta, painel), PARE e pergunte. Decisão da pessoa em
+   2026-11-17, depois da chave do Pexels, que não existia.
+4. `plan.md`, na mesma pasta, sai da spec: o **como** desta funcionalidade —
    caminho, ordem, risco — citando a seção dos ADRs que a restringem, sem
    recopiar a decisão.
-4. `tasks.md`, na mesma pasta, sai do plano: uma linha `[ ]` por tarefa, cada
+5. `tasks.md`, na mesma pasta, sai do plano: uma linha `[ ]` por tarefa, cada
    uma citando um CA-xx e do tamanho de um commit.
-5. Marque `[x]` em `tasks.md` só depois de `rules/checks.md` passar. O ritmo
+6. Marque `[x]` em `tasks.md` só depois de `rules/checks.md` passar. O ritmo
    de execução é o de `rules/restrictions.md`, seção Ritmo.
 
 ## Antes de declarar uma spec pronta
