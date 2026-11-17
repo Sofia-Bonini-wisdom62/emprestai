@@ -46,6 +46,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
     "prisma": "7.10.1",
+    "sharp": "0.35.5",
     "tailwindcss": "^4",
     "testcontainers": "12.2.1",
     "typescript": "^5",

@@ -25,7 +25,9 @@ Não há router, service nem tela nesta spec. O catálogo é da spec 004.
    - valida o conjunto inteiro antes de gravar (RN-08);
    - numa transação, garante as cinco categorias e cria ou atualiza os equipamentos na `default` (RN-05 e RN-07).
 
-   Vem antes dos pontos de entrada, que só o chamam. Ele reusa o formato e a conferência do manifesto da spec 002 (T-03 da 002), em vez de repetir a regra de "foto aprovada". Os testes usam a lista real de `prisma/data/equipment.json` e um manifesto fictício, com fotógrafos fictícios (spec 002, RN-11), porque o manifesto aprovado ainda não existe.
+   Vem antes dos pontos de entrada, que só o chamam. Ele reusa o formato e a conferência do manifesto da spec 002 (T-03 da 002), em vez de repetir a regra de "foto aprovada". Os testes usam um manifesto fictício, com fotógrafos fictícios (spec 002, RN-11), porque o manifesto aprovado ainda não existe.
+
+   **Mudança de 2026-11-16, aprovada pela pessoa ("Aprovo"):** a T-02 sai antes de `prisma/data/equipment.json` existir (T-06 da spec 002). Os testes usam uma lista fictícia, no formato da lista da prática (`patrimonio`, `nome`, `categoria`, `situacao`, `busca`), sem copiar os 12, para a lista continuar com uma fonte só (spec 002, RN-10). Fica de fora a parte do CA-01 que pede os 12 reais. A T-02 só ganha `[x]` quando o arquivo estiver na `main` e um caso `ca_01` sobre ele passar, num commit pequeno. A área é um parâmetro do módulo, com `default` como padrão, como o `enterAccount` da spec 001: os testes usam uma área própria, porque o `first-admin.test.ts` cria e apaga a `default` no mesmo banco.
 3. **Script do passo de produção.** Lê `DIRECT_URL` do ambiente, como o `prisma/first-admin.ts`. A exceção que o ADR-013 cita ainda não está escrita: `rules/secrets.md` a ganha nesta mesma tarefa, ao lado da do ADR-009. Lê os dois arquivos, chama o módulo e escreve no log só as contagens. Aceita os caminhos dos arquivos como argumentos, com os de `prisma/data/` por padrão, para o teste rodá-lo com o manifesto fictício, do jeito que o `first-admin.test.ts` roda o script dele. A conferência do CA-08 entra aqui: e-mail e senha nos arquivos de `prisma/`. A tarefa entrega também o texto do passo novo do `.github/workflows/production.yml`, depois de "Garante a área default e o primeiro administrador", só com o `DIRECT_URL`. A pessoa aplica o texto à mão, no momento do passo 5 (`rules/restrictions.md`, Escopo).
 4. **Seed do dev.** O `prisma/seed.ts` chama o módulo depois da área `default` e da conta de Flávia Rocha. O CA-07 é provado no `pnpm test:e2e`, junto do `ca_13` de `e2e/seed.e2e.ts`, porque o Vitest não sobe o Auth. Pela decisão de 2026-11-16, não espera mais o manifesto aprovado (spec 002, T-07): sem ele, o seed grava os 12 com a imagem nula.
 5. **Passo do workflow, pela pessoa.** Não é tarefa do agente nem tem CA próprio: o agente entrega o texto na T-03, e o passo só roda o script que o CA-09 prova. A pessoa o aplica à mão por último, porque:
@@ -36,6 +38,24 @@ Fora desta ordem, a pessoa:
 - envia as fotos pelo roteiro da spec 002 antes do passo 5;
 - confere no painel o "Add user" e cria a conta do professor, a qualquer momento (resposta 35);
 - depois do primeiro deploy com o passo, faz a conferência em produção da spec, com uma conta dela, e repete o deploy para provar que nada duplica.
+
+### Texto do passo 5, entregue na T-03
+
+Para a pessoa pôr, à mão, no `.github/workflows/production.yml`, entre o passo "Garante a área default e o primeiro administrador" e o passo "Publica a produção na Vercel". O recuo é o dos outros passos do arquivo, com seis espaços:
+
+```yaml
+      # Categorias e equipamentos iniciais na área default (ADR-013 e ADR-014). Roda a cada
+      # deploy, depois do passo do ADR-009, que cria a default: cria o que falta e, no que já
+      # existe, só troca a imagem. Dado inválido em prisma/data/ falha o passo, e o deploy não
+      # sai. Reexecutar uma rodada antiga regrava a imagem com o manifesto daquele commit; o
+      # deploy seguinte da main corrige. O secret só existe neste passo.
+      - name: Carrega as categorias e os equipamentos iniciais
+        run: node --import ./prisma/resolve-ts.mjs prisma/load-equipment.ts
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+```
+
+O passo não pede secret novo. No log da rodada, ele escreve uma linha com as contagens: quantos equipamentos criou, quantos tiveram a imagem trocada e quantos estão sem foto.
 
 ## Risco
 

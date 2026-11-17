@@ -11,6 +11,9 @@ export const API_HOST = "pixabay.com";
 export const FILE_HOSTS: readonly string[] = Object.freeze(["pixabay.com", "cdn.pixabay.com"]);
 const SEARCH_URL = "https://pixabay.com/api/";
 
+// Os filtros fixos da busca (RN-01): só fotos, na horizontal. A busca guardada da T-05 os registra.
+export const SEARCH_FILTERS: Readonly<Record<string, string>> = Object.freeze({ image_type: "photo", orientation: "horizontal" });
+
 export type Fetch = (input: URL, init: RequestInit) => Promise<Response>;
 
 // O fetch de verdade fica aqui dentro, sem exportar: a rede só se alcança pelas funções abaixo,
@@ -100,8 +103,7 @@ export async function searchPhotos(
   const url = new URL(SEARCH_URL);
   url.searchParams.set("key", key.reveal());
   url.searchParams.set("q", query);
-  url.searchParams.set("image_type", "photo");
-  url.searchParams.set("orientation", "horizontal");
+  for (const [name, value] of Object.entries(SEARCH_FILTERS)) url.searchParams.set(name, value);
   url.searchParams.set("page", String(page));
   url.searchParams.set("per_page", String(perPage));
 

@@ -29,9 +29,21 @@ export type SeedRows = {
   users: { id: string; email: string }[];
   profiles: { id: string; name: string }[];
   memberships: { userId: string; role: string; tenant: { slug: string } }[];
+  // As categorias e os equipamentos dos dados iniciais na default (spec 003), sem os que os
+  // outros casos do E2E gravam.
+  categories: { id: string; name: string }[];
+  equipments: {
+    id: string;
+    assetTag: string;
+    name: string;
+    status: string;
+    imageObject: string | null;
+    category: { name: string };
+  }[];
 };
 
-// As linhas de área, conta, nome e vínculo, lidas pelo Prisma no seed-rows.ts.
+// As linhas de área, conta, nome e vínculo, e as dos dados iniciais, lidas pelo Prisma no
+// seed-rows.ts.
 export function readSeedRows(target: SeedTarget): SeedRows {
   const output = execFileSync(
     process.execPath,
